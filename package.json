@@ -1,0 +1,38 @@
+{
+  "name": "solvotel-client",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.1",
+    "@mui/material": "^7.3.1",
+    "@mui/x-data-grid": "^8.11.1",
+    "axios": "^1.11.0",
+    "dayjs": "^1.11.18",
+    "framer-motion": "^12.23.12",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.541.0",
+    "next": "15.5.0",
+    "nookies": "^2.5.2",
+    "number-to-words": "^1.2.4",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-hook-form": "^7.62.0",
+    "react-to-print": "^3.1.1",
+    "react-toastify": "^11.0.5",
+    "swr": "^2.3.6",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.0"
+  }
+}
