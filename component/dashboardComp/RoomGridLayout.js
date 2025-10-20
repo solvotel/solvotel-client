@@ -11,13 +11,20 @@ import {
   Chip,
   Paper,
   Card,
+  Button,
+  TextField,
 } from '@mui/material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { motion } from 'framer-motion';
-import { CalendarDays } from 'lucide-react';
+import { GetTodaysDate } from '@/utils/DateFetcher';
 
 const RoomGridLayout = ({ bookings, rooms }) => {
-  const [expandedIndex, setExpandedIndex] = useState(0); // track which accordion is open
+  const todaysDate = GetTodaysDate().dateString;
+  const [expandedIndex, setExpandedIndex] = useState(0);
+  const [startDate, setStartDate] = useState(todaysDate);
+  console.log(startDate);
 
   const handleAccordionChange = (index) => (event, isExpanded) => {
     setExpandedIndex(isExpanded ? index : false);
@@ -34,13 +41,25 @@ const RoomGridLayout = ({ bookings, rooms }) => {
 
   // 🔹 Generate 7 days from today
   const next7Days = useMemo(() => {
-    const today = new Date();
+    const today = new Date(startDate);
     return Array.from({ length: 7 }, (_, i) => {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       return date;
     });
-  }, []);
+  }, [startDate]);
+
+  const handlePrev = () => {
+    const prev = new Date(startDate);
+    prev.setDate(prev.getDate() - 7);
+    setStartDate(prev.toISOString().split('T')[0]);
+  };
+
+  const handleNext = () => {
+    const next = new Date(startDate);
+    next.setDate(next.getDate() + 7);
+    setStartDate(next.toISOString().split('T')[0]);
+  };
 
   // 🔹 For each date, compute filtered data
   const getDayWiseData = (selectedDate) => {
@@ -137,6 +156,23 @@ const RoomGridLayout = ({ bookings, rooms }) => {
 
   return (
     <Box p={3}>
+      <Box sx={{ mb: 1 }}>
+        <Button variant="contained" sx={{ minWidth: 0 }} onClick={handlePrev}>
+          <ChevronLeftIcon />
+        </Button>
+        <TextField
+          size="small"
+          label="📅 Select Date"
+          type="date"
+          InputLabelProps={{ shrink: true }}
+          sx={{ mx: 1 }}
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+        />
+        <Button variant="contained" sx={{ minWidth: 0 }} onClick={handleNext}>
+          <ChevronRightIcon />
+        </Button>
+      </Box>
       {next7Days.map((date, index) => {
         const {
           availableGrouped,

@@ -25,21 +25,19 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  FormControlLabel,
-  Switch,
   Grid,
+  Card,
+  CardContent,
+  CardActions,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import EventSeatIcon from '@mui/icons-material/EventSeat';
+import PersonIcon from '@mui/icons-material/Person';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { SuccessToast, WarningToast } from '@/utils/GenerateToast';
 
 import { Loader } from '@/component/common';
@@ -58,14 +56,14 @@ const Page = () => {
     endPoint: 'tables',
   });
 
-  const [search, setSearch] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  // Create/Edit dialog state
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData());
   const [editing, setEditing] = useState(false);
+
+  const [filterDate, setFilterDate] = useState(todaysDate);
 
   function initialFormData() {
     return {
@@ -77,29 +75,44 @@ const Page = () => {
     };
   }
 
-  // filter data by name
-  const filteredData = useMemo(() => {
+  // filter bookings by date
+  const filteredBookings = useMemo(() => {
     if (!data) return [];
-    return data.filter((item) =>
-      item.table_no?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [data, search]);
+    return data.filter((item) => item.date === filterDate);
+  }, [data, filterDate]);
 
-  // handle edit
+  // available tables = tables not booked on this date
+  const availableTables = useMemo(() => {
+    if (!tableList) return [];
+    const bookedTableNos = filteredBookings.map((b) => b.table_no);
+    return tableList.filter((t) => !bookedTableNos.includes(t.table_no));
+  }, [tableList, filteredBookings]);
+
+  // --- handlers ---
   const handleEdit = (row) => {
     setEditing(true);
     setFormData(row);
     setFormOpen(true);
   };
 
-  // handle create
   const handleCreate = () => {
     setEditing(false);
     setFormData(initialFormData());
     setFormOpen(true);
   };
 
+  const handleQuickBook = (tableNo) => {
+    setEditing(false);
+    setFormData({
+      ...initialFormData(),
+      table_no: tableNo,
+      date: filterDate,
+    });
+    setFormOpen(true);
+  };
+
   const handleSave = async () => {
+    // duplicate check
     const duplicate = data?.find(
       (item) =>
         item.date === formData.date &&
@@ -107,11 +120,13 @@ const Page = () => {
         item.table_no === formData.table_no &&
         (!editing || item.documentId !== formData.documentId)
     );
-
     if (duplicate) {
-      WarningToast(`Table  is already booked  for that slot.`);
-      return; // stop execution
+      WarningToast(
+        `⚠️ Table ${formData.table_no} is already booked for that slot.`
+      );
+      return;
     }
+
     if (editing) {
       const {
         id,
@@ -130,7 +145,7 @@ const Page = () => {
           data: updateBody,
         },
       });
-      SuccessToast('Booking updated successfully');
+      SuccessToast('✅ Booking updated successfully');
     } else {
       await CreateNewData({
         auth,
@@ -139,12 +154,11 @@ const Page = () => {
           data: formData,
         },
       });
-      SuccessToast('Booking created successfully');
+      SuccessToast('🎉 Booking created successfully');
     }
     setFormOpen(false);
   };
 
-  // handle delete
   const handleDeleteClick = (row) => {
     setSelectedRow(row);
     setDeleteOpen(true);
@@ -156,7 +170,7 @@ const Page = () => {
       endPoint: 'table-bookings',
       id: selectedRow.documentId,
     });
-    SuccessToast('Booking deleted successfully');
+    SuccessToast('🗑️ Booking deleted successfully');
     setDeleteOpen(false);
     setSelectedRow(null);
   };
@@ -168,34 +182,32 @@ const Page = () => {
 
   return (
     <>
-      <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          aria-label="breadcrumb"
-        >
+      <Box sx={{ px: 3, py: 2, backgroundColor: '#f4f6f8' }}>
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
           <Link underline="hover" color="inherit" href="/">
             Dashboard
           </Link>
-          <Typography color="text.primary">Table Bookings</Typography>
+          <Typography color="text.primary">Restaurant Bookings</Typography>
         </Breadcrumbs>
       </Box>
-      {!data ? (
+
+      {!data || !tableList ? (
         <Loader />
       ) : (
         <Box p={3}>
-          {/* Header Section */}
+          {/* Top Filters */}
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
-            mb={2}
+            mb={3}
           >
             <TextField
               size="small"
-              label="Search by table no"
-              variant="outlined"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              label="📅 Select Date"
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
             />
             <Button
               variant="contained"
@@ -203,39 +215,101 @@ const Page = () => {
               sx={{ borderRadius: 2, textTransform: 'none' }}
               onClick={handleCreate}
             >
-              Create New
+              Create Booking
             </Button>
           </Box>
 
-          {/* Data Table */}
-          <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                  {['Date', 'Time', 'Table No', 'Guest', 'Actions'].map(
-                    (item, index) => (
-                      <TableCell key={index} sx={{ fontWeight: 'bold' }}>
-                        {item}
-                      </TableCell>
-                    )
-                  )}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredData?.map((row) => (
-                  <TableRow key={row.documentId}>
-                    <TableCell>{GetCustomDate(row.date)}</TableCell>
-                    <TableCell>{row.time}</TableCell>
-                    <TableCell>{row.table_no}</TableCell>
-                    <TableCell>{row.guest}</TableCell>
-                    <TableCell sx={{ width: '100px' }}>
+          {/* Available Tables */}
+          <Typography variant="h6" gutterBottom>
+            🎉Tables
+          </Typography>
+          <Grid container spacing={2} mb={4}>
+            {tableList.length > 0 ? (
+              tableList.map((table) => (
+                <Grid size={{ xs: 12, sm: 6, md: 2 }} key={table.documentId}>
+                  <Card
+                    sx={{ borderRadius: 3, boxShadow: 3, bgcolor: '#e8f5e9' }}
+                  >
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        <EventSeatIcon sx={{ mr: 1, color: 'green' }} />
+                        Table {table.table_no}
+                      </Typography>
+                      <Chip
+                        label="Available"
+                        color="success"
+                        size="small"
+                        sx={{ mt: 1 }}
+                      />
+                    </CardContent>
+                    <CardActions>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleQuickBook(table.table_no)}
+                      >
+                        Book Now
+                      </Button>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))
+            ) : (
+              <Box width="100%" textAlign="center" py={3}>
+                <Typography variant="body1" color="text.secondary">
+                  No available tables on {GetCustomDate(filterDate)}
+                </Typography>
+              </Box>
+            )}
+          </Grid>
+
+          {/* Bookings */}
+          <Typography variant="h6" gutterBottom>
+            📅 Bookings on {GetCustomDate(filterDate)}
+          </Typography>
+          <Grid container spacing={2}>
+            {filteredBookings.length > 0 ? (
+              filteredBookings.map((row) => (
+                <Grid size={{ xs: 12, sm: 6, md: 2 }} key={row.documentId}>
+                  <Card
+                    sx={{ borderRadius: 3, boxShadow: 3, bgcolor: '#fff3e0' }}
+                  >
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        <EventSeatIcon sx={{ mr: 1, color: '#ff9800' }} />
+                        Table {row.table_no}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+                      >
+                        <CalendarMonthIcon fontSize="small" sx={{ mr: 1 }} />{' '}
+                        {GetCustomDate(row.date)}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+                      >
+                        <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />{' '}
+                        {row.time}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{ display: 'flex', alignItems: 'center' }}
+                      >
+                        <PersonIcon fontSize="small" sx={{ mr: 1 }} />{' '}
+                        {row.guest}
+                      </Typography>
+                    </CardContent>
+                    <CardActions>
                       <Tooltip title="Edit">
                         <IconButton
                           color="primary"
                           onClick={() => handleEdit(row)}
                           size="small"
                         >
-                          <EditIcon fontSize="inherit" />
+                          <EditIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
@@ -244,35 +318,29 @@ const Page = () => {
                           onClick={() => handleDeleteClick(row)}
                           size="small"
                         >
-                          <DeleteIcon fontSize="inherit" />
+                          <DeleteIcon />
                         </IconButton>
                       </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredData?.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      No Booking found
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))
+            ) : (
+              <Box width="100%" textAlign="center" py={3}>
+                <Typography variant="body1" color="text.secondary">
+                  No bookings found for this date
+                </Typography>
+              </Box>
+            )}
+          </Grid>
 
           {/* Delete Confirmation Dialog */}
-          <Dialog
-            open={deleteOpen}
-            onClose={handleCancelDelete}
-            aria-labelledby="delete-dialog-title"
-          >
-            <DialogTitle id="delete-dialog-title">Delete Booking</DialogTitle>
+          <Dialog open={deleteOpen} onClose={handleCancelDelete}>
+            <DialogTitle>Delete Booking</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                Are you sure you want to delete
-                <strong>{selectedRow?.name}</strong>? This action cannot be
-                undone.
+                Are you sure you want to delete booking for{' '}
+                <strong>Table {selectedRow?.table_no}</strong>?
               </DialogContentText>
             </DialogContent>
             <DialogActions>
@@ -295,24 +363,21 @@ const Page = () => {
             fullWidth
           >
             <DialogTitle>
-              {editing ? 'Edit Expense' : 'Create Expense'}
+              {editing ? '✏️ Edit Booking' : '➕ Create Booking'}
             </DialogTitle>
             <DialogContent>
               <Grid container spacing={2} sx={{ mb: 2 }}>
-                {/* Category */}
-                <Grid size={{ xs: 12 }}>
+                <Grid size={12}>
                   <TextField
                     select
                     margin="dense"
                     label="Table No"
                     fullWidth
                     value={formData.table_no || ''}
-                    onChange={(e) => {
-                      setFormData({ ...formData, table_no: e.target.value });
-                    }}
-                    SelectProps={{
-                      native: true,
-                    }}
+                    onChange={(e) =>
+                      setFormData({ ...formData, table_no: e.target.value })
+                    }
+                    SelectProps={{ native: true }}
                   >
                     <option value="">-- Select --</option>
                     {tableList?.map((cat) => (
@@ -345,9 +410,7 @@ const Page = () => {
                     }
                   />
                 </Grid>
-
-                {/* Name */}
-                <Grid size={{ xs: 12 }}>
+                <Grid size={12}>
                   <TextField
                     margin="dense"
                     label="Guest Name"
@@ -360,7 +423,6 @@ const Page = () => {
                 </Grid>
               </Grid>
             </DialogContent>
-
             <DialogActions>
               <Button onClick={() => setFormOpen(false)}>Cancel</Button>
               <Button onClick={handleSave} variant="contained">
