@@ -133,38 +133,41 @@ const Page = () => {
               </TableHead>
               <TableBody>
                 {filteredData?.map((row) => {
-                  const totalRoomAmount = row?.room_tokens.reduce(
-                    (sum, r) => sum + (r.rate || 0),
+                  const totalRoomGst = row?.room_tokens.reduce(
+                    (sum, r) => sum + (parseFloat(r.gst) || 0),
                     0
                   );
-                  const totalServiceAmount = row?.service_billing.reduce(
-                    (sum, s) => sum + (s.rate || 0),
+                  const totalServiceGst = row?.service_tokens.reduce(
+                    (sum, s) => sum + (parseFloat(s.total_gst) || 0),
                     0
                   );
-                  const totalFoodAmount = row?.food_items.reduce(
-                    (sum, f) => sum + (f.rate || 0),
+                  const totalFoodGst = row?.food_tokens.reduce(
+                    (sum, f) => sum + (parseFloat(f.total_gst) || 0),
                     0
                   );
                   const payableRoomAmount = row?.room_tokens.reduce(
-                    (sum, r) => sum + (r.amount || 0),
+                    (sum, r) => sum + (parseFloat(r.amount) || 0),
                     0
                   );
-                  const payableServiceAmount = row?.service_billing.reduce(
-                    (sum, s) => sum + (s.amount || 0),
+                  const payableServiceAmount = row?.service_tokens.reduce(
+                    (sum, s) => sum + (parseFloat(s.total_amount) || 0),
                     0
                   );
-                  const payableFoodAmount = row?.food_items.reduce(
-                    (sum, f) => sum + (f.amount || 0),
+                  const payableFoodAmount = row?.food_tokens.reduce(
+                    (sum, f) => sum + (parseFloat(f.total_amount) || 0),
                     0
                   );
-                  const finalRate =
-                    totalFoodAmount + totalRoomAmount + totalServiceAmount;
-                  const payable =
+
+                  const finalGst =
+                    totalRoomGst + totalServiceGst + totalFoodGst;
+
+                  const finalTotalAmount =
                     payableRoomAmount +
                     payableServiceAmount +
                     payableFoodAmount;
 
-                  const gst = payable - finalRate;
+                  const finalRate = finalTotalAmount - finalGst;
+
                   return (
                     <TableRow key={row.documentId}>
                       <TableCell>{row.invoice_no}</TableCell>
@@ -173,8 +176,8 @@ const Page = () => {
                       </TableCell>
                       <TableCell>{row.customer_name}</TableCell>
                       <TableCell>{finalRate.toFixed(2)}</TableCell>
-                      <TableCell>{gst.toFixed(2)}</TableCell>
-                      <TableCell>{payable.toFixed(2)}</TableCell>
+                      <TableCell>{finalGst}</TableCell>
+                      <TableCell>{finalTotalAmount}</TableCell>
                       <TableCell>{row.mop}</TableCell>
                       <TableCell sx={{ width: '150px' }}>
                         <Tooltip title="View">
