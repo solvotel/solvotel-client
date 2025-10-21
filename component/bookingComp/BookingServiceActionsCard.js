@@ -58,14 +58,31 @@ export default function BookingServiceActionsCard({
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
 
-  const handleManageService = async (services) => {
-    const cleanedServiceItems = services.map(({ id, ...rest }) => rest);
+  // update service tokens
+  const handleManageService = async (service) => {
+    const prevServices = booking?.service_tokens || [];
     try {
       const res = await UpdateData({
         endPoint: 'room-bookings',
         auth,
         id: booking?.documentId,
-        payload: { data: { service_billing: cleanedServiceItems } },
+        payload: { data: { service_tokens: [...prevServices, service] } },
+      });
+      return res;
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  // update food tokens
+  const handleManageFood = async (food) => {
+    const prevFoods = booking?.food_tokens || [];
+    try {
+      const res = await UpdateData({
+        endPoint: 'room-bookings',
+        auth,
+        id: booking?.documentId,
+        payload: { data: { food_tokens: [...prevFoods, food] } },
       });
       return res;
     } catch (err) {
@@ -97,21 +114,6 @@ export default function BookingServiceActionsCard({
       payload: { data: { payment_tokens: cleanedPaymemtsItems } },
     });
     return res;
-  };
-
-  const handleManageFood = async (foods) => {
-    const cleanedFoodItems = foods.map(({ id, ...rest }) => rest);
-    try {
-      const res = await UpdateData({
-        endPoint: 'room-bookings',
-        auth,
-        id: booking?.documentId,
-        payload: { data: { food_items: cleanedFoodItems } },
-      });
-      return res;
-    } catch (err) {
-      console.log(err);
-    }
   };
 
   const handleCancelBooking = async () => {

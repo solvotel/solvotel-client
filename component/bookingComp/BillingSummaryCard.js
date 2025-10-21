@@ -4,47 +4,43 @@ import {
   Card,
   CardContent,
   Typography,
-  Button,
   Box,
+  Divider,
+  Grid,
   Table,
-  TableBody,
-  TableCell,
-  TableContainer,
   TableHead,
   TableRow,
-  Divider,
+  TableCell,
+  TableBody,
   Paper,
-  Grid,
 } from '@mui/material';
-
 import RoomIcon from '@mui/icons-material/MeetingRoom';
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 
 export default function BillingSummaryCard({ booking }) {
   const roomTokens = booking?.room_tokens || [];
-
-  const services = booking?.service_billing || [];
-
-  const foodItems = booking?.food_items || [];
+  const services = booking?.service_tokens || [];
+  const foodItems = booking?.food_tokens || [];
 
   // ---- Summary calculations ----
   const totalRoomAmount = roomTokens.reduce(
-    (sum, r) => sum + (r.amount || 0),
+    (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
     0
   );
   const totalServiceAmount = services.reduce(
-    (sum, s) => sum + (s.amount || 0),
+    (sum, s) => sum + (parseFloat(s.total_amount) || 0),
     0
   );
   const totalFoodAmount = foodItems.reduce(
-    (sum, f) => sum + (f.amount || 0),
+    (sum, f) => sum + (parseFloat(f.total_amount) || 0),
     0
   );
   const grandTotal = totalRoomAmount + totalServiceAmount + totalFoodAmount;
 
   return (
     <Card sx={{ borderRadius: 4, p: 2 }}>
+      {/* ---- Header Summary ---- */}
       <CardContent sx={{ mb: 3 }}>
         <Typography
           variant="h6"
@@ -53,6 +49,7 @@ export default function BillingSummaryCard({ booking }) {
         >
           📃 Billing Summary
         </Typography>
+
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 3 }}>
             <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#e3f2fd' }}>
@@ -60,20 +57,22 @@ export default function BillingSummaryCard({ booking }) {
                 Room Tokens
               </Typography>
               <Typography variant="h6" fontWeight="bold">
-                ₹ {totalRoomAmount}
+                ₹ {totalRoomAmount.toFixed(2)}
               </Typography>
             </Box>
           </Grid>
+
           <Grid size={{ xs: 12, md: 3 }}>
             <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#fff0f1' }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Services
               </Typography>
               <Typography variant="h6" fontWeight="bold">
-                ₹ {totalServiceAmount}
+                ₹ {totalServiceAmount.toFixed(2)}
               </Typography>
             </Box>
           </Grid>
+
           <Grid size={{ xs: 12, md: 3 }}>
             <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#f0fff4' }}>
               <Typography variant="subtitle2" color="text.secondary">
@@ -84,202 +83,186 @@ export default function BillingSummaryCard({ booking }) {
               </Typography>
             </Box>
           </Grid>
+
           <Grid size={{ xs: 12, md: 3 }}>
             <Box sx={{ p: 2, borderRadius: 2, bgcolor: '#fff8e1' }}>
               <Typography variant="subtitle2" color="text.secondary">
                 Grand Total
               </Typography>
               <Typography variant="h6" fontWeight="bold" color="primary.main">
-                ₹ {grandTotal}
+                ₹ {grandTotal.toFixed(2)}
               </Typography>
             </Box>
           </Grid>
         </Grid>
       </CardContent>
-      <CardContent sx={{ p: 0 }}>
-        {/* Room Tokens */}
 
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 1,
-          }}
-        >
-          <Box display="flex" alignItems="center" gap={1}>
-            <RoomIcon color="primary" />
-            <Typography
-              variant="subtitle1"
-              fontWeight="bold"
-              sx={{
-                background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              Room Tokens
-            </Typography>
-          </Box>
-          {/* <Button
-            size="small"
-            variant="contained"
-            color="success"
-            sx={{ textTransform: 'none', borderRadius: 3 }}
-          >
-            Room Invoice
-          </Button> */}
+      {/* ---- ROOM TOKENS TABLE ---- */}
+      <CardContent>
+        <Box display="flex" alignItems="center" gap={1} mb={1}>
+          <RoomIcon color="primary" />
+          <Typography variant="subtitle1" fontWeight="bold">
+            Room Tokens
+          </Typography>
         </Box>
-        <TableContainer component={Paper} sx={{ borderRadius: 3, mb: 3 }}>
-          <Table size="small">
-            <TableHead sx={{ bgcolor: '#f0f4ff' }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Room No</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-
-                <TableCell sx={{ fontWeight: 'bold' }}>Tariff</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>GST</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {roomTokens.map((r) => (
-                <TableRow key={r.id} hover>
-                  <TableCell>{r.room}</TableCell>
-                  <TableCell>{r.item}</TableCell>
-
-                  <TableCell>₹{r.rate}</TableCell>
-                  <TableCell>{r.gst}%</TableCell>
-                  <TableCell>₹{r.amount}</TableCell>
+        {roomTokens.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No room tokens found.
+          </Typography>
+        ) : (
+          <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell>
+                    <b>Room No</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Items</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>GST (₹)</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>Total (₹)</b>
+                  </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {roomTokens.map((room, index) => {
+                  return (
+                    <TableRow key={index}>
+                      <TableCell>{room.room || room.room_no}</TableCell>
+                      <TableCell>{room.item}</TableCell>
+                      <TableCell align="right">
+                        {parseFloat(room.gst || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {parseFloat(room.amount || 0).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
+      </CardContent>
 
-        <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2 }} />
 
-        {/* Services */}
-
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 1,
-          }}
-        >
-          <Box display="flex" alignItems="center" gap={1}>
-            <LocalMallIcon color="secondary" />
-            <Typography
-              variant="subtitle1"
-              fontWeight="bold"
-              sx={{
-                background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              Services
-            </Typography>
-          </Box>
-          {/* <Button
-            size="small"
-            variant="contained"
-            color="success"
-            sx={{ textTransform: 'none', borderRadius: 3 }}
-          >
-            Service Invoice
-          </Button> */}
+      {/* ---- SERVICES TABLE ---- */}
+      <CardContent>
+        <Box display="flex" alignItems="center" gap={1} mb={1}>
+          <LocalMallIcon color="secondary" />
+          <Typography variant="subtitle1" fontWeight="bold">
+            Services
+          </Typography>
         </Box>
-        <TableContainer component={Paper} sx={{ borderRadius: 3, mb: 3 }}>
-          <Table size="small">
-            <TableHead sx={{ bgcolor: '#fff0f2' }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Room</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Item</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>HSN</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Rate</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>GST</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {services.map((s, i) => (
-                <TableRow key={i} hover>
-                  <TableCell>{s.room}</TableCell>
-                  <TableCell>{s.item}</TableCell>
-                  <TableCell>{s.hsn}</TableCell>
-                  <TableCell>₹{s.rate}</TableCell>
-                  <TableCell>{s.gst}</TableCell>
-                  <TableCell>₹{s.amount}</TableCell>
+        {services.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No service tokens found.
+          </Typography>
+        ) : (
+          <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell>
+                    <b>Room No</b>
+                  </TableCell>
+                  <TableCell>
+                    <b>Items</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>GST (₹)</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>Total (₹)</b>
+                  </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {services.map((service, index) => {
+                  const itemsString =
+                    service.items?.map((i) => i.item).join(', ') || '—';
+                  return (
+                    <TableRow key={index}>
+                      <TableCell>{service.room_no}</TableCell>
+                      <TableCell>{itemsString}</TableCell>
+                      <TableCell align="right">
+                        {parseFloat(service.total_gst || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {parseFloat(service.total_amount || 0).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
+      </CardContent>
 
-        <Divider sx={{ my: 2 }} />
+      <Divider sx={{ my: 2 }} />
 
-        {/* Food Items */}
-
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 1,
-          }}
-        >
-          <Box display="flex" alignItems="center" gap={1}>
-            <RestaurantIcon color="success" />
-            <Typography
-              variant="subtitle1"
-              fontWeight="bold"
-              sx={{
-                background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              Food Items
-            </Typography>
-          </Box>
-          {/* <Button
-            size="small"
-            variant="contained"
-            color="success"
-            sx={{ textTransform: 'none', borderRadius: 3 }}
-          >
-            Food Invoice
-          </Button> */}
+      {/* ---- FOOD TABLE ---- */}
+      <CardContent>
+        <Box display="flex" alignItems="center" gap={1} mb={1}>
+          <RestaurantIcon color="success" />
+          <Typography variant="subtitle1" fontWeight="bold">
+            Food Items
+          </Typography>
         </Box>
-        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-          <Table size="small">
-            <TableHead sx={{ bgcolor: '#f0fff4' }}>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Room</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Item</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Rate</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Qty</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>GST</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {foodItems.map((f, i) => (
-                <TableRow key={i} hover>
-                  <TableCell>{f.room}</TableCell>
-                  <TableCell>{f.item}</TableCell>
-                  <TableCell>₹{f.rate}</TableCell>
-                  <TableCell>{f.qty}</TableCell>
-                  <TableCell>{f.gst}</TableCell>
-                  <TableCell>₹{f.amount}</TableCell>
+        {foodItems.length === 0 ? (
+          <Typography variant="body2" color="text.secondary">
+            No food tokens found.
+          </Typography>
+        ) : (
+          <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableCell>
+                    <b>Room No</b>
+                  </TableCell>
+                  {/* <TableCell>
+                    <b>Items</b>
+                  </TableCell> */}
+                  <TableCell>
+                    <b>Items</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>GST (₹)</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>Total (₹)</b>
+                  </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {foodItems.map((food, index) => {
+                  const itemsString =
+                    food.items?.map((i) => i.item).join(', ') || '—';
+                  return (
+                    <TableRow key={index}>
+                      <TableCell>{food.room_no}</TableCell>
+                      <TableCell>{itemsString}</TableCell>
+                      {/* <TableCell>{food.type}</TableCell> */}
+                      <TableCell align="right">
+                        {parseFloat(food.total_gst || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {parseFloat(food.total_amount || 0).toFixed(2)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
       </CardContent>
     </Card>
   );

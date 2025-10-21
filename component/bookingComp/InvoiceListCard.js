@@ -8,17 +8,18 @@ import { GetCustomDate } from '@/utils/DateFetcher';
 
 const InvoiceCard = ({ invoice }) => {
   const totalRoomAmount = invoice?.room_tokens.reduce(
-    (sum, r) => sum + (r.amount || 0),
+    (sum, r) => sum + (parseFloat(r.amount) || 0),
     0
   );
-  const totalServiceAmount = invoice?.service_billing.reduce(
-    (sum, s) => sum + (s.amount || 0),
+  const totalServiceAmount = invoice?.service_tokens.reduce(
+    (sum, s) => sum + (parseFloat(s.total_amount) || 0),
     0
   );
-  const totalFoodAmount = invoice?.food_items.reduce(
-    (sum, f) => sum + (f.amount || 0),
+  const totalFoodAmount = invoice?.food_tokens.reduce(
+    (sum, f) => sum + (parseFloat(f.total_amount) || 0),
     0
   );
+  console.log(totalFoodAmount, 'hh');
 
   const totalAmount = totalFoodAmount + totalRoomAmount + totalServiceAmount;
   return (

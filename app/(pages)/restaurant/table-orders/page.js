@@ -262,6 +262,7 @@ const Page = () => {
         setSelectedBooking={setSelectedBooking}
         selectedRoom={selectedRoom}
         setSelectedRoom={setSelectedRoom}
+        bookings={bookings}
       />
 
       {/* create Invoice */}

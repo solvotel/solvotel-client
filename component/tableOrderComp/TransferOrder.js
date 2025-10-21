@@ -21,9 +21,14 @@ const TransferOrder = ({
   setSelectedBooking,
   selectedRoom,
   setSelectedRoom,
+  bookings,
 }) => {
   const handleConfirmTransfer = async () => {
     if (!selectedRow || !selectedBooking || !selectedRoom) return;
+    const booking = bookings?.find((b) => {
+      return b.documentId === selectedBooking;
+    });
+
     try {
       await UpdateData({
         auth,
@@ -38,7 +43,43 @@ const TransferOrder = ({
           },
         },
       });
+      // recalc before save
+      const total_gst = selectedRow.food_items.reduce((acc, item) => {
+        const gstAmount = (item.amount * (item.gst || 0)) / 100;
+        return acc + gstAmount;
+      }, 0);
 
+      const total_amount = selectedRow.food_items.reduce(
+        (acc, item) => acc + item.amount,
+        0
+      );
+
+      // ✅ Clean menu_items (remove id/documentId/etc.)
+      const cleanedMenuItems = selectedRow.food_items.map(
+        ({ id, documentId, room, ...rest }) => rest
+      );
+      const prevFood = booking?.food_tokens || [];
+      await UpdateData({
+        auth,
+        endPoint: 'room-bookings',
+        id: selectedBooking,
+        payload: {
+          data: {
+            food_tokens: [
+              ...prevFood,
+              {
+                id: new Date().getTime().toString(36),
+                room_no: selectedRoom,
+                type: 'Room Transfer',
+                total_gst: parseFloat(total_gst).toFixed(2) || 0,
+                total_amount: parseFloat(total_amount).toFixed(2) || 0,
+                invoice: false,
+                items: cleanedMenuItems,
+              },
+            ],
+          },
+        },
+      });
       SuccessToast('Order transferred successfully');
       setTransferOpen(false);
       setSelectedRow(null);

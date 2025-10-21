@@ -21,7 +21,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { SuccessToast, WarningToast } from '@/utils/GenerateToast';
 
 export default function ManageFood({
   open,
@@ -30,14 +30,14 @@ export default function ManageFood({
   menuItems,
   handleManageFood,
 }) {
-  const [foods, setFoods] = useState([...booking?.food_items]);
+  const [room, setRoom] = useState('');
+  const [foods, setFoods] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(null);
 
   const handleAddRow = () => {
     setFoods((prev) => [
       ...prev,
       {
-        room: '',
         item: '',
         hsn: '',
         rate: '',
@@ -75,11 +75,39 @@ export default function ManageFood({
   const handleSaveAll = () => {
     for (let f of foods) {
       if (!f.item || !f.rate || !f.qty) {
-        alert('Please fill Item, Rate, and Qty for all rows before saving.');
+        WarningToast(
+          'Please fill Item, Rate, and Qty for all rows before saving.'
+        );
         return;
       }
     }
-    handleManageFood(foods);
+    if (!room) {
+      WarningToast('Select Room No');
+      return;
+    }
+    if (foods.length < 1) {
+      WarningToast('Atleast 1 Item required');
+      return;
+    }
+    const total_gst = foods.reduce((acc, item) => {
+      const gstAmount = (item.amount * (item.gst || 0)) / 100;
+      return acc + gstAmount;
+    }, 0);
+
+    const total_amount = foods.reduce((acc, item) => acc + item.amount, 0);
+
+    const payload = {
+      id: new Date().getTime().toString(36),
+      room_no: room,
+      type: 'Room Service',
+      total_gst: parseFloat(total_gst).toFixed(2) || 0,
+      total_amount: parseFloat(total_amount).toFixed(2) || 0,
+      invoice: false,
+      items: foods,
+    };
+    handleManageFood(payload);
+    setRoom('');
+    setFoods([]);
     SuccessToast('Food items updated successfully');
     setOpen(false);
   };
@@ -109,13 +137,33 @@ export default function ManageFood({
           mb={2}
         >
           <Typography variant="h5" fontWeight="bold" color="primary">
-            Manage Food Items
+            Add Food Items
           </Typography>
           <IconButton onClick={handleClose} sx={{ color: 'gray' }}>
             <CloseIcon />
           </IconButton>
         </Box>
-
+        <Box width={200} mb={1}>
+          <TextField
+            select
+            label="Select Room No"
+            size="small"
+            value={room}
+            onChange={(e) => setRoom(e.target.value)}
+            fullWidth
+            sx={{
+              '& .Mui-focused fieldset': {
+                borderColor: 'primary.main',
+              },
+            }}
+          >
+            {booking?.rooms.map((r, i) => (
+              <MenuItem key={i} value={r.room_no}>
+                {r.room_no}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Box>
         {/* Table */}
         <Paper
           sx={{
@@ -129,7 +177,6 @@ export default function ManageFood({
             <TableHead sx={{ bgcolor: 'primary.light' }}>
               <TableRow>
                 {[
-                  'Room',
                   'Item',
                   'HSN',
                   'Rate (₹)',
@@ -160,28 +207,6 @@ export default function ManageFood({
                       transition: 'background-color 0.5s',
                     }}
                   >
-                    <TableCell>
-                      <TextField
-                        select
-                        size="small"
-                        value={food.room || ''}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'room', e.target.value)
-                        }
-                        fullWidth
-                        sx={{
-                          '& .Mui-focused fieldset': {
-                            borderColor: 'primary.main',
-                          },
-                        }}
-                      >
-                        {booking?.rooms.map((r, i) => (
-                          <MenuItem key={i} value={r.room_no}>
-                            {r.room_no}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </TableCell>
                     <TableCell>
                       <TextField
                         select
@@ -267,20 +292,26 @@ export default function ManageFood({
                 </Fade>
               ))}
             </TableBody>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <Button
+                    variant="text"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddRow}
+                  >
+                    Add Row
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
           </Table>
         </Paper>
 
         {/* Buttons */}
         <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={handleAddRow}
-          >
-            Add Food
-          </Button>
           <Button variant="contained" color="success" onClick={handleSaveAll}>
-            Save All
+            Submit
           </Button>
         </Stack>
       </Box>

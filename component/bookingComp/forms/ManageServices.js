@@ -17,11 +17,12 @@ import {
   Stack,
   Fade,
   Button,
+  FormControl,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { SuccessToast, WarningToast } from '@/utils/GenerateToast';
 
 export default function ManageServices({
   open,
@@ -29,13 +30,14 @@ export default function ManageServices({
   booking,
   handleManageService,
 }) {
-  const [services, setServices] = useState([...booking?.service_billing]);
+  const [room, setRoom] = useState('');
+  const [services, setServices] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(null);
 
   const handleAddRow = () => {
     setServices((prev) => [
       ...prev,
-      { room: '', item: '', hsn: '', rate: '', gst: '', amount: 0 },
+      { item: '', hsn: '', rate: '', gst: '', amount: 0 },
     ]);
     setHighlightedIndex(services.length);
     setTimeout(() => setHighlightedIndex(null), 1200);
@@ -63,13 +65,39 @@ export default function ManageServices({
 
   const handleSaveAll = () => {
     for (let s of services) {
-      if (!s.room || !s.item || !s.rate) {
-        alert('Please fill Room, Item, and Rate for all rows before saving.');
+      if (!s.item || !s.rate || !s.gst) {
+        WarningToast(
+          'Please fill Room, Item, and Rate for all rows before saving.'
+        );
         return;
       }
     }
-    handleManageService(services);
+    if (!room) {
+      WarningToast('Select Room No');
+      return;
+    }
+    if (services.length < 1) {
+      WarningToast('Atleast 1 Item required');
+      return;
+    }
+    const total_gst = services.reduce((acc, item) => {
+      const gstAmount = (item.amount * (item.gst || 0)) / 100;
+      return acc + gstAmount;
+    }, 0);
 
+    const total_amount = services.reduce((acc, item) => acc + item.amount, 0);
+    const payload = {
+      id: new Date().getTime().toString(36),
+      room_no: room,
+      total_gst: total_gst || 0,
+      total_amount: total_amount || 0,
+      billed: false,
+      items: services,
+    };
+
+    handleManageService(payload);
+    setRoom('');
+    setServices([]);
     SuccessToast('Services added successfully');
     setOpen(false);
   };
@@ -101,13 +129,33 @@ export default function ManageServices({
           mb={2}
         >
           <Typography variant="h5" fontWeight="bold" color="primary">
-            Manage Services
+            Add Services
           </Typography>
           <IconButton onClick={handleClose} sx={{ color: 'gray' }}>
             <CloseIcon />
           </IconButton>
         </Box>
-
+        <Box width={200} mb={1}>
+          <TextField
+            select
+            label="Select Room No"
+            size="small"
+            value={room}
+            onChange={(e) => setRoom(e.target.value)}
+            fullWidth
+            sx={{
+              '& .Mui-focused fieldset': {
+                borderColor: 'primary.main',
+              },
+            }}
+          >
+            {booking?.rooms.map((r, i) => (
+              <MenuItem key={i} value={r.room_no}>
+                {r.room_no}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Box>
         {/* Table */}
         <Paper
           sx={{
@@ -121,7 +169,6 @@ export default function ManageServices({
             <TableHead sx={{ bgcolor: 'primary.light' }}>
               <TableRow>
                 {[
-                  'Room',
                   'Item',
                   'HSN',
                   'Rate (₹)',
@@ -151,28 +198,6 @@ export default function ManageServices({
                       transition: 'background-color 0.5s',
                     }}
                   >
-                    <TableCell>
-                      <TextField
-                        select
-                        size="small"
-                        value={service.room}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'room', e.target.value)
-                        }
-                        fullWidth
-                        sx={{
-                          '& .Mui-focused fieldset': {
-                            borderColor: 'primary.main',
-                          },
-                        }}
-                      >
-                        {booking?.rooms.map((r, i) => (
-                          <MenuItem key={i} value={r.room_no}>
-                            {r.room_no}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </TableCell>
                     <TableCell>
                       <TextField
                         size="small"
@@ -233,20 +258,26 @@ export default function ManageServices({
                 </Fade>
               ))}
             </TableBody>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={6} align="center">
+                  <Button
+                    variant="text"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddRow}
+                  >
+                    Add Row
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
           </Table>
         </Paper>
 
         {/* Buttons */}
         <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={handleAddRow}
-          >
-            Add Row
-          </Button>
           <Button variant="contained" color="success" onClick={handleSaveAll}>
-            Save All
+            Submit
           </Button>
         </Stack>
       </Box>

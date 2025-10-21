@@ -25,6 +25,9 @@ import { useReactToPrint } from 'react-to-print';
 
 export default function PaymentHistoryCard({ booking, hotel }) {
   const payments = booking?.payment_tokens || [];
+  const roomTokens = booking?.room_tokens || [];
+  const services = booking?.service_tokens || [];
+  const foodItems = booking?.food_tokens || [];
   const [selectedPayment, setSelectedPayment] = useState(null);
 
   // ---- Summary calculations ----
@@ -36,12 +39,18 @@ export default function PaymentHistoryCard({ booking, hotel }) {
   const advancePayment = booking?.advance_payment || null;
   const advanceAmount = advancePayment?.amount || 0;
 
-  const totalRoomAmount =
-    booking?.room_tokens?.reduce((sum, r) => sum + (r.amount || 0), 0) || 0;
-  const totalServiceAmount =
-    booking?.service_billing?.reduce((sum, s) => sum + (s.amount || 0), 0) || 0;
-  const totalFoodAmount =
-    booking?.food_items?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0;
+  const totalRoomAmount = roomTokens.reduce(
+    (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
+    0
+  );
+  const totalServiceAmount = services.reduce(
+    (sum, s) => sum + (parseFloat(s.total_amount) || 0),
+    0
+  );
+  const totalFoodAmount = foodItems.reduce(
+    (sum, f) => sum + (parseFloat(f.total_amount) || 0),
+    0
+  );
 
   const grandTotal = totalRoomAmount + totalServiceAmount + totalFoodAmount;
   const amountPayed = totalAmount + advanceAmount;

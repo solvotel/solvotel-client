@@ -48,7 +48,6 @@ export default function CreateInvoiceModal({
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
 
-  // 🔹 Initialize all states with empty arrays
   const [roomTokens, setRoomTokens] = useState([]);
   const [services, setServices] = useState([]);
   const [foodItems, setFoodItems] = useState([]);
@@ -56,22 +55,21 @@ export default function CreateInvoiceModal({
   const [billedServices, setBilledServices] = useState([]);
   const [billedFoodItems, setBilledFoodItems] = useState([]);
 
-  // 🔹 Update lists whenever booking changes (API refresh)
   useEffect(() => {
     if (!booking) return;
 
     const unBilledRoomTokens =
       booking.room_tokens?.filter((r) => !r.invoice) || [];
     const unBilledServices =
-      booking.service_billing?.filter((s) => !s.invoice) || [];
+      booking.service_tokens?.filter((s) => !s.invoice) || [];
     const unBilledFoodItems =
-      booking.food_items?.filter((f) => !f.invoice) || [];
+      booking.food_tokens?.filter((f) => !f.invoice) || [];
 
     const billedRoomTokens =
       booking.room_tokens?.filter((r) => r.invoice) || [];
     const billedServices =
-      booking.service_billing?.filter((s) => s.invoice) || [];
-    const billedFoodItems = booking.food_items?.filter((f) => f.invoice) || [];
+      booking.service_tokens?.filter((s) => s.invoice) || [];
+    const billedFoodItems = booking.food_tokens?.filter((f) => f.invoice) || [];
 
     setRoomTokens(unBilledRoomTokens);
     setServices(unBilledServices);
@@ -88,19 +86,27 @@ export default function CreateInvoiceModal({
     customer_address: booking?.customer?.address || '',
   });
 
-  // 🔹 Checkbox toggle handler
-  const handleCheckboxToggle = (type, index) => {
-    const toggle = (arr, setArr) =>
-      setArr((prev) =>
-        prev.map((item, i) =>
-          i === index ? { ...item, invoice: !item.invoice } : item
-        )
-      );
+  // ✅ Toggle Handlers
+  const handleRoomToggle = (index) =>
+    setRoomTokens((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, invoice: !item.invoice } : item
+      )
+    );
 
-    if (type === 'room') toggle(roomTokens, setRoomTokens);
-    else if (type === 'service') toggle(services, setServices);
-    else if (type === 'food') toggle(foodItems, setFoodItems);
-  };
+  const handleServiceToggle = (index) =>
+    setServices((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, invoice: !item.invoice } : item
+      )
+    );
+
+  const handleFoodToggle = (index) =>
+    setFoodItems((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, invoice: !item.invoice } : item
+      )
+    );
 
   const sanitizeArray = (arr, keysToRemove = ['id']) =>
     arr.map((obj) => {
@@ -137,8 +143,8 @@ export default function CreateInvoiceModal({
           customer_gst: customerData.customer_gst,
           customer_address: customerData.customer_address,
           room_tokens: sanitizeArray(selectedRooms),
-          service_billing: sanitizeArray(selectedServices),
-          food_items: sanitizeArray(selectedFood),
+          service_tokens: selectedServices,
+          food_tokens: selectedFood,
           hotel_id: auth?.user?.hotel_id,
           room_booking: booking.documentId,
         },
@@ -167,8 +173,8 @@ export default function CreateInvoiceModal({
       endPoint: 'room-bookings',
       payload: {
         data: {
-          service_billing: sanitizeArray(updatedServices),
-          food_items: sanitizeArray(updatedFood),
+          service_tokens: sanitizeArray(updatedServices),
+          food_tokens: sanitizeArray(updatedFood),
           room_tokens: sanitizeArray(updatedRoomTokens),
         },
       },
@@ -185,12 +191,8 @@ export default function CreateInvoiceModal({
     }
   };
 
-  const handleClose = () => {
-    setOpen(false);
-  };
-
   return (
-    <Modal open={open} onClose={handleClose}>
+    <Modal open={open} onClose={() => setOpen(false)}>
       <Box
         sx={{
           position: 'absolute',
@@ -216,7 +218,7 @@ export default function CreateInvoiceModal({
           <Typography variant="h5" fontWeight="bold" color="primary">
             Create Invoice
           </Typography>
-          <IconButton onClick={handleClose} sx={{ color: 'gray' }}>
+          <IconButton onClick={() => setOpen(false)} sx={{ color: 'gray' }}>
             <CloseIcon />
           </IconButton>
         </Box>
@@ -229,7 +231,7 @@ export default function CreateInvoiceModal({
             { label: 'GSTIN', key: 'customer_gst' },
             { label: 'Address', key: 'customer_address' },
           ].map((field, i) => (
-            <Grid key={i} xs={12} md={6} item>
+            <Grid key={i} size={{ xs: 12, md: 6 }}>
               <TextField
                 margin="dense"
                 label={field.label}
@@ -249,56 +251,154 @@ export default function CreateInvoiceModal({
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Room Tokens */}
-        <SectionTable
-          title="Room Tokens"
-          icon={<RoomIcon color="primary" />}
-          rows={roomTokens}
-          onToggle={(i) => handleCheckboxToggle('room', i)}
-          columns={[
-            { key: 'room', label: 'Room No' },
-            { key: 'item', label: 'Type' },
-            { key: 'rate', label: 'Tariff', prefix: '₹' },
-            { key: 'gst', label: 'GST', suffix: '%' },
-            { key: 'amount', label: 'Amount', prefix: '₹' },
-          ]}
-        />
+        {/* ✅ Room Tokens Table */}
+        <Box>
+          <Box display="flex" alignItems="center" gap={1} mb={1}>
+            <RoomIcon color="primary" />
+            <Typography fontWeight="bold" variant="subtitle1">
+              Room Tokens
+            </Typography>
+          </Box>
+          <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+            <Table size="small">
+              <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+                <TableRow>
+                  <TableCell></TableCell>
+                  <TableCell>Room No</TableCell>
+                  <TableCell>Items</TableCell>
+                  <TableCell align="right">Total GST (₹)</TableCell>
+                  <TableCell align="right">Total Amount (₹)</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {roomTokens.length ? (
+                  roomTokens.map((row, i) => (
+                    <TableRow key={i} hover>
+                      <TableCell>
+                        <Checkbox
+                          checked={row.invoice || false}
+                          onChange={() => handleRoomToggle(i)}
+                        />
+                      </TableCell>
+                      <TableCell>{row.room}</TableCell>
+                      <TableCell>{row.item}</TableCell>
+                      <TableCell align="right">{row.gst}</TableCell>
+                      <TableCell align="right">{row.amount}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      No Room Tokens
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Services */}
-        <SectionTable
-          title="Services"
-          icon={<LocalMallIcon color="secondary" />}
-          rows={services}
-          onToggle={(i) => handleCheckboxToggle('service', i)}
-          columns={[
-            { key: 'room', label: 'Room' },
-            { key: 'item', label: 'Item' },
-            { key: 'hsn', label: 'HSN' },
-            { key: 'rate', label: 'Rate', prefix: '₹' },
-            { key: 'gst', label: 'GST', suffix: '%' },
-            { key: 'amount', label: 'Amount', prefix: '₹' },
-          ]}
-        />
+        {/* ✅ Service Tokens Table */}
+        <Box>
+          <Box display="flex" alignItems="center" gap={1} mb={1}>
+            <LocalMallIcon color="secondary" />
+            <Typography fontWeight="bold" variant="subtitle1">
+              Service Tokens
+            </Typography>
+          </Box>
+          <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+            <Table size="small">
+              <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+                <TableRow>
+                  <TableCell></TableCell>
+                  <TableCell>Room No</TableCell>
+                  <TableCell>Items</TableCell>
+                  <TableCell align="right">Total GST (₹)</TableCell>
+                  <TableCell align="right">Total Amount (₹)</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {services.length ? (
+                  services.map((row, i) => (
+                    <TableRow key={i} hover>
+                      <TableCell>
+                        <Checkbox
+                          checked={row.invoice || false}
+                          onChange={() => handleServiceToggle(i)}
+                        />
+                      </TableCell>
+                      <TableCell>{row.room_no}</TableCell>
+                      <TableCell>
+                        {row.items?.map((i) => i.item).join(', ')}
+                      </TableCell>
+                      <TableCell align="right">{row.total_gst}</TableCell>
+                      <TableCell align="right">{row.total_amount}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      No Service Tokens
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Food Items */}
-        <SectionTable
-          title="Food Items"
-          icon={<RestaurantIcon color="success" />}
-          rows={foodItems}
-          onToggle={(i) => handleCheckboxToggle('food', i)}
-          columns={[
-            { key: 'room', label: 'Room' },
-            { key: 'item', label: 'Item' },
-            { key: 'rate', label: 'Rate', prefix: '₹' },
-            { key: 'qty', label: 'Qty' },
-            { key: 'gst', label: 'GST', suffix: '%' },
-            { key: 'amount', label: 'Amount', prefix: '₹' },
-          ]}
-        />
+        {/* ✅ Food Tokens Table */}
+        <Box>
+          <Box display="flex" alignItems="center" gap={1} mb={1}>
+            <RestaurantIcon color="success" />
+            <Typography fontWeight="bold" variant="subtitle1">
+              Food Tokens
+            </Typography>
+          </Box>
+          <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+            <Table size="small">
+              <TableHead sx={{ bgcolor: '#f5f5f5' }}>
+                <TableRow>
+                  <TableCell></TableCell>
+                  <TableCell>Room No</TableCell>
+                  <TableCell>Items</TableCell>
+                  <TableCell align="right">Total GST (₹)</TableCell>
+                  <TableCell align="right">Total Amount (₹)</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {foodItems.length ? (
+                  foodItems.map((row, i) => (
+                    <TableRow key={i} hover>
+                      <TableCell>
+                        <Checkbox
+                          checked={row.invoice || false}
+                          onChange={() => handleFoodToggle(i)}
+                        />
+                      </TableCell>
+                      <TableCell>{row.room_no}</TableCell>
+                      <TableCell>
+                        {row.items?.map((i) => i.item).join(', ')}
+                      </TableCell>
+                      <TableCell align="right">{row.total_gst}</TableCell>
+                      <TableCell align="right">{row.total_amount}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      No Food Tokens
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
 
         <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
           <Button variant="contained" color="success" onClick={handleSave}>
@@ -309,65 +409,3 @@ export default function CreateInvoiceModal({
     </Modal>
   );
 }
-
-// 🔹 Reusable Table Section
-const SectionTable = ({ title, icon, rows = [], columns, onToggle }) => (
-  <Box>
-    <Box display="flex" alignItems="center" gap={1} mb={1}>
-      {icon}
-      <Typography
-        variant="subtitle1"
-        fontWeight="bold"
-        sx={{
-          background: 'linear-gradient(90deg, #1976d2, #42a5f5)',
-          backgroundClip: 'text',
-          color: 'transparent',
-        }}
-      >
-        {title}
-      </Typography>
-    </Box>
-    <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-      <Table size="small">
-        <TableHead sx={{ bgcolor: '#f9f9f9' }}>
-          <TableRow>
-            <TableCell></TableCell>
-            {columns.map((col, i) => (
-              <TableCell key={i} sx={{ fontWeight: 'bold' }}>
-                {col.label}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {rows.length > 0 ? (
-            rows.map((row, i) => (
-              <TableRow key={i} hover>
-                <TableCell sx={{ width: '50px' }}>
-                  <Checkbox
-                    size="small"
-                    checked={row.invoice || false}
-                    onChange={() => onToggle(i)}
-                  />
-                </TableCell>
-                {columns.map((col, j) => (
-                  <TableCell key={j}>
-                    {col.prefix || ''}
-                    {row[col.key]}
-                    {col.suffix || ''}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length + 1} align="center">
-                No data available
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  </Box>
-);
