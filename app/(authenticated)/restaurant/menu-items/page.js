@@ -229,8 +229,9 @@ const Page = () => {
                     'Segment',
                     'HSN/SAC',
                     'Rate',
-                    'GST (%)',
-                    'total',
+                    'SGST (%)',
+                    'CGST (%)',
+                    'Amount',
                     'Actions',
                   ].map((item, index) => (
                     <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -246,7 +247,8 @@ const Page = () => {
                     <TableCell>{row.category}</TableCell>
                     <TableCell>{row.segment}</TableCell>
                     <TableCell>{row.hsn}</TableCell>
-                    <TableCell>{row.rate}</TableCell>
+                    <TableCell>{row.rate / 2}</TableCell>
+                    <TableCell>{row.rate / 2}</TableCell>
                     <TableCell>{row.gst}</TableCell>
                     <TableCell>{row.total}</TableCell>
                     <TableCell sx={{ width: '100px' }}>

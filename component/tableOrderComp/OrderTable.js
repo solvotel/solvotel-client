@@ -14,6 +14,7 @@ import {
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Link from 'next/link';
 
 const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
   return (
@@ -69,6 +70,7 @@ const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
                 (sum, item) => sum + item.amount,
                 0
               );
+              console.log(order);
               return (
                 <TableRow
                   key={order.id}
@@ -95,7 +97,17 @@ const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>{order.closing_method || '-'}</TableCell>
+                  <TableCell>
+                    {order.closing_method || '-'}&nbsp;
+                    {order.token_status === 'Closed' && (
+                      <span style={{ fontSize: 10, color: 'blue' }}>
+                        (
+                        {order?.room_booking?.booking_id ||
+                          order?.restaurant_invoice?.invoice_no}
+                        )
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>₹{totalAmount.toFixed(2) || 0}</TableCell>
                   <TableCell align="center">
                     <IconButton

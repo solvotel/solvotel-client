@@ -68,7 +68,8 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
                 'Date/Time',
                 'Customer Name',
                 'Total Amount',
-                'GST',
+                'SGST',
+                'CGST',
                 'Payable Amount',
                 'Payment Method',
               ].map((item, index) => (
@@ -85,7 +86,8 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
                 </BodyCell>
                 <BodyCell>{row.customer_name}</BodyCell>
                 <BodyCell>{row.total_amount}</BodyCell>
-                <BodyCell>{row.tax}</BodyCell>
+                <BodyCell>{row.tax / 2}</BodyCell>
+                <BodyCell>{row.tax / 2}</BodyCell>
                 <BodyCell>{row.payable_amount}</BodyCell>
                 <BodyCell>{row.mop}</BodyCell>
               </TableRow>

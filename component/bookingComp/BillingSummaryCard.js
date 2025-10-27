@@ -121,7 +121,10 @@ export default function BillingSummaryCard({ booking }) {
                     <b>Items</b>
                   </TableCell>
                   <TableCell align="right">
-                    <b>GST (₹)</b>
+                    <b>SGST (%)</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>CGST (%)</b>
                   </TableCell>
                   <TableCell align="right">
                     <b>Total (₹)</b>
@@ -135,7 +138,10 @@ export default function BillingSummaryCard({ booking }) {
                       <TableCell>{room.room || room.room_no}</TableCell>
                       <TableCell>{room.item}</TableCell>
                       <TableCell align="right">
-                        {parseFloat(room.gst || 0).toFixed(2)}
+                        {parseFloat(room.gst / 2 || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {parseFloat(room.gst / 2 || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
                         {parseFloat(room.amount || 0).toFixed(2)}
@@ -175,7 +181,10 @@ export default function BillingSummaryCard({ booking }) {
                     <b>Items</b>
                   </TableCell>
                   <TableCell align="right">
-                    <b>GST (₹)</b>
+                    <b>SGST (₹)</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>CGST (₹)</b>
                   </TableCell>
                   <TableCell align="right">
                     <b>Total (₹)</b>
@@ -191,7 +200,10 @@ export default function BillingSummaryCard({ booking }) {
                       <TableCell>{service.room_no}</TableCell>
                       <TableCell>{itemsString}</TableCell>
                       <TableCell align="right">
-                        {parseFloat(service.total_gst || 0).toFixed(2)}
+                        {parseFloat(service.total_gst / 2 || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {parseFloat(service.total_gst / 2 || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
                         {parseFloat(service.total_amount || 0).toFixed(2)}
@@ -234,7 +246,10 @@ export default function BillingSummaryCard({ booking }) {
                     <b>Items</b>
                   </TableCell>
                   <TableCell align="right">
-                    <b>GST (₹)</b>
+                    <b>SGST (₹)</b>
+                  </TableCell>
+                  <TableCell align="right">
+                    <b>CGST (₹)</b>
                   </TableCell>
                   <TableCell align="right">
                     <b>Total (₹)</b>
@@ -251,7 +266,10 @@ export default function BillingSummaryCard({ booking }) {
                       <TableCell>{itemsString}</TableCell>
                       {/* <TableCell>{food.type}</TableCell> */}
                       <TableCell align="right">
-                        {parseFloat(food.total_gst || 0).toFixed(2)}
+                        {parseFloat(food.total_gst / 2 || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        {parseFloat(food.total_gst / 2 || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
                         {parseFloat(food.total_amount || 0).toFixed(2)}

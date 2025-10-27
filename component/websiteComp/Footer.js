@@ -268,35 +268,7 @@ const Footer = ({ menuItems }) => {
               mb: 1,
             }}
           >
-            © 2024 Solvotel. All rights reserved.
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: '#64748b',
-              textAlign: 'center',
-              fontSize: '0.8rem',
-            }}
-          >
-            Design & Developed by{' '}
-            <Box
-              component="a"
-              href="https://nexdev.in"
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                color: '#60a5fa',
-                textDecoration: 'none',
-                fontWeight: 600,
-                '&:hover': {
-                  color: '#3b82f6',
-                  textDecoration: 'underline',
-                },
-                transition: 'color 0.3s ease',
-              }}
-            >
-              NexDev Software Solution
-            </Box>
+            Powered By Solvotel.
           </Typography>
         </Box>
       </Container>

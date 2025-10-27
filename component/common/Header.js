@@ -121,6 +121,11 @@ export default function Navbar() {
                         icon: <UserCircle size={16} />,
                         label: 'Profile',
                       },
+                      {
+                        href: '/master/room-invoice',
+                        icon: <ClipboardList size={16} />,
+                        label: 'Room Invoice',
+                      },
                     ]}
                   />
                 )}

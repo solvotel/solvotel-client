@@ -339,7 +339,8 @@ const Page = () => {
                     'Date/Time',
                     'Customer Name',
                     'Total Amount',
-                    'GST',
+                    'SGST',
+                    'CGST',
                     'Payable Amount',
                     'Payment Method',
                     'Actions',
@@ -359,7 +360,8 @@ const Page = () => {
                     </TableCell>
                     <TableCell>{row.customer_name}</TableCell>
                     <TableCell>{row.total_amount}</TableCell>
-                    <TableCell>{row.tax}</TableCell>
+                    <TableCell>{row.tax / 2}</TableCell>
+                    <TableCell>{row.tax / 2}</TableCell>
                     <TableCell>{row.payable_amount}</TableCell>
                     <TableCell>{row.mop}</TableCell>
                     <TableCell sx={{ width: '150px' }}>
@@ -706,17 +708,22 @@ const Page = () => {
 
                 return (
                   <Grid container spacing={2} mb={2}>
-                    <Grid item size={{ xs: 12, sm: 4 }}>
+                    <Grid item size={{ xs: 12, sm: 3 }}>
                       <Typography>
                         Total: <b>{totalAmount.toFixed(2)}</b>
                       </Typography>
                     </Grid>
-                    <Grid item size={{ xs: 12, sm: 4 }}>
+                    <Grid item size={{ xs: 12, sm: 3 }}>
                       <Typography>
-                        GST: <b>{tax.toFixed(2)}</b>
+                        SGST: <b>{tax.toFixed(2) / 2}</b>
                       </Typography>
                     </Grid>
-                    <Grid item size={{ xs: 12, sm: 4 }}>
+                    <Grid item size={{ xs: 12, sm: 3 }}>
+                      <Typography>
+                        CGST: <b>{tax.toFixed(2) / 2}</b>
+                      </Typography>
+                    </Grid>
+                    <Grid item size={{ xs: 12, sm: 3 }}>
                       <Typography>
                         Payable: <b>{payable.toFixed(2)}</b>
                       </Typography>
@@ -783,6 +790,7 @@ const Page = () => {
                   <Typography variant="subtitle1" gutterBottom>
                     GST: {viewData.customer_gst}
                   </Typography>
+
                   <Typography variant="subtitle1" gutterBottom>
                     Address: {viewData.customer_address}
                   </Typography>
@@ -796,7 +804,8 @@ const Page = () => {
                           <TableCell>HSN</TableCell>
                           <TableCell>Rate</TableCell>
                           <TableCell>Qty</TableCell>
-                          <TableCell>GST %</TableCell>
+                          <TableCell>SGST %</TableCell>
+                          <TableCell>CGST %</TableCell>
                           <TableCell>Total</TableCell>
                         </TableRow>
                       </TableHead>
@@ -807,7 +816,8 @@ const Page = () => {
                             <TableCell>{item.hsn}</TableCell>
                             <TableCell>{item.rate}</TableCell>
                             <TableCell>{item.qty}</TableCell>
-                            <TableCell>{item.gst}</TableCell>
+                            <TableCell>{item.gst / 2}</TableCell>
+                            <TableCell>{item.gst / 2}</TableCell>
                             <TableCell>{item.amount.toFixed(2)}</TableCell>
                           </TableRow>
                         ))}
@@ -818,7 +828,8 @@ const Page = () => {
                   {/* Summary */}
                   <Box mt={2}>
                     <Typography>Total: ₹{viewData.total_amount}</Typography>
-                    <Typography>GST: ₹{viewData.tax}</Typography>
+                    <Typography>SGST: ₹{viewData.tax / 2}</Typography>
+                    <Typography>CGST: ₹{viewData.tax / 2}</Typography>
                     <Typography>Payable: ₹{viewData.payable_amount}</Typography>
                     <Typography>Payment Method: {viewData.mop}</Typography>
                   </Box>

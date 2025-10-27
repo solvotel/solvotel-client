@@ -2,6 +2,13 @@
 import {
   Box,
   Breadcrumbs,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Grid,
   IconButton,
   Link,
   Paper,
@@ -17,20 +24,33 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { GetCustomDate } from '@/utils/DateFetcher';
-import { GetDataList, GetSingleData } from '@/utils/ApiFunctions';
-import { Loader } from '@/component/common';
-import { useMemo, useState } from 'react';
-
-import RoomInvoiceViewDialog from '@/component/bookingComp/RoomInvoiceViewDialog';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import PrintIcon from '@mui/icons-material/Print';
 import { useAuth } from '@/context';
+import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
+import {
+  DeleteData,
+  GetDataList,
+  GetSingleData,
+  UpdateData,
+} from '@/utils/ApiFunctions';
+import { Loader } from '@/component/common';
+import { useMemo, useRef, useState } from 'react';
+import { SuccessToast } from '@/utils/GenerateToast';
+import RoomInvoiceViewDialog from '@/component/bookingComp/RoomInvoiceViewDialog';
+import EditRoomInvoiceDialog from '@/component/bookingComp/RoomInvoiceEditDialog';
 
 const Page = () => {
   const { auth } = useAuth();
+  const todaysDate = GetTodaysDate().dateString;
   const [search, setSearch] = useState('');
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [viewData, setViewData] = useState(null);
-
+  const [editOpen, setEditOpen] = useState(false);
+  const [editData, setEditData] = useState(null);
   const hotel = GetSingleData({
     endPoint: 'hotels',
     auth: auth,
@@ -56,6 +76,58 @@ const Page = () => {
       item.invoice_no?.toLowerCase().includes(search.toLowerCase())
     );
   }, [data, search]);
+
+  // handle delete
+  const handleDeleteClick = (row) => {
+    setSelectedRow(row);
+    setDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    await DeleteData({
+      auth,
+      endPoint: 'room-invoices',
+      id: selectedRow.documentId,
+    });
+    SuccessToast('Invoice deleted successfully');
+    setDeleteOpen(false);
+    setSelectedRow(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteOpen(false);
+    setSelectedRow(null);
+  };
+
+  // handle edit
+  const handleEdit = (row) => {
+    setEditData(row);
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    const {
+      id,
+      documentId,
+      publishedAt,
+      updatedAt,
+      createdAt,
+      room_booking,
+      ...updateBody
+    } = editData;
+    console.log(updateBody);
+    await UpdateData({
+      auth,
+      endPoint: 'room-invoices',
+      id: editData.documentId,
+      payload: {
+        data: updateBody,
+      },
+    });
+    SuccessToast('Invoice updated successfully');
+    setEditOpen(false);
+    setEditData(null);
+  };
 
   return (
     <>
@@ -174,6 +246,25 @@ const Page = () => {
                             <VisibilityIcon fontSize="inherit" />
                           </IconButton>
                         </Tooltip>
+
+                        <Tooltip title="Edit">
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleEdit(row)}
+                            size="small"
+                          >
+                            <EditIcon fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteClick(row)}
+                            size="small"
+                          >
+                            <DeleteIcon fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   );
@@ -189,6 +280,28 @@ const Page = () => {
             </Table>
           </TableContainer>
 
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={deleteOpen} onClose={handleCancelDelete}>
+            <DialogTitle>Delete Invoice</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Are you sure you want to delete invoice{' '}
+                <strong>{selectedRow?.invoice_no}</strong>? This action cannot
+                be undone.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelDelete}>Cancel</Button>
+              <Button
+                onClick={handleConfirmDelete}
+                color="error"
+                variant="contained"
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           {/* View Dialog */}
           <RoomInvoiceViewDialog
             viewOpen={viewOpen}
@@ -196,6 +309,16 @@ const Page = () => {
             viewData={viewData}
             hotel={hotel}
             roomBookings={roomBookings}
+          />
+
+          {/* Edit Dialog */}
+          <EditRoomInvoiceDialog
+            editOpen={editOpen}
+            setEditOpen={setEditOpen}
+            editData={editData}
+            setEditData={setEditData}
+            paymentMethods={paymentMethods}
+            handleSaveEdit={handleSaveEdit}
           />
         </Box>
       )}

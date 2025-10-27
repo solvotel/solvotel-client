@@ -252,17 +252,22 @@ const CreateNewOrder = ({
 
             return (
               <Grid container spacing={2} mb={2}>
-                <Grid item size={{ xs: 12, sm: 4 }}>
+                <Grid item size={{ xs: 12, sm: 3 }}>
                   <Typography>
                     Total: <b>{totalAmount.toFixed(2)}</b>
                   </Typography>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 4 }}>
+                <Grid item size={{ xs: 12, sm: 3 }}>
                   <Typography>
-                    GST: <b>{tax.toFixed(2)}</b>
+                    SGST: <b>{tax.toFixed(2) / 2}</b>
                   </Typography>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 4 }}>
+                <Grid item size={{ xs: 12, sm: 3 }}>
+                  <Typography>
+                    CGST: <b>{tax.toFixed(2) / 2}</b>
+                  </Typography>
+                </Grid>
+                <Grid item size={{ xs: 12, sm: 3 }}>
                   <Typography>
                     Payable: <b>{payable.toFixed(2)}</b>
                   </Typography>

@@ -12,6 +12,7 @@ import {
   TableBody,
 } from '@mui/material';
 import React from 'react';
+import { ToWords } from 'to-words';
 
 const CustomTableCell = styled(TableCell)`
   border: 1px solid black;
@@ -20,23 +21,134 @@ const CustomTableCell = styled(TableCell)`
     font-size: 15px;
   }
 `;
+const toWords = new ToWords({
+  localeCode: 'en-IN',
+  converterOptions: {
+    currency: true,
+    ignoreDecimal: false,
+    ignoreZeroCurrency: false,
+    doNotAddOnly: false,
+    currencyOptions: {
+      // can be used to override defaults for the selected locale
+      name: 'Rupee',
+      plural: 'Rupees',
+      symbol: '₹',
+      fractionalUnit: {
+        name: 'Paisa',
+        plural: 'Paise',
+        symbol: '',
+      },
+    },
+  },
+});
 const RoomInvoicePrint = React.forwardRef((props, ref) => {
+  const toWords = new ToWords();
   const { data, hotel, booking } = props;
+  const roomTokens = [];
+  const serviceTokens = [];
+  const foodTokens = [];
+
+  // room tokens
+  data?.room_tokens?.forEach((room) => {
+    const gstAmount = (room.amount * room.gst) / 100;
+    const sgst = gstAmount / 2;
+    const cgst = gstAmount / 2;
+    roomTokens.push({
+      item: room.item,
+      hsn: room.hsn,
+      rate: room.rate,
+      gst: gstAmount,
+      sgst,
+      cgst,
+      amount: room.amount,
+    });
+  });
+
+  // service tokens
+  data?.service_tokens?.forEach((service) => {
+    service.items?.forEach((it) => {
+      const gstAmount = (it.amount * it.gst) / 100;
+      const sgst = gstAmount / 2;
+      const cgst = gstAmount / 2;
+      serviceTokens.push({
+        item: it.item,
+        hsn: it.hsn,
+        rate: it.rate,
+        gst: gstAmount,
+        sgst,
+        cgst,
+        amount: it.amount,
+      });
+    });
+  });
+
+  // Food tokens
+  data?.food_tokens?.forEach((food) => {
+    food.items?.forEach((it) => {
+      const gstAmount = (it.amount * it.gst) / 100;
+      const sgst = gstAmount / 2;
+      const cgst = gstAmount / 2;
+      foodTokens.push({
+        item: it.item,
+        hsn: it.hsn,
+        rate: it.rate,
+        gst: gstAmount,
+        sgst,
+        cgst,
+        amount: it.amount,
+      });
+    });
+  });
+
+  const allTokens = [...roomTokens, ...serviceTokens, ...foodTokens];
+  // ✅ Calculate totals
+  const totals = allTokens.reduce(
+    (acc, curr) => {
+      acc.totalSgst += curr?.sgst;
+      acc.totalCgst += curr?.cgst;
+      acc.totalAmount += curr?.amount;
+      return acc;
+    },
+    { totalSgst: 0, totalCgst: 0, totalAmount: 0 }
+  );
+
+  let totalInWords = toWords.convert(totals?.totalAmount);
+
   return (
     <div ref={ref}>
-      <Box sx={{ m: 2 }}>
+      {/* ✅ Watermark Layer */}
+      {hotel?.hotel_logo?.url && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            width: '60%',
+            height: '60%',
+            transform: 'translate(-50%, -50%)',
+            backgroundImage: `url(${hotel.hotel_logo.url})`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            backgroundSize: 'contain',
+            opacity: 0.08, // transparency for watermark
+            zIndex: 0,
+            pointerEvents: 'none', // allows clicks/printing normally
+          }}
+        />
+      )}
+      <Box sx={{ m: 2, position: 'relative', zIndex: 1 }}>
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                <CustomTableCell colSpan={8} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography fontWeight={600} align="center">
                     TAX INVOICE
                   </Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={8} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography align="center" variant="h5">
                     {hotel?.hotel_name}
                   </Typography>
@@ -49,7 +161,9 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     {hotel?.hotel_address_line1},{hotel?.hotel_address_line2},
                     {hotel?.hotel_state},{hotel?.hotel_pincode}
                   </Typography>
-                  <Typography align="center">GSTIN:{hotel?.gstNo}</Typography>
+                  <Typography align="center">
+                    GSTIN:{hotel?.hotel_gst_no}
+                  </Typography>
                   <Box
                     sx={{ display: 'flex', justifyContent: 'space-between' }}
                   >
@@ -76,7 +190,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     GSTIN: {booking?.customer?.gst_no || 'N/A'}
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell colSpan={3}>
+                <CustomTableCell colSpan={2}>
                   <Typography fontWeight={600}>
                     Check-in: {GetCustomDate(booking?.checkin_date)}
                   </Typography>
@@ -89,13 +203,13 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={3}>
+                <CustomTableCell colSpan={2}>
                   <Typography fontWeight={600}>
                     Check-out: {GetCustomDate(booking?.checkout_date)}
                   </Typography>
                 </CustomTableCell>
                 <CustomTableCell rowSpan={2} colSpan={2} align="center">
-                  <Typography fontWeight={600}>{booking.booking_id}</Typography>
+                  <Typography fontWeight={600}>{data?.invoice_no}</Typography>
                 </CustomTableCell>
                 <CustomTableCell rowSpan={2} align="center">
                   <Typography fontWeight={600}>
@@ -124,108 +238,84 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     Description of Services
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="9%">
+                <CustomTableCell align="center" width="8%">
                   <Typography fontWeight={600}>HSN/SAC</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="10%">
-                  <Typography fontWeight={600}>Base Amt.</Typography>
+                <CustomTableCell align="center" width="12%">
+                  <Typography fontWeight={600}>Rate.</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="9%">
-                  <Typography fontWeight={600}>SGST%</Typography>
+                <CustomTableCell align="center" width="12%">
+                  <Typography fontWeight={600}>SGST</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="9%">
-                  <Typography fontWeight={600}>CGST%</Typography>
+                <CustomTableCell align="center" width="12%">
+                  <Typography fontWeight={600}>CGST</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="9%">
-                  <Typography fontWeight={600}>IGST%</Typography>
-                </CustomTableCell>
-                <CustomTableCell align="center" width="10%">
+                <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>Total GST</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="10%">
+                <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>Total</Typography>
                 </CustomTableCell>
               </TableRow>
             </TableBody>
             <TableBody>
-              {/* {bookingData?.room?.map((room, index) => (
-              <TableRow key={index}>
-                <CustomTableCell
-                  sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
-                >
-                  <Typography>
-                    Room No:{room?.number}- {room?.category?.category}
-                    <br />
-                    <span style={{ fontSize: '12px' }}>
-                      ({`Per night: Rs.${room?.category?.tariff}/-`})
-                    </span>
-                  </Typography>
-                </CustomTableCell>
-                <CustomTableCell
-                  sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
-                  align="center"
-                >
-                  <Typography>996311</Typography>
-                </CustomTableCell>
-                <CustomTableCell
-                  sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
-                  align="center"
-                >
-                  <Typography>{room?.category?.tariff * noOfNights}</Typography>
-                </CustomTableCell>
-                <CustomTableCell
-                  align="center"
-                  sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
-                >
-                  <Typography>
-                    {isSameState ? room?.category?.sgst : ''}
-                  </Typography>
-                </CustomTableCell>
-                <CustomTableCell
-                  align="center"
-                  sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
-                >
-                  <Typography>
-                    {isSameState ? room?.category?.cgst : ''}
-                  </Typography>
-                </CustomTableCell>
-                <CustomTableCell
-                  align="center"
-                  sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
-                >
-                  <Typography>
-                    {!isSameState
-                      ? room?.category?.cgst + room?.category?.sgst
-                      : ''}
-                  </Typography>
-                </CustomTableCell>
-                <CustomTableCell
-                  align="center"
-                  sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
-                >
-                  <Typography>
-                    {(room?.category?.total - room?.category?.tariff) *
-                      noOfNights}
-                  </Typography>
-                </CustomTableCell>
-                <CustomTableCell
-                  align="center"
-                  sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
-                >
-                  <Typography>{room?.category?.total * noOfNights}</Typography>
-                </CustomTableCell>
-              </TableRow>
-            ))} */}
+              {allTokens?.map((token, index) => (
+                <TableRow key={index}>
+                  <CustomTableCell
+                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                  >
+                    {token?.item}
+                  </CustomTableCell>
+                  <CustomTableCell
+                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                    align="center"
+                  >
+                    {token?.hsn}
+                  </CustomTableCell>
+                  <CustomTableCell
+                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                    align="center"
+                  >
+                    {parseFloat(
+                      token?.amount - (token?.cgst + token?.sgst)
+                    ).toFixed(2)}
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                  >
+                    {token?.sgst}
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                  >
+                    {token?.cgst}
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                  >
+                    {token?.cgst + token?.sgst}
+                  </CustomTableCell>
+                  <CustomTableCell
+                    align="center"
+                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                  >
+                    {token?.amount}
+                  </CustomTableCell>
+                </TableRow>
+              ))}
             </TableBody>
             <TableBody>
               {Array.from({
-                length: 10 - (booking?.rooms?.length || 0),
+                length: 18 - (allTokens?.length || 0),
               }).map((_, idx) => (
                 <TableRow key={`empty-${idx}`}>
-                  {[...Array(8)].map((__, cellIdx) => (
+                  {[...Array(7)].map((__, cellIdx) => (
                     <CustomTableCell
                       key={cellIdx}
-                      sx={{ borderBottom: 'none', borderTop: 'none', py: 2 }}
+                      sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                     >
                       &nbsp;
                     </CustomTableCell>
@@ -242,28 +332,42 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{0}</Typography>
+                  <Typography>
+                    {totals?.totalAmount -
+                      (totals?.totalSgst + totals?.totalCgst)}
+                  </Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{0}</Typography>
+                  <Typography>
+                    {parseFloat(totals?.totalSgst).toFixed(2)}
+                  </Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{0}</Typography>
+                  <Typography>
+                    {parseFloat(totals?.totalCgst).toFixed(2)}
+                  </Typography>
                 </CustomTableCell>
+
                 <CustomTableCell align="center">
-                  <Typography>{0}</Typography>
+                  <Typography>
+                    {parseFloat(totals?.totalSgst + totals?.totalCgst).toFixed(
+                      2
+                    )}
+                  </Typography>
                 </CustomTableCell>
+
                 <CustomTableCell align="center">
-                  <Typography>{0}</Typography>
-                </CustomTableCell>
-                <CustomTableCell align="center">
-                  <Typography>{0}</Typography>
+                  <Typography>
+                    {parseFloat(totals?.totalAmount).toFixed(2)}
+                  </Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
                 <CustomTableCell colSpan={2}>
                   <Typography>Amuount Chargeable (in words):</Typography>
-                  <Typography fontWeight={600}>{0} rupees</Typography>
+                  <Typography fontWeight={600}>
+                    {totalInWords} rupees
+                  </Typography>
                 </CustomTableCell>
                 <CustomTableCell rowSpan={2} colSpan={3} align="center">
                   <Typography variant="body2">
@@ -272,7 +376,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     company,organisation or person indicated above.
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell colSpan={3} rowSpan={2} align="center">
+                <CustomTableCell colSpan={2} rowSpan={2} align="center">
                   <Typography fontWeight={600}>Authorised Signatory</Typography>
                 </CustomTableCell>
               </TableRow>
@@ -284,7 +388,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={8} align="center">
+                <CustomTableCell colSpan={7} align="center">
                   <Typography variant="caption">
                     We are Happy to Serve You.Visit us again...
                   </Typography>

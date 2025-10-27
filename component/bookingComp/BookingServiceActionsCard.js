@@ -353,6 +353,7 @@ export default function BookingServiceActionsCard({
         setOpen={setInvoiceModel}
         booking={booking}
         roomInvoices={roomInvoices}
+        paymentMethods={paymentMethods}
       />
 
       {/* Cancel Booking Confirmation Dialog */}

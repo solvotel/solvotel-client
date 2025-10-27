@@ -198,11 +198,17 @@ const CreateOrderInvoice = ({
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    {['Name', 'HSN', 'Rate', 'Qty', 'GST %', 'Total'].map(
-                      (h) => (
-                        <TableCell key={h}>{h}</TableCell>
-                      )
-                    )}
+                    {[
+                      'Name',
+                      'HSN',
+                      'Rate',
+                      'Qty',
+                      'SGST %',
+                      'CGST %',
+                      'Total',
+                    ].map((h) => (
+                      <TableCell key={h}>{h}</TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -212,7 +218,8 @@ const CreateOrderInvoice = ({
                       <TableCell>{item.hsn}</TableCell>
                       <TableCell>{item.rate}</TableCell>
                       <TableCell>{item.qty}</TableCell>
-                      <TableCell>{item.gst}</TableCell>
+                      <TableCell>{item.gst / 2}</TableCell>
+                      <TableCell>{item.gst / 2}</TableCell>
                       <TableCell>{item.amount}</TableCell>
                     </TableRow>
                   ))}
@@ -238,17 +245,22 @@ const CreateOrderInvoice = ({
 
             return (
               <Grid container spacing={2} mb={2}>
-                <Grid item size={{ xs: 12, sm: 4 }}>
+                <Grid item size={{ xs: 12, sm: 3 }}>
                   <Typography>
                     Total: <b>{totalAmount?.toFixed(2)}</b>
                   </Typography>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 4 }}>
+                <Grid item size={{ xs: 12, sm: 3 }}>
                   <Typography>
-                    GST: <b>{tax?.toFixed(2)}</b>
+                    SGST: <b>{tax?.toFixed(2) / 2}</b>
                   </Typography>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 4 }}>
+                <Grid item size={{ xs: 12, sm: 3 }}>
+                  <Typography>
+                    CGST: <b>{tax?.toFixed(2) / 2}</b>
+                  </Typography>
+                </Grid>
+                <Grid item size={{ xs: 12, sm: 3 }}>
                   <Typography>
                     Payable: <b>{payable?.toFixed(2)}</b>
                   </Typography>

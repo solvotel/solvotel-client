@@ -142,7 +142,8 @@ const Page = () => {
                       'Date/Time',
                       'Customer Name',
                       'Total Amount',
-                      'GST',
+                      'SGST',
+                      'CGST',
                       'Payable Amount',
                       'Payment Method',
                     ].map((item, index) => (
@@ -161,7 +162,8 @@ const Page = () => {
                       </TableCell>
                       <TableCell>{row.customer_name}</TableCell>
                       <TableCell>{row.total_amount}</TableCell>
-                      <TableCell>{row.tax}</TableCell>
+                      <TableCell>{row.tax / 2}</TableCell>
+                      <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.payable_amount}</TableCell>
                       <TableCell>{row.mop}</TableCell>
                     </TableRow>

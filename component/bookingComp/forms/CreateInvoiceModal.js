@@ -19,6 +19,7 @@ import {
   TableContainer,
   Checkbox,
   Grid,
+  MenuItem,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import RoomIcon from '@mui/icons-material/MeetingRoom';
@@ -44,6 +45,7 @@ export default function CreateInvoiceModal({
   setOpen,
   booking,
   roomInvoices,
+  paymentMethods,
 }) {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
@@ -54,6 +56,8 @@ export default function CreateInvoiceModal({
   const [billedRoomTokens, setBilledRoomTokens] = useState([]);
   const [billedServices, setBilledServices] = useState([]);
   const [billedFoodItems, setBilledFoodItems] = useState([]);
+
+  const [mop, setMop] = useState('');
 
   useEffect(() => {
     if (!booking) return;
@@ -158,6 +162,7 @@ export default function CreateInvoiceModal({
           hotel_id: auth?.user?.hotel_id,
           room_booking: booking.documentId,
           payable_amount: total_other_amount + totalRoomAmount,
+          mop: mop,
         },
       };
 
@@ -198,6 +203,7 @@ export default function CreateInvoiceModal({
     if (res) {
       await updateBooking();
       SuccessToast('Invoice created successfully');
+      setMop('');
       setOpen(false);
     }
   };
@@ -258,6 +264,22 @@ export default function CreateInvoiceModal({
               />
             </Grid>
           ))}
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              label="Mode of payment"
+              select
+              size="small"
+              value={mop}
+              onChange={(e) => setMop(e.target.value)}
+              fullWidth
+            >
+              {paymentMethods.map((mode, index) => (
+                <MenuItem key={index} value={mode?.name}>
+                  {mode?.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
         </Grid>
 
         <Divider sx={{ my: 2 }} />
@@ -277,8 +299,9 @@ export default function CreateInvoiceModal({
                   <TableCell></TableCell>
                   <TableCell>Room No</TableCell>
                   <TableCell>Items</TableCell>
-                  <TableCell align="right">Total GST (₹)</TableCell>
-                  <TableCell align="right">Total Amount (₹)</TableCell>
+                  <TableCell align="right">SGST (%)</TableCell>
+                  <TableCell align="right">CGST (%)</TableCell>
+                  <TableCell align="right">Amount (₹)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -293,7 +316,8 @@ export default function CreateInvoiceModal({
                       </TableCell>
                       <TableCell>{row.room}</TableCell>
                       <TableCell>{row.item}</TableCell>
-                      <TableCell align="right">{row.gst}</TableCell>
+                      <TableCell align="right">{row.gst / 2}</TableCell>
+                      <TableCell align="right">{row.gst / 2}</TableCell>
                       <TableCell align="right">{row.amount}</TableCell>
                     </TableRow>
                   ))
@@ -326,8 +350,9 @@ export default function CreateInvoiceModal({
                   <TableCell></TableCell>
                   <TableCell>Room No</TableCell>
                   <TableCell>Items</TableCell>
-                  <TableCell align="right">Total GST (₹)</TableCell>
-                  <TableCell align="right">Total Amount (₹)</TableCell>
+                  <TableCell align="right">SGST (₹)</TableCell>
+                  <TableCell align="right">CGST (₹)</TableCell>
+                  <TableCell align="right">Amount (₹)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -344,7 +369,8 @@ export default function CreateInvoiceModal({
                       <TableCell>
                         {row.items?.map((i) => i.item).join(', ')}
                       </TableCell>
-                      <TableCell align="right">{row.total_gst}</TableCell>
+                      <TableCell align="right">{row.total_gst / 2}</TableCell>
+                      <TableCell align="right">{row.total_gst / 2}</TableCell>
                       <TableCell align="right">{row.total_amount}</TableCell>
                     </TableRow>
                   ))
@@ -377,8 +403,9 @@ export default function CreateInvoiceModal({
                   <TableCell></TableCell>
                   <TableCell>Room No</TableCell>
                   <TableCell>Items</TableCell>
-                  <TableCell align="right">Total GST (₹)</TableCell>
-                  <TableCell align="right">Total Amount (₹)</TableCell>
+                  <TableCell align="right">SGST (₹)</TableCell>
+                  <TableCell align="right">CGST (₹)</TableCell>
+                  <TableCell align="right">Amount (₹)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -395,7 +422,8 @@ export default function CreateInvoiceModal({
                       <TableCell>
                         {row.items?.map((i) => i.item).join(', ')}
                       </TableCell>
-                      <TableCell align="right">{row.total_gst}</TableCell>
+                      <TableCell align="right">{row.total_gst / 2}</TableCell>
+                      <TableCell align="right">{row.total_gst / 2}</TableCell>
                       <TableCell align="right">{row.total_amount}</TableCell>
                     </TableRow>
                   ))

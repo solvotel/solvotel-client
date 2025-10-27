@@ -53,7 +53,9 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
               <td>
                 {item.item}
                 <br />
-                <span style={{ fontSize: 10 }}>GST:{item?.gst_percent}%</span>
+                <span style={{ fontSize: 9 }}>
+                  SGST:{item?.gst / 2}%, CGST:{item?.gst / 2}%
+                </span>
               </td>
               <td align="right">{item.qty}</td>
               <td align="right">{item.rate}</td>
@@ -67,7 +69,8 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
 
       <div style={{ textAlign: 'right' }}>
         <p>Subtotal: ₹{invoice?.total_amount}</p>
-        <p>GST: ₹{invoice?.tax}</p>
+        <p>SGST: ₹{invoice?.tax / 2}</p>
+        <p>CGST: ₹{invoice?.tax / 2}</p>
         <p style={{ fontWeight: 'bold' }}>Total: ₹{invoice?.payable_amount}</p>
       </div>
 
