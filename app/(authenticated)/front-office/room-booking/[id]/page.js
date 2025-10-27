@@ -101,7 +101,11 @@ export default function RoomBookings({ params }) {
                   roomInvoices={roomInvoices}
                 />
                 <PaymentHistoryCard booking={data} hotel={hotel} />
-                <InvoiceListCard booking={data} roomInvoices={roomInvoices} />
+                <InvoiceListCard
+                  booking={data}
+                  roomInvoices={roomInvoices}
+                  hotel={hotel}
+                />
               </Grid>
             </Grid>
           </Box>

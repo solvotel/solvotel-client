@@ -120,6 +120,16 @@ export default function CreateInvoiceModal({
       const selectedRooms = roomTokens.filter((r) => r.invoice);
       const selectedServices = services.filter((s) => s.invoice);
       const selectedFood = foodItems.filter((f) => f.invoice);
+      const serviceAndFood = [...selectedServices, ...selectedFood];
+
+      const totalRoomAmount = selectedRooms.reduce(
+        (sum, item) => sum + (parseFloat(item.amount) || 0),
+        0
+      );
+      const total_other_amount = serviceAndFood.reduce(
+        (sum, item) => sum + (parseFloat(item.total_amount) || 0),
+        0
+      );
 
       if (
         selectedRooms.length === 0 &&
@@ -147,6 +157,7 @@ export default function CreateInvoiceModal({
           food_tokens: selectedFood,
           hotel_id: auth?.user?.hotel_id,
           room_booking: booking.documentId,
+          payable_amount: total_other_amount + totalRoomAmount,
         },
       };
 
