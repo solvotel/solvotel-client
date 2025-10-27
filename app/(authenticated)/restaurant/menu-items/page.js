@@ -40,7 +40,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 
 const Page = () => {
@@ -58,6 +58,7 @@ const Page = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData());
   const [editing, setEditing] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   function initialFormData() {
     return {
@@ -100,7 +101,26 @@ const Page = () => {
     setFormOpen(true);
   };
 
+  const validateForm = (data) => {
+    const errors = {};
+
+    if (!data.item?.trim()) errors.item = 'Name is required';
+    if (!data.category?.trim()) errors.category = 'Category is required';
+    if (!data.hsn?.trim()) errors.hsn = 'HSN/SAC is required';
+    if (!data.rate || data.rate <= 0) errors.rate = 'Enter a valid rate';
+    if (data.gst === '' || data.gst < 0) errors.gst = 'Enter a valid GST (%)';
+
+    return errors;
+  };
+
   const handleSave = async () => {
+    const errors = validateForm(formData);
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      ErrorToast('Please fix the highlighted errors before saving');
+      return;
+    }
     if (editing) {
       const {
         id,
@@ -309,6 +329,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, item: e.target.value })
                     }
+                    error={!!formErrors.item}
+                    helperText={formErrors.item}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -320,6 +342,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, category: e.target.value })
                     }
+                    error={!!formErrors.category}
+                    helperText={formErrors.category}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -381,6 +405,8 @@ const Page = () => {
                         hsn: e.target.value,
                       })
                     }
+                    error={!!formErrors.hsn}
+                    helperText={formErrors.hsn}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
@@ -399,6 +425,8 @@ const Page = () => {
                         total: rate + (rate * gst) / 100,
                       });
                     }}
+                    error={!!formErrors.rate}
+                    helperText={formErrors.rate}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>
@@ -417,6 +445,8 @@ const Page = () => {
                         total: rate + (rate * gst) / 100,
                       });
                     }}
+                    error={!!formErrors.gst}
+                    helperText={formErrors.gst}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 4 }}>

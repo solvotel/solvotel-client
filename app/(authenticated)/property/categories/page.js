@@ -40,7 +40,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 
 const Page = () => {
@@ -58,6 +58,7 @@ const Page = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData());
   const [editing, setEditing] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   function initialFormData() {
     return {
@@ -108,7 +109,38 @@ const Page = () => {
     setFormOpen(true);
   };
 
+  const validateForm = (data) => {
+    const errors = {};
+
+    if (!data.name?.trim()) errors.name = 'Name is required';
+    if (!data.description?.trim())
+      errors.description = 'Description is required';
+    if (!data.bed_type?.trim()) errors.bed_type = 'Bed type is required';
+    if (!data.hsn?.trim()) errors.hsn = 'HSN/SAC is required';
+
+    if (data.tariff <= 0) errors.tariff = 'Tariff must be greater than 0';
+    if (data.gst < 0) errors.gst = 'GST cannot be negative';
+    if (data.total <= 0) errors.total = 'Total must be greater than 0';
+
+    if (data.base_adults <= 0) errors.base_adults = 'Base adults required';
+    if (data.max_adults < data.base_adults)
+      errors.max_adults = 'Max adults must be ≥ base adults';
+    if (data.max_capacity < data.max_adults)
+      errors.max_capacity = 'Max capacity must be ≥ max adults';
+
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      return false;
+    }
+    return true;
+  };
+
   const handleSave = async () => {
+    if (!validateForm(formData)) {
+      ErrorToast('Enter Required fields');
+      return;
+    }
     if (editing) {
       const {
         id,
@@ -314,6 +346,7 @@ const Page = () => {
             </DialogTitle>
             <DialogContent>
               <Grid container spacing={2} sx={{ mb: 2 }}>
+                {/* Name */}
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     margin="dense"
@@ -323,8 +356,12 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
+                    error={!!formErrors.name}
+                    helperText={formErrors.name}
                   />
                 </Grid>
+
+                {/* Bed Type */}
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     margin="dense"
@@ -334,8 +371,12 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, bed_type: e.target.value })
                     }
+                    error={!!formErrors.bed_type}
+                    helperText={formErrors.bed_type}
                   />
                 </Grid>
+
+                {/* Description */}
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     margin="dense"
@@ -347,9 +388,13 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
+                    error={!!formErrors.description}
+                    helperText={formErrors.description}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
+
+                {/* HSN/SAC */}
+                <Grid size={{ xs: 12, sm: 3 }}>
                   <TextField
                     margin="dense"
                     label="HSN/SAC"
@@ -358,9 +403,13 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, hsn: e.target.value })
                     }
+                    error={!!formErrors.hsn}
+                    helperText={formErrors.hsn}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
+
+                {/* Tariff */}
+                <Grid size={{ xs: 12, sm: 3 }}>
                   <TextField
                     margin="dense"
                     label="Tariff"
@@ -376,9 +425,13 @@ const Page = () => {
                         total: tariff + (tariff * gst) / 100,
                       });
                     }}
+                    error={!!formErrors.tariff}
+                    helperText={formErrors.tariff}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
+
+                {/* GST */}
+                <Grid size={{ xs: 12, sm: 3 }}>
                   <TextField
                     margin="dense"
                     label="GST (%)"
@@ -394,9 +447,13 @@ const Page = () => {
                         total: tariff + (tariff * gst) / 100,
                       });
                     }}
+                    error={!!formErrors.gst}
+                    helperText={formErrors.gst}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
+
+                {/* Total */}
+                <Grid size={{ xs: 12, sm: 3 }}>
                   <TextField
                     margin="dense"
                     label="Total"
@@ -404,6 +461,127 @@ const Page = () => {
                     fullWidth
                     value={formData.total}
                     InputProps={{ readOnly: true }}
+                    error={!!formErrors.total}
+                    helperText={formErrors.total}
+                  />
+                </Grid>
+
+                {/* Capacity Fields */}
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <TextField
+                    margin="dense"
+                    label="Base Adults"
+                    type="number"
+                    fullWidth
+                    value={formData.base_adults}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        base_adults: parseInt(e.target.value),
+                      })
+                    }
+                    error={!!formErrors.base_adults}
+                    helperText={formErrors.base_adults}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <TextField
+                    margin="dense"
+                    label="Base Child"
+                    type="number"
+                    fullWidth
+                    value={formData.base_child}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        base_child: parseInt(e.target.value),
+                      })
+                    }
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <TextField
+                    margin="dense"
+                    label="Max Adults"
+                    type="number"
+                    fullWidth
+                    value={formData.max_adults}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        max_adults: parseInt(e.target.value),
+                      })
+                    }
+                    error={!!formErrors.max_adults}
+                    helperText={formErrors.max_adults}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <TextField
+                    margin="dense"
+                    label="Max Child"
+                    type="number"
+                    fullWidth
+                    value={formData.max_child}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        max_child: parseInt(e.target.value),
+                      })
+                    }
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <TextField
+                    margin="dense"
+                    label="Max Capacity"
+                    type="number"
+                    fullWidth
+                    value={formData.max_capacity}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        max_capacity: parseInt(e.target.value),
+                      })
+                    }
+                    error={!!formErrors.max_capacity}
+                    helperText={formErrors.max_capacity}
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <TextField
+                    margin="dense"
+                    label="Extra Adult Charge"
+                    type="number"
+                    fullWidth
+                    value={formData.extra_adult}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        extra_adult: parseInt(e.target.value),
+                      })
+                    }
+                  />
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <TextField
+                    margin="dense"
+                    label="Extra Child Charge"
+                    type="number"
+                    fullWidth
+                    value={formData.extra_child}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        extra_child: parseInt(e.target.value),
+                      })
+                    }
                   />
                 </Grid>
 
@@ -439,6 +617,7 @@ const Page = () => {
                 ))}
               </Grid>
             </DialogContent>
+
             <DialogActions>
               <Button onClick={() => setFormOpen(false)}>Cancel</Button>
               <Button onClick={handleSave} variant="contained">

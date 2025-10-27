@@ -40,7 +40,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
 import { Loader } from '@/component/common';
 
@@ -91,6 +91,10 @@ const Page = () => {
   };
 
   const handleSave = async () => {
+    if (!formData.name) {
+      ErrorToast('Method Name is Required');
+      return;
+    }
     if (editing) {
       const {
         id,

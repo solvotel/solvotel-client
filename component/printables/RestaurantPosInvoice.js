@@ -74,7 +74,6 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       <p style={{ margin: '5px 0' }}>-------------------------------</p>
 
       <div style={{ textAlign: 'center' }}>
-        <p>Paid via {invoice?.mop || 'Cash'}</p>
         <p>Thank you! Visit again.</p>
       </div>
     </div>

@@ -41,7 +41,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { GetCurrentTime } from '@/utils/Timefetcher';
@@ -95,6 +95,7 @@ const Page = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData());
   const [editing, setEditing] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   const [selectedItem, setSelectedItem] = useState();
 
@@ -170,7 +171,42 @@ const Page = () => {
     setFormOpen(true);
   };
 
+  const validateForm = (formData) => {
+    const errors = {};
+
+    if (!formData.customer_name?.trim()) {
+      errors.customer_name = 'Customer name is required';
+    }
+
+    if (!formData.customer_phone?.trim()) {
+      errors.customer_phone = 'Customer phone is required';
+    } else {
+      const phoneRegex = /^[0-9]{10}$/;
+      if (!phoneRegex.test(formData.customer_phone)) {
+        errors.customer_phone = 'Please enter a valid 10-digit phone number';
+      }
+    }
+
+    if (!formData.menu_items || formData.menu_items.length === 0) {
+      errors.menu_items = 'Please add at least one menu item';
+    }
+
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      // show first error toast
+
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSave = async () => {
+    if (!validateForm(formData)) {
+      ErrorToast('Enter required fields');
+      return;
+    }
     // recalc before save
     const totalAmount = formData.menu_items.reduce(
       (acc, cur) => acc + cur.rate * cur.qty,
@@ -447,6 +483,8 @@ const Page = () => {
                         customer_name: e.target.value,
                       })
                     }
+                    error={!!formErrors.customer_name}
+                    helperText={formErrors.customer_name}
                   />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 6 }}>
@@ -462,6 +500,8 @@ const Page = () => {
                         customer_phone: e.target.value,
                       })
                     }
+                    error={!!formErrors.customer_phone}
+                    helperText={formErrors.customer_phone}
                   />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 6 }}>
@@ -497,6 +537,11 @@ const Page = () => {
               <Typography variant="h6" gutterBottom>
                 Items
               </Typography>
+              {formErrors.menu_items && (
+                <Typography color="error" sx={{ mb: 1 }}>
+                  {formErrors.menu_items}
+                </Typography>
+              )}
               <Grid container spacing={2} alignItems="center" mb={2}>
                 <Grid item size={{ xs: 10 }}>
                   <TextField
