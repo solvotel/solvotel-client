@@ -123,12 +123,12 @@ export default function Home() {
       >
         <Container maxWidth="lg">
           <Grid container spacing={6} alignItems="center">
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, md: 5 }}>
               <Typography
-                variant="h2"
+                variant="h4"
                 sx={{
                   fontWeight: 800,
-                  fontSize: { xs: '2.5rem', md: '3.5rem' },
+                  fontSize: { xs: '2.5rem', md: '2.5rem' },
                   background:
                     'linear-gradient(135deg, #1e293b 0%, #2563eb 100%)',
                   backgroundClip: 'text',
@@ -161,7 +161,7 @@ export default function Home() {
                 >
                   Get Started
                 </Button>
-                <Button
+                {/* <Button
                   variant="outlined"
                   size="large"
                   sx={{
@@ -178,10 +178,10 @@ export default function Home() {
                   }}
                 >
                   View Demo
-                </Button>
+                </Button> */}
               </Box>
             </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, md: 7 }}>
               <Box
                 sx={{
                   background:
@@ -191,12 +191,20 @@ export default function Home() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '1.5rem',
-                  fontWeight: 600,
+                  overflow: 'hidden', // ensures image fits neatly within rounded corners
                 }}
               >
-                App Dashboard Preview
+                <Box
+                  component="img"
+                  src="https://res.cloudinary.com/deyxdpnom/image/upload/v1761584231/Screenshot_2025-10-27_222555_ho3xwx.png"
+                  alt="App Dashboard Preview"
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover', // keeps aspect ratio and fills the box
+                    borderRadius: 4,
+                  }}
+                />
               </Box>
             </Grid>
           </Grid>
