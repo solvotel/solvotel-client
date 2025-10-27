@@ -17,23 +17,14 @@ import { CalculateDays } from '@/utils/CalculateDays';
 import { amountToWords } from '@/utils/AmountToWords';
 
 // Replace theme colors with fixed hex values
-const HEADER_BG_COLOR = '#1976d2'; // blue
-const HEADER_TEXT_COLOR = '#ffffff'; // white
+
 const TABLE_HEAD_BG = '#e0f7fa'; // light cyan
 const ROW_ODD_BG = '#f5f5f5'; // light grey
-const INFO_BG = '#f9f9f9'; // very light grey
 const HIGHLIGHT_COLOR = '#1976d2'; // blue
 
 const HeaderBox = styled(Box)({
-  backgroundColor: HEADER_BG_COLOR,
-  color: HEADER_TEXT_COLOR,
+  border: '1px solid #747474ff',
   padding: '16px',
-  borderRadius: '8px 8px 0 0',
-});
-
-const InfoBox = styled(Box)({
-  padding: '16px',
-  backgroundColor: INFO_BG,
 });
 
 const Highlight = styled(Typography)({
@@ -43,44 +34,6 @@ const Highlight = styled(Typography)({
 
 const BookingSlip = React.forwardRef((props, ref) => {
   const { booking, hotel } = props;
-  // const booking = {
-  //   booking_id: 'BX55F7E4E103B',
-  //   created_on: '21–Sep–2025 (08:30 PM)',
-  //   created_by: 'Sima Basak',
-  //   customer_name: 'BIJOY GHOSH',
-  //   customer_phone: '+91-8240599974',
-  //   company_name: 'N/A',
-  //   gst: 'N/A',
-  //   address: 'KALYANI, NADIA',
-  //   check_in: '25–Sep–2025 10:30 AM',
-  //   check_out: '27–Sep–2025 02:30 PM',
-  //   booking_type: 'FIT',
-  //   source: 'Goibibo.com',
-  //   no_of_nights: 2,
-  //   total_amount: '23,600',
-  //   total_amount_words: 'INR Twenty Three Thousands Six Hundred Only',
-  //   advance_amount: '23,600',
-  //   advance_amount_words: 'INR Twenty Three Thousands Six Hundred Only',
-  //   requested_items: `GUEST REQUESTED FOR JW BLK 750ML WITH\nICE AND SODA\nCHICKEN STARTER`,
-  //   rooms: [
-  //     {
-  //       date: '25th Sep, 2025',
-  //       category: 'Suite Room',
-  //       no_of_rooms: 1,
-  //       adults: 2,
-  //       children: 0,
-  //       meal_plan: 'AP',
-  //     },
-  //     {
-  //       date: '26th Sep, 2025',
-  //       category: 'Suite Room',
-  //       no_of_rooms: 1,
-  //       adults: 2,
-  //       children: 0,
-  //       meal_plan: 'AP',
-  //     },
-  //   ],
-  // };
 
   const roomTokens = booking?.room_tokens || [];
   const totalRoomAmount = roomTokens?.reduce(
@@ -102,13 +55,40 @@ const BookingSlip = React.forwardRef((props, ref) => {
         fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
         color: '#333',
         fontSize: '13px',
+        padding: '15px',
       }}
     >
       {/* Header */}
       <HeaderBox>
         <Grid container>
-          <Grid size={6}>
-            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+          <Grid size={2.5}>
+            <Box
+              sx={{
+                width: 130,
+                height: 130,
+                borderRadius: 2,
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <img
+                src={
+                  hotel?.hotel_logo?.url ||
+                  'https://res.cloudinary.com/deyxdpnom/image/upload/v1760012402/demo_hpzblb.png'
+                } // fallback image
+                alt="Hotel Logo"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover', // ensures it's always a perfect square crop
+                }}
+              />
+            </Box>
+          </Grid>
+          <Grid size={4.5}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
               {hotel?.hotel_name}
             </Typography>
             <Typography variant="body2">
@@ -125,7 +105,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
               GST #: {hotel?.hotel_gst_no || 'N/A'}
             </Typography>
           </Grid>
-          <Grid size={6} textAlign="right">
+          <Grid size={5} textAlign="right">
             <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
               Booking Slip
             </Typography>
@@ -139,67 +119,64 @@ const BookingSlip = React.forwardRef((props, ref) => {
       </HeaderBox>
 
       {/* Guest & Booking Info */}
-      <InfoBox>
-        <Grid container spacing={2}>
-          {/* Guest Info */}
-          <Grid size={6}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Guest Information
-            </Typography>
-            <Typography>
-              <b>Name:</b> {booking?.customer?.name || 'N/A'}
-            </Typography>
-            <Typography>
-              <b>Company:</b> {booking?.customer?.company_name || 'N/A'}
-            </Typography>
-            <Typography>
-              <b>GST #:</b> {booking?.customer?.gst_no || 'N/A'}
-            </Typography>
-            <Typography>
-              <b>Address:</b> {booking?.customer?.address || 'N/A'}
-            </Typography>
-            <Typography>
-              <b>Phone:</b> {booking?.customer?.mobile || 'N/A'}
-            </Typography>
-          </Grid>
-          {/* Booking Info */}
-          <Grid size={6}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Booking Details
-            </Typography>
-            <Typography>
-              <b>Check‑In:</b> {GetCustomDate(booking?.checkin_date)}
-            </Typography>
-            <Typography>
-              <b>Check‑Out:</b> {GetCustomDate(booking?.checkout_date)}
-            </Typography>
-            <Typography>
-              <b>Type:</b> {booking?.booking_type}
-            </Typography>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+        }}
+      >
+        <Box sx={{ flex: 2, border: '1px solid #747474ff', p: 2 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+            Guest Information
+          </Typography>
+          <Typography>
+            <b>Name:</b> {booking?.customer?.name || 'N/A'}
+          </Typography>
+          <Typography>
+            <b>Company:</b> {booking?.customer?.company_name || 'N/A'}
+          </Typography>
+          <Typography>
+            <b>GST #:</b> {booking?.customer?.gst_no || 'N/A'}
+          </Typography>
+          <Typography>
+            <b>Address:</b> {booking?.customer?.address || 'N/A'}
+          </Typography>
+          <Typography>
+            <b>Phone:</b> {booking?.customer?.mobile || 'N/A'}
+          </Typography>
+        </Box>
+        <Box sx={{ flex: 1, border: '1px solid #747474ff', p: 2 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+            Booking Details
+          </Typography>
+          <Typography>
+            <b>Check‑In:</b> {GetCustomDate(booking?.checkin_date)}
+          </Typography>
+          <Typography>
+            <b>Check‑Out:</b> {GetCustomDate(booking?.checkout_date)}
+          </Typography>
+          <Typography>
+            <b>Type:</b> {booking?.booking_type}
+          </Typography>
 
-            <Typography>
-              <b>No. of Nights:</b>{' '}
-              {CalculateDays({
-                checkin: booking?.checkin_date,
-                checkout: booking?.checkout_date,
-              })}
-            </Typography>
-          </Grid>
-        </Grid>
-      </InfoBox>
+          <Typography>
+            <b>No. of Nights:</b>{' '}
+            {CalculateDays({
+              checkin: booking?.checkin_date,
+              checkout: booking?.checkout_date,
+            })}
+          </Typography>
+        </Box>
+      </Box>
 
       {/* Payment & Requests */}
       <Box
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
-          p: 2,
-          gap: 2,
         }}
       >
-        <Box
-          sx={{ flex: 2, backgroundColor: INFO_BG, p: 2, borderRadius: '4px' }}
-        >
+        <Box sx={{ flex: 2, border: '1px solid #747474ff', p: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
             Payment Summary
           </Typography>
@@ -213,9 +190,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
             {amountToWords(booking.advance_payment?.amount || 0)})
           </Typography>
         </Box>
-        <Box
-          sx={{ flex: 1, backgroundColor: INFO_BG, p: 2, borderRadius: '4px' }}
-        >
+        <Box sx={{ flex: 1, border: '1px solid #747474ff', p: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
             Guest Requests / Notes
           </Typography>
@@ -224,7 +199,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
       </Box>
 
       {/* Rooms Table */}
-      <Box sx={{ px: 2, pb: 2 }}>
+      <Box sx={{ my: 2, pb: 2 }}>
         <Table
           size="small"
           sx={{ borderCollapse: 'separate', borderSpacing: '0', width: '100%' }}

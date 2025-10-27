@@ -61,14 +61,17 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
     if (searchClicked) setSearchClicked(false);
   }, [search]);
 
-  // Filter data only after clicking Search
   const filteredData = useMemo(() => {
-    // If no search, return empty array
     if (!search) return [];
     if (!data) return [];
 
-    // Always include selected guest if exists
-    let list = data.filter((item) => item.mobile == search);
+    const lowerSearch = search.toLowerCase();
+
+    let list = data.filter(
+      (item) =>
+        item.mobile?.toLowerCase().includes(lowerSearch) ||
+        item.name?.toLowerCase().includes(lowerSearch)
+    );
 
     if (
       selectedGuest &&
@@ -176,157 +179,144 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
       {/* Guest Results */}
       <Box sx={{ mt: 4 }}>
         {data ? (
-          data.filter((item) =>
-            item.mobile?.toLowerCase().includes(search.toLowerCase())
-          ).length > 0 ? (
+          filteredData.length > 0 ? (
             <Grid container spacing={2}>
-              {data
-                .filter((item) => {
-                  if (search === '') {
-                    return;
-                  } else if (
-                    item.mobile?.toLowerCase().includes(search.toLowerCase())
-                  ) {
-                    return item;
-                  }
-                })
-                .slice(0, 2)
-                .map((guest) => {
-                  return (
-                    <Grid size={{ xs: 12, sm: 6 }} key={guest.documentId}>
-                      <Card
-                        variant={
+              {filteredData.slice(0, 2).map((guest) => {
+                return (
+                  <Grid size={{ xs: 12, sm: 6 }} key={guest.documentId}>
+                    <Card
+                      variant={
+                        selectedGuest?.documentId === guest.documentId
+                          ? 'elevation'
+                          : 'outlined'
+                      }
+                      sx={{
+                        cursor: 'pointer',
+                        borderRadius: 3,
+                        borderColor:
                           selectedGuest?.documentId === guest.documentId
-                            ? 'elevation'
-                            : 'outlined'
-                        }
-                        sx={{
-                          cursor: 'pointer',
-                          borderRadius: 3,
-                          borderColor:
-                            selectedGuest?.documentId === guest.documentId
-                              ? '#6a11cb'
-                              : '#ccc',
-                          background:
-                            selectedGuest?.documentId === guest.documentId
-                              ? 'linear-gradient(135deg, #e0e0ff, #f5f5ff)'
-                              : '#fff',
-                          transition: 'all 0.3s',
-                          '&:hover': {
-                            boxShadow: 6,
-                            transform: 'scale(1.02)',
-                          },
-                          position: 'relative',
-                        }}
-                        onClick={() => setSelectedGuest(guest)}
-                      >
-                        <CardContent>
-                          {/* Name & Mobile */}
-                          <Typography
-                            variant="h6"
-                            sx={{ fontWeight: 600, mb: 1 }}
-                          >
-                            {guest.name}
+                            ? '#6a11cb'
+                            : '#ccc',
+                        background:
+                          selectedGuest?.documentId === guest.documentId
+                            ? 'linear-gradient(135deg, #e0e0ff, #f5f5ff)'
+                            : '#fff',
+                        transition: 'all 0.3s',
+                        '&:hover': {
+                          boxShadow: 6,
+                          transform: 'scale(1.02)',
+                        },
+                        position: 'relative',
+                      }}
+                      onClick={() => setSelectedGuest(guest)}
+                    >
+                      <CardContent>
+                        {/* Name & Mobile */}
+                        <Typography
+                          variant="h6"
+                          sx={{ fontWeight: 600, mb: 1 }}
+                        >
+                          {guest.name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#444' }}>
+                          📞 {guest.mobile || '-'}
+                        </Typography>
+
+                        {/* Optional Details */}
+                        {guest.email && (
+                          <Typography variant="body2" sx={{ color: '#555' }}>
+                            ✉️ {guest.email}
                           </Typography>
-                          <Typography variant="body2" sx={{ color: '#444' }}>
-                            📞 {guest.mobile || '-'}
-                          </Typography>
-
-                          {/* Optional Details */}
-                          {guest.email && (
-                            <Typography variant="body2" sx={{ color: '#555' }}>
-                              ✉️ {guest.email}
-                            </Typography>
-                          )}
-                          {guest.dob && (
-                            <Typography variant="body2" sx={{ color: '#555' }}>
-                              🎂 DOB: {guest.dob}
-                            </Typography>
-                          )}
-                          {guest.doa && (
-                            <Typography variant="body2" sx={{ color: '#555' }}>
-                              💍 DOA: {guest.doa}
-                            </Typography>
-                          )}
-                          {guest.company_name && (
-                            <Typography variant="body2" sx={{ color: '#555' }}>
-                              🏢 Company: {guest.company_name}
-                            </Typography>
-                          )}
-                          {guest.gst_no && (
-                            <Typography variant="body2" sx={{ color: '#555' }}>
-                              🧾 GST: {guest.gst_no}
-                            </Typography>
-                          )}
-                          {guest.id_type && (
-                            <Typography variant="body2" sx={{ color: '#555' }}>
-                              🪪 {guest.id_type}: {guest.id_number || '-'}
-                            </Typography>
-                          )}
-
-                          {/* Passport + Visa Section */}
-                          {guest.id_type === 'Passport' && (
-                            <>
-                              {guest.passport_issue_date && (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: '#555' }}
-                                >
-                                  📘 Passport Issue: {guest.passport_issue_date}
-                                </Typography>
-                              )}
-                              {guest.passport_exp_date && (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: '#555' }}
-                                >
-                                  📘 Passport Expiry: {guest.passport_exp_date}
-                                </Typography>
-                              )}
-                              {guest.visa_number && (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: '#555' }}
-                                >
-                                  🛂 Visa No: {guest.visa_number}
-                                </Typography>
-                              )}
-                              {guest.visa_issue_date && (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: '#555' }}
-                                >
-                                  🛂 Visa Issue: {guest.visa_issue_date}
-                                </Typography>
-                              )}
-                              {guest.visa_exp_date && (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: '#555' }}
-                                >
-                                  🛂 Visa Expiry: {guest.visa_exp_date}
-                                </Typography>
-                              )}
-                            </>
-                          )}
-                        </CardContent>
-
-                        {/* Selection Icon */}
-                        {selectedGuest?.documentId === guest.documentId && (
-                          <CheckCircle
-                            color="primary"
-                            sx={{
-                              position: 'absolute',
-                              top: 10,
-                              right: 10,
-                              fontSize: 28,
-                            }}
-                          />
                         )}
-                      </Card>
-                    </Grid>
-                  );
-                })}
+                        {guest.dob && (
+                          <Typography variant="body2" sx={{ color: '#555' }}>
+                            🎂 DOB: {guest.dob}
+                          </Typography>
+                        )}
+                        {guest.doa && (
+                          <Typography variant="body2" sx={{ color: '#555' }}>
+                            💍 DOA: {guest.doa}
+                          </Typography>
+                        )}
+                        {guest.company_name && (
+                          <Typography variant="body2" sx={{ color: '#555' }}>
+                            🏢 Company: {guest.company_name}
+                          </Typography>
+                        )}
+                        {guest.gst_no && (
+                          <Typography variant="body2" sx={{ color: '#555' }}>
+                            🧾 GST: {guest.gst_no}
+                          </Typography>
+                        )}
+                        {guest.id_type && (
+                          <Typography variant="body2" sx={{ color: '#555' }}>
+                            🪪 {guest.id_type}: {guest.id_number || '-'}
+                          </Typography>
+                        )}
+
+                        {/* Passport + Visa Section */}
+                        {guest.id_type === 'Passport' && (
+                          <>
+                            {guest.passport_issue_date && (
+                              <Typography
+                                variant="body2"
+                                sx={{ color: '#555' }}
+                              >
+                                📘 Passport Issue: {guest.passport_issue_date}
+                              </Typography>
+                            )}
+                            {guest.passport_exp_date && (
+                              <Typography
+                                variant="body2"
+                                sx={{ color: '#555' }}
+                              >
+                                📘 Passport Expiry: {guest.passport_exp_date}
+                              </Typography>
+                            )}
+                            {guest.visa_number && (
+                              <Typography
+                                variant="body2"
+                                sx={{ color: '#555' }}
+                              >
+                                🛂 Visa No: {guest.visa_number}
+                              </Typography>
+                            )}
+                            {guest.visa_issue_date && (
+                              <Typography
+                                variant="body2"
+                                sx={{ color: '#555' }}
+                              >
+                                🛂 Visa Issue: {guest.visa_issue_date}
+                              </Typography>
+                            )}
+                            {guest.visa_exp_date && (
+                              <Typography
+                                variant="body2"
+                                sx={{ color: '#555' }}
+                              >
+                                🛂 Visa Expiry: {guest.visa_exp_date}
+                              </Typography>
+                            )}
+                          </>
+                        )}
+                      </CardContent>
+
+                      {/* Selection Icon */}
+                      {selectedGuest?.documentId === guest.documentId && (
+                        <CheckCircle
+                          color="primary"
+                          sx={{
+                            position: 'absolute',
+                            top: 10,
+                            right: 10,
+                            fontSize: 28,
+                          }}
+                        />
+                      )}
+                    </Card>
+                  </Grid>
+                );
+              })}
             </Grid>
           ) : (
             <Typography color="error" sx={{ mt: 2 }}>

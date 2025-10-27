@@ -386,7 +386,7 @@ export default function Navbar() {
                         label: 'Room Invoice Report',
                       },
                       {
-                        href: '/reports/income-expense-report',
+                        href: '/income-expense-report',
                         icon: <ClipboardList size={16} />,
                         label: 'Income Expense Report',
                       },
