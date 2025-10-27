@@ -5,6 +5,14 @@ export function middleware(req) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get('token')?.value;
 
+  // Define public routes that don't require authentication
+  const publicRoutes = ['/', '/about-us', '/contact', '/services', '/login'];
+
+  // Check if current route is public
+  const isPublicRoute = publicRoutes.some(
+    (route) => pathname === route || pathname.startsWith(route + '/')
+  );
+
   // If user is logged in and tries to go to "/", redirect to /dashboard
   if (pathname === '/') {
     if (token) {
@@ -25,9 +33,14 @@ export function middleware(req) {
     return NextResponse.next(); // not logged in → allow "/"
   }
 
+  // If it's a public route, allow access without authentication
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
   // All other routes require authentication
   if (!token) {
-    return NextResponse.redirect(new URL('/', req.url));
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
   try {
@@ -35,7 +48,7 @@ export function middleware(req) {
     const now = Date.now() / 1000;
 
     if (decoded.exp && decoded.exp < now) {
-      const res = NextResponse.redirect(new URL('/', req.url));
+      const res = NextResponse.redirect(new URL('/login', req.url));
       res.cookies.set('token', '', { maxAge: -1, path: '/' });
       res.cookies.set('user', '', { maxAge: -1, path: '/' });
       return res;
@@ -43,7 +56,7 @@ export function middleware(req) {
 
     return NextResponse.next();
   } catch (err) {
-    const res = NextResponse.redirect(new URL('/', req.url));
+    const res = NextResponse.redirect(new URL('/login', req.url));
     res.cookies.set('token', '', { maxAge: -1, path: '/' });
     res.cookies.set('user', '', { maxAge: -1, path: '/' });
     return res;
