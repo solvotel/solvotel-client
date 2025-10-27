@@ -44,7 +44,7 @@ const UpdateProfileForm = ({ data, auth }) => {
     res_address_line2: data.res_address_line2 || '',
     res_district: data.res_district || '',
     res_state: data.res_state || 'West Bengal',
-    res_pincode: data.res_pincode || '',
+    res_pincode: data.res_pincode || null,
   });
 
   const handleChange = (e) => {
@@ -120,7 +120,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="hotel_name"
                   value={formData.hotel_name}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
               <Grid item size={{ xs: 12, md: 6 }}>
@@ -130,7 +129,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="hotel_mobile"
                   value={formData.hotel_mobile}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
               <Grid item size={{ xs: 12, md: 6 }}>
@@ -140,7 +138,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="hotel_email"
                   value={formData.hotel_email}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
               <Grid item size={{ xs: 12, md: 6 }}>
@@ -177,7 +174,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="hotel_address_line1"
                   value={formData.hotel_address_line1}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
               <Grid item size={{ xs: 12, md: 6 }}>
@@ -198,7 +194,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="hotel_district"
                   value={formData.hotel_district}
                   onChange={handleChange}
-                  required
                 >
                   <MenuItem value="">Select District</MenuItem>
                   {getHotelDistrictOptions().map((district) => (
@@ -217,7 +212,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="hotel_state"
                   value={formData.hotel_state}
                   onChange={handleChange}
-                  required
                 >
                   {indianStatesAndUTs.map((state) => (
                     <MenuItem key={state} value={state}>
@@ -234,7 +228,7 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="hotel_pincode"
                   value={formData.hotel_pincode}
                   onChange={handleChange}
-                  required
+                  type="number"
                 />
               </Grid>
 
@@ -298,7 +292,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="res_name"
                   value={formData.res_name}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
               <Grid item size={{ xs: 12, md: 6 }}>
@@ -308,7 +301,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="res_mobile"
                   value={formData.res_mobile}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
               <Grid item size={{ xs: 12, md: 6 }}>
@@ -318,7 +310,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="res_email"
                   value={formData.res_email}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
               <Grid item size={{ xs: 12, md: 6 }}>
@@ -356,7 +347,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="res_address_line1"
                   value={formData.res_address_line1}
                   onChange={handleChange}
-                  required
                 />
               </Grid>
               <Grid item size={{ xs: 12, md: 6 }}>
@@ -377,7 +367,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="res_district"
                   value={formData.res_district}
                   onChange={handleChange}
-                  required
                 >
                   <MenuItem value="">Select District</MenuItem>
                   {getResDistrictOptions().map((district) => (
@@ -396,7 +385,6 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="res_state"
                   value={formData.res_state}
                   onChange={handleChange}
-                  required
                 >
                   {indianStatesAndUTs.map((state) => (
                     <MenuItem key={state} value={state}>
@@ -413,7 +401,7 @@ const UpdateProfileForm = ({ data, auth }) => {
                   name="res_pincode"
                   value={formData.res_pincode}
                   onChange={handleChange}
-                  required
+                  type="number"
                 />
               </Grid>
             </Grid>

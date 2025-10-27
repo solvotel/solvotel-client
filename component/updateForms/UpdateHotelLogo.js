@@ -111,10 +111,10 @@ const UpdateHotelLogo = ({ data, auth }) => {
           },
         },
       });
-      SuccessToast('Banner Updated successfully');
+      SuccessToast('Logo Updated successfully');
       setLoading(false);
     } catch (err) {
-      console.log(`error updating hotel banner: ${err}`);
+      console.log(`error updating hotel Logo: ${err}`);
       setLoading(false);
       ErrorToast('Something went wrong');
     }

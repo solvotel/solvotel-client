@@ -38,7 +38,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 
@@ -63,6 +63,7 @@ const Page = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData());
   const [editing, setEditing] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   function initialFormData() {
     return {
@@ -126,7 +127,31 @@ const Page = () => {
     setFormOpen(true);
   };
 
+  // 🧠 Validation function
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.order_id.trim()) errors.order_id = 'Order ID is required';
+    if (!formData.invoice_no.trim())
+      errors.invoice_no = 'Invoice No is required';
+    if (!formData.date) errors.date = 'Date is required';
+    if (!formData.inventory_item)
+      errors.inventory_item = 'Select an inventory item';
+    if (formData.rate === '' || formData.rate <= 0)
+      errors.rate = 'Enter a valid rate';
+    if (formData.qty === '' || formData.qty <= 0)
+      errors.qty = 'Enter a valid quantity';
+    if (formData.tax === '' || formData.tax < 0)
+      errors.tax = 'Enter valid GST (%)';
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
   const handleSave = async () => {
+    if (!validateForm()) {
+      ErrorToast('Please fill all required fields correctly');
+      return;
+    }
     if (editing) {
       const {
         id,
@@ -344,6 +369,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, order_id: e.target.value })
                     }
+                    error={!!formErrors.order_id}
+                    helperText={formErrors.order_id}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -355,6 +382,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, invoice_no: e.target.value })
                     }
+                    error={!!formErrors.invoice_no}
+                    helperText={formErrors.invoice_no}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -367,6 +396,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, date: e.target.value })
                     }
+                    error={!!formErrors.date}
+                    helperText={formErrors.date}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -390,6 +421,8 @@ const Page = () => {
                     SelectProps={{
                       native: true,
                     }}
+                    error={!!formErrors.inventory_item}
+                    helperText={formErrors.inventory_item}
                   >
                     <option value="">-- Select --</option>
                     {inventoryItemList?.map((cat) => (
@@ -412,6 +445,8 @@ const Page = () => {
                         rate: Number(e.target.value),
                       })
                     }
+                    error={!!formErrors.rate}
+                    helperText={formErrors.rate}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -427,6 +462,8 @@ const Page = () => {
                         qty: Number(e.target.value),
                       })
                     }
+                    error={!!formErrors.qty}
+                    helperText={formErrors.qty}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -442,6 +479,8 @@ const Page = () => {
                         tax: Number(e.target.value),
                       })
                     }
+                    error={!!formErrors.tax}
+                    helperText={formErrors.tax}
                   />
                 </Grid>
 

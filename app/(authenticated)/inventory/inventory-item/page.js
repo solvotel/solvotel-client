@@ -40,7 +40,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
 import { Loader } from '@/component/common';
 
@@ -64,13 +64,14 @@ const Page = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialFormData());
   const [editing, setEditing] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
 
   function initialFormData() {
     return {
       code: '',
       group: '',
       name: '',
-      auditable: '',
+      auditable: 'No',
       tax: '',
       unit: 'Pcs',
       category: null,
@@ -85,6 +86,21 @@ const Page = () => {
       item.name?.toLowerCase().includes(search.toLowerCase())
     );
   }, [data, search]);
+
+  // 🧠 Validation logic
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formData.code.trim()) errors.code = 'Code is required';
+    if (!formData.name.trim()) errors.name = 'Name is required';
+    if (!formData.category) errors.category = 'Category is required';
+    if (!formData.unit) errors.unit = 'Unit is required';
+    if (formData.tax === '' || isNaN(formData.tax))
+      errors.tax = 'GST must be a valid number';
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // handle edit
   const handleEdit = (row) => {
@@ -101,6 +117,10 @@ const Page = () => {
   };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      ErrorToast('Please fill all required fields correctly');
+      return;
+    }
     if (editing) {
       const {
         id,
@@ -311,6 +331,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, code: e.target.value })
                     }
+                    error={!!formErrors.code}
+                    helperText={formErrors.code}
                   />
                 </Grid>
 
@@ -324,6 +346,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
+                    error={!!formErrors.name}
+                    helperText={formErrors.name}
                   />
                 </Grid>
 
@@ -341,6 +365,8 @@ const Page = () => {
                     SelectProps={{
                       native: true,
                     }}
+                    error={!!formErrors.category}
+                    helperText={formErrors.category}
                   >
                     <option value="">-- Select Category --</option>
                     {categoryList?.map((cat) => (
@@ -378,6 +404,8 @@ const Page = () => {
                     SelectProps={{
                       native: true,
                     }}
+                    error={!!formErrors.unit}
+                    helperText={formErrors.unit}
                   >
                     <option value="">-- Select Unit --</option>
                     {['Pcs', 'Kg', 'Gm']?.map((item, index) => (
@@ -399,6 +427,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, tax: e.target.value })
                     }
+                    error={!!formErrors.tax}
+                    helperText={formErrors.tax}
                   />
                 </Grid>
 
