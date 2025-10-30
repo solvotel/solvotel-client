@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -17,97 +17,127 @@ import {
   Divider,
   Box,
 } from '@mui/material';
+import { UpdateData } from '@/utils/ApiFunctions';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
 export default function EditRoomInvoiceDialog({
   editOpen,
   setEditOpen,
   editData,
-  setEditData,
+  auth,
   paymentMethods,
-  handleSaveEdit,
 }) {
-  if (!editData) return null;
+  const [loading, setLoading] = useState(false);
+  const [invData, setInvData] = useState({});
+  // Initialize editable copies
+  const [roomTokens, setRoomTokens] = useState([]);
+  const [serviceTokens, setServiceTokens] = useState([]);
+  const [foodTokens, setFoodTokens] = useState([]);
 
-  // 💡 Combine tokens for table view/edit
-  const combinedTokens = [];
-
-  // Room Tokens
-  editData.room_tokens?.forEach((r, idx) => {
-    combinedTokens.push({
-      key: `room-${idx}`,
-      type: 'Room',
-      room: r.room,
-      item: r.item,
-      hsn: r.hsn,
-      rate: r.rate,
-      qty: r.days || 1,
-      gst: r.gst,
-      amount: r.amount,
-    });
-  });
-
-  // Service Tokens
-  editData.service_tokens?.forEach((s, sIndex) => {
-    s.items?.forEach((it, iIndex) => {
-      combinedTokens.push({
-        key: `service-${sIndex}-${iIndex}`,
-        type: 'Service',
-        room: s.room_no,
-        item: it.item,
-        hsn: it.hsn,
-        rate: it.rate,
-        qty: 1,
-        gst: it.gst,
-        amount: it.amount,
+  useEffect(() => {
+    if (editData) {
+      setInvData({
+        customer_name: editData.customer_name || '',
+        customer_phone: editData.customer_phone || '',
+        customer_address: editData.customer_address || '',
+        customer_gst: editData.customer_gst || '',
+        mop: editData.mop || '',
       });
-    });
-  });
+      setRoomTokens(editData?.room_tokens || []);
+      setServiceTokens(editData?.service_tokens || []);
+      setFoodTokens(editData?.food_tokens || []);
+    }
+  }, [editData]);
 
-  // Food Tokens
-  editData.food_tokens?.forEach((f, fIndex) => {
-    f.items?.forEach((it, iIndex) => {
-      combinedTokens.push({
-        key: `food-${fIndex}-${iIndex}`,
-        type: f.type,
-        room: f.room_no,
-        item: it.item,
-        hsn: it.hsn,
-        rate: it.rate,
-        qty: it.qty,
-        gst: it.gst,
-        amount: it.amount,
+  // --- UTILS ---
+  const calcAmount = (rate, gst) => {
+    const r = parseFloat(rate) || 0;
+    const g = parseFloat(gst) || 0;
+    return +(r + (r * g) / 100).toFixed(2);
+  };
+
+  const calcTotals = (items) => {
+    let totalAmount = 0;
+    let totalGst = 0;
+    items.forEach((i) => {
+      const rate = parseFloat(i.rate) || 0;
+      const gst = parseFloat(i.gst) || 0;
+      const gstAmt = (rate * gst) / 100;
+      totalAmount += rate + gstAmt;
+      totalGst += gstAmt;
+    });
+    return {
+      total_amount: +totalAmount.toFixed(2),
+      total_gst: +totalGst.toFixed(2),
+    };
+  };
+
+  // --- HANDLERS ---
+
+  const handleRoomChange = (index, field, value) => {
+    const updated = [...roomTokens];
+    updated[index][field] = value;
+    updated[index].amount = calcAmount(updated[index].rate, updated[index].gst);
+    setRoomTokens(updated);
+  };
+
+  const handleServiceItemChange = (tokenIndex, itemIndex, field, value) => {
+    const updated = [...serviceTokens];
+    updated[tokenIndex].items[itemIndex][field] = value;
+    updated[tokenIndex].items[itemIndex].amount = calcAmount(
+      updated[tokenIndex].items[itemIndex].rate,
+      updated[tokenIndex].items[itemIndex].gst
+    );
+
+    const totals = calcTotals(updated[tokenIndex].items);
+    updated[tokenIndex].total_amount = totals.total_amount;
+    updated[tokenIndex].total_gst = totals.total_gst;
+
+    setServiceTokens(updated);
+  };
+
+  const handleFoodItemChange = (tokenIndex, itemIndex, field, value) => {
+    const updated = [...foodTokens];
+    updated[tokenIndex].items[itemIndex][field] = value;
+    updated[tokenIndex].items[itemIndex].amount = calcAmount(
+      updated[tokenIndex].items[itemIndex].rate,
+      updated[tokenIndex].items[itemIndex].gst
+    );
+
+    const totals = calcTotals(updated[tokenIndex].items);
+    updated[tokenIndex].total_amount = totals.total_amount;
+    updated[tokenIndex].total_gst = totals.total_gst;
+
+    setFoodTokens(updated);
+  };
+
+  // save data
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      const cleanedRoomTokens = roomTokens.map(({ id, ...rest }) => rest);
+      const payload = {
+        data: {
+          ...invData,
+          room_tokens: cleanedRoomTokens,
+          food_tokens: foodTokens,
+          service_tokens: serviceTokens,
+        },
+      };
+      await UpdateData({
+        auth,
+        endPoint: 'room-invoices',
+        id: editData.documentId,
+        payload: payload,
       });
-    });
-  });
-
-  // 🧮 Calculate Totals
-  const subtotal = combinedTokens.reduce(
-    (a, b) => a + Number(b.rate * b.qty),
-    0
-  );
-  const totalGst = combinedTokens.reduce(
-    (a, b) => a + (Number(b.rate * b.qty) * b.gst) / 100,
-    0
-  );
-  const payable = subtotal + totalGst;
-
-  const handleItemChange = (key, field, value) => {
-    const updated = combinedTokens.map((t) => {
-      if (t.key === key) {
-        return {
-          ...t,
-          [field]: value,
-          amount:
-            field === 'rate' || field === 'qty' || field === 'gst'
-              ? ((value || t.rate) * (t.qty || 1) * (1 + t.gst / 100)).toFixed(
-                  2
-                )
-              : t.amount,
-        };
-      }
-      return t;
-    });
-    setEditData({ ...editData, updatedTokens: updated });
+      SuccessToast('Invoice Updated Successfully');
+      setLoading(false);
+      setEditOpen(false);
+    } catch (err) {
+      console.log(err);
+      ErrorToast('Something went wrong. Please try again');
+      setLoading(false);
+    }
   };
 
   return (
@@ -121,65 +151,63 @@ export default function EditRoomInvoiceDialog({
 
       <DialogContent dividers>
         <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-          🧾 Invoice: {editData.invoice_no}
+          🧾 Invoice: {editData?.invoice_no}
         </Typography>
 
-        {/* Customer Fields */}
+        {/* Customer Info */}
         <Grid container spacing={2} mb={2}>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               size="small"
               label="Customer Name"
-              value={editData.customer_name || ''}
+              value={invData?.customer_name || ''}
               onChange={(e) =>
-                setEditData({ ...editData, customer_name: e.target.value })
+                setInvData({ ...invData, customer_name: e.target.value })
               }
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               size="small"
               label="Customer Phone"
-              value={editData.customer_phone || ''}
+              value={invData?.customer_phone || ''}
               onChange={(e) =>
-                setEditData({ ...editData, customer_phone: e.target.value })
+                setInvData({ ...invData, customer_phone: e.target.value })
               }
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               size="small"
               label="Customer GST"
-              value={editData.customer_gst || ''}
+              value={invData?.customer_gst || ''}
               onChange={(e) =>
-                setEditData({ ...editData, customer_gst: e.target.value })
+                setInvData({ ...invData, customer_gst: e.target.value })
               }
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               size="small"
               label="Customer Address"
-              value={editData.customer_address || ''}
+              value={invData?.customer_address || ''}
               onChange={(e) =>
-                setEditData({ ...editData, customer_address: e.target.value })
+                setInvData({ ...invData, customer_address: e.target.value })
               }
             />
           </Grid>
-          <Grid size={12}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               select
               fullWidth
               size="small"
               label="Mode of Payment"
-              value={editData.mop || ''}
-              onChange={(e) =>
-                setEditData({ ...editData, mop: e.target.value })
-              }
+              value={invData?.mop || ''}
+              onChange={(e) => setInvData({ ...invData, mop: e.target.value })}
               SelectProps={{ native: true }}
             >
               <option value="">-- Select --</option>
@@ -194,45 +222,24 @@ export default function EditRoomInvoiceDialog({
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Editable Table */}
+        {/* ROOM TOKENS */}
         <Typography variant="h6" gutterBottom>
-          🧮 Edit Charges
+          🏨 Room Charges
         </Typography>
         <TableContainer>
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>
-                  <strong>Type</strong>
-                </TableCell>
-                <TableCell>
-                  <strong>Room</strong>
-                </TableCell>
-                <TableCell>
-                  <strong>Item</strong>
-                </TableCell>
-                <TableCell>
-                  <strong>HSN</strong>
-                </TableCell>
-                <TableCell align="right">
-                  <strong>Rate</strong>
-                </TableCell>
-                <TableCell align="right">
-                  <strong>Qty</strong>
-                </TableCell>
-                <TableCell align="right">
-                  <strong>GST %</strong>
-                </TableCell>
-                <TableCell align="right">
-                  <strong>Amount</strong>
-                </TableCell>
+                <TableCell>Item</TableCell>
+                <TableCell>HSN</TableCell>
+                <TableCell align="right">Rate</TableCell>
+                <TableCell align="right">GST %</TableCell>
+                <TableCell align="right">Amount</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {combinedTokens.map((row) => (
-                <TableRow key={row.key}>
-                  <TableCell>{row.type}</TableCell>
-                  <TableCell>{row.room}</TableCell>
+              {roomTokens.map((row, i) => (
+                <TableRow key={i}>
                   <TableCell>{row.item}</TableCell>
                   <TableCell>{row.hsn}</TableCell>
                   <TableCell align="right">
@@ -241,11 +248,7 @@ export default function EditRoomInvoiceDialog({
                       type="number"
                       value={row.rate}
                       onChange={(e) =>
-                        handleItemChange(
-                          row.key,
-                          'rate',
-                          Number(e.target.value)
-                        )
+                        handleRoomChange(i, 'rate', e.target.value)
                       }
                       sx={{ width: 80 }}
                     />
@@ -254,49 +257,165 @@ export default function EditRoomInvoiceDialog({
                     <TextField
                       size="small"
                       type="number"
-                      value={row.qty}
-                      onChange={(e) =>
-                        handleItemChange(row.key, 'qty', Number(e.target.value))
-                      }
-                      sx={{ width: 60 }}
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    <TextField
-                      size="small"
-                      type="number"
                       value={row.gst}
                       onChange={(e) =>
-                        handleItemChange(row.key, 'gst', Number(e.target.value))
+                        handleRoomChange(i, 'gst', e.target.value)
                       }
                       sx={{ width: 60 }}
                     />
                   </TableCell>
-                  <TableCell align="right">
-                    ₹{Number(row.amount).toFixed(2)}
-                  </TableCell>
+                  <TableCell align="right">{row.amount}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
 
-        {/* Totals Section */}
-        <Box mt={3}>
-          <Divider sx={{ my: 1 }} />
-          <Typography variant="h6">💰 Summary</Typography>
-          <Typography>Total Amount: ₹{subtotal.toFixed(2)}</Typography>
-          <Typography>Tax (GST): ₹{totalGst.toFixed(2)}</Typography>
-          <Typography fontWeight="bold" color="primary">
-            Payable Amount: ₹{payable.toFixed(2)}
-          </Typography>
-        </Box>
+        <Divider sx={{ my: 2 }} />
+
+        {/* SERVICE TOKENS */}
+        <Typography variant="h6" gutterBottom>
+          🧰 Service Charges
+        </Typography>
+        {serviceTokens.map((token, ti) => (
+          <Box key={ti} mb={2}>
+            <Typography variant="subtitle2">
+              Room No: {token.room_no}
+            </Typography>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Item</TableCell>
+                    <TableCell>HSN</TableCell>
+                    <TableCell align="right">Rate</TableCell>
+                    <TableCell align="right">GST %</TableCell>
+                    <TableCell align="right">Amount</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {token.items.map((item, ii) => (
+                    <TableRow key={ii}>
+                      <TableCell>{item.item}</TableCell>
+                      <TableCell>{item.hsn}</TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={item.rate}
+                          onChange={(e) =>
+                            handleServiceItemChange(
+                              ti,
+                              ii,
+                              'rate',
+                              e.target.value
+                            )
+                          }
+                          sx={{ width: 80 }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={item.gst}
+                          onChange={(e) =>
+                            handleServiceItemChange(
+                              ti,
+                              ii,
+                              'gst',
+                              e.target.value
+                            )
+                          }
+                          sx={{ width: 60 }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">{item.amount}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell colSpan={3} />
+                    <TableCell align="right">Total</TableCell>
+                    <TableCell align="right">
+                      ₹{token.total_amount || 0}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        ))}
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* FOOD TOKENS */}
+        <Typography variant="h6" gutterBottom>
+          🍽️ Food Charges
+        </Typography>
+        {foodTokens.map((token, ti) => (
+          <Box key={ti} mb={2}>
+            <Typography variant="subtitle2">
+              Type: {token.type} | Room: {token.room_no}
+            </Typography>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Item</TableCell>
+                    <TableCell>HSN</TableCell>
+                    <TableCell align="right">Rate</TableCell>
+                    <TableCell align="right">GST %</TableCell>
+                    <TableCell align="right">Amount</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {token.items.map((item, ii) => (
+                    <TableRow key={ii}>
+                      <TableCell>{item.item}</TableCell>
+                      <TableCell>{item.hsn}</TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={item.rate}
+                          onChange={(e) =>
+                            handleFoodItemChange(ti, ii, 'rate', e.target.value)
+                          }
+                          sx={{ width: 80 }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={item.gst}
+                          onChange={(e) =>
+                            handleFoodItemChange(ti, ii, 'gst', e.target.value)
+                          }
+                          sx={{ width: 60 }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">{item.amount}</TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell colSpan={3} />
+                    <TableCell align="right">Total</TableCell>
+                    <TableCell align="right">
+                      ₹{token.total_amount || 0}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
+        ))}
       </DialogContent>
 
       <DialogActions>
         <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-        <Button variant="contained" onClick={handleSaveEdit}>
-          Save Changes
+        <Button variant="contained" onClick={handleSave} disabled={loading}>
+          {loading ? 'Saving...' : 'Save Changes'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -105,30 +105,6 @@ const Page = () => {
     setEditOpen(true);
   };
 
-  const handleSaveEdit = async () => {
-    const {
-      id,
-      documentId,
-      publishedAt,
-      updatedAt,
-      createdAt,
-      room_booking,
-      ...updateBody
-    } = editData;
-    console.log(updateBody);
-    await UpdateData({
-      auth,
-      endPoint: 'room-invoices',
-      id: editData.documentId,
-      payload: {
-        data: updateBody,
-      },
-    });
-    SuccessToast('Invoice updated successfully');
-    setEditOpen(false);
-    setEditData(null);
-  };
-
   return (
     <>
       <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
@@ -231,7 +207,7 @@ const Page = () => {
                       <TableCell>{finalRate.toFixed(2)}</TableCell>
                       <TableCell>{finalGst / 2}</TableCell>
                       <TableCell>{finalGst / 2}</TableCell>
-                      <TableCell>{finalTotalAmount}</TableCell>
+                      <TableCell>{finalTotalAmount.toFixed(2)}</TableCell>
                       <TableCell>{row.mop}</TableCell>
                       <TableCell sx={{ width: '150px' }}>
                         <Tooltip title="View">
@@ -318,7 +294,7 @@ const Page = () => {
             editData={editData}
             setEditData={setEditData}
             paymentMethods={paymentMethods}
-            handleSaveEdit={handleSaveEdit}
+            auth={auth}
           />
         </Box>
       )}
