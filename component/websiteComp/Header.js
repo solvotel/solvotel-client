@@ -135,30 +135,6 @@ const Header = ({ menuItems }) => {
                   href="/login"
                   variant="outlined"
                   sx={{
-                    border: 'none',
-                    background:
-                      'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
-                    color: '#1e293b',
-                    fontWeight: 600,
-                    px: 3,
-                    py: 1,
-                    borderRadius: 3,
-                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.05)',
-                    '&:hover': {
-                      background:
-                        'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)',
-                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
-                      transform: 'translateY(-1px)',
-                    },
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  Login
-                </Button>
-                <Button
-                  href="/contact"
-                  variant="contained"
-                  sx={{
                     background:
                       'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                     color: 'white',
@@ -176,7 +152,7 @@ const Header = ({ menuItems }) => {
                     transition: 'all 0.3s ease',
                   }}
                 >
-                  Contact Us
+                  Login
                 </Button>
               </Box>
             </Box>
@@ -277,26 +253,6 @@ const Header = ({ menuItems }) => {
             variant="outlined"
             onClick={handleDrawerToggle}
             sx={{
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              color: 'white',
-              fontWeight: 600,
-              py: 1.5,
-              borderRadius: 3,
-              mb: 2,
-              '&:hover': {
-                border: '1px solid rgba(255, 255, 255, 0.5)',
-                background: 'rgba(255, 255, 255, 0.1)',
-              },
-            }}
-          >
-            Login
-          </Button>
-          <Button
-            fullWidth
-            href="/contact"
-            variant="contained"
-            onClick={handleDrawerToggle}
-            sx={{
               background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
               color: 'white',
               fontWeight: 700,
@@ -309,7 +265,7 @@ const Header = ({ menuItems }) => {
               },
             }}
           >
-            Contact Us
+            Login
           </Button>
         </Box>
       </Drawer>

@@ -61,7 +61,7 @@ const Page = () => {
     const { checked_in, checked_out, booking_status } = booking;
 
     if (!checked_in && !checked_out) {
-      if (booking_status === 'cancelled') {
+      if (booking_status === 'Cancelled') {
         return { status: 'Cancelled', color: 'error' };
       } else if (booking_status === 'Blocked') {
         return { status: 'Blocked', color: 'warning' };

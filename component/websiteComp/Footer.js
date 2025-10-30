@@ -4,6 +4,34 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import Image from 'next/image';
+import Link from 'next/link';
+
+const socialLinks = [
+  {
+    name: 'Facebook',
+    label: 'f',
+    url: 'https://www.facebook.com/Solvotel',
+    hoverColor: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+  },
+  {
+    name: 'Instagram',
+    label: 'in',
+    url: 'https://www.instagram.com/solvotel',
+    hoverColor: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+  },
+  {
+    name: 'Twitter/X',
+    label: 'x',
+    url: 'https://www.x.com/solvotel',
+    hoverColor: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+  },
+  {
+    name: 'YouTube',
+    label: 'yt',
+    url: 'https://youtube.com/@solvotels?si=ac0DfuU5nUxVhDea',
+    hoverColor: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+  },
+];
 
 const Footer = ({ menuItems }) => {
   return (
@@ -30,81 +58,44 @@ const Footer = ({ menuItems }) => {
               experiences.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  background:
-                    'linear-gradient(135deg, #334155 0%, #475569 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background:
-                      'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    transform: 'translateY(-2px)',
-                  },
-                }}
-              >
-                <Typography
-                  sx={{ color: 'white', fontWeight: 600, fontSize: '0.8rem' }}
+              {socialLinks.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  underline="none"
                 >
-                  f
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  background:
-                    'linear-gradient(135deg, #334155 0%, #475569 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background:
-                      'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    transform: 'translateY(-2px)',
-                  },
-                }}
-              >
-                <Typography
-                  sx={{ color: 'white', fontWeight: 600, fontSize: '0.8rem' }}
-                >
-                  in
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  background:
-                    'linear-gradient(135deg, #334155 0%, #475569 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background:
-                      'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    transform: 'translateY(-2px)',
-                  },
-                }}
-              >
-                <Typography
-                  sx={{ color: 'white', fontWeight: 600, fontSize: '0.8rem' }}
-                >
-                  t
-                </Typography>
-              </Box>
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '50%',
+                      background:
+                        'linear-gradient(135deg, #334155 0%, #475569 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        background: item.hoverColor,
+                        transform: 'translateY(-2px)',
+                      },
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        color: 'white',
+                        fontWeight: 600,
+                        fontSize: '0.8rem',
+                      }}
+                    >
+                      {item.label}
+                    </Typography>
+                  </Box>
+                </Link>
+              ))}
             </Box>
           </Grid>
 

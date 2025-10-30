@@ -174,11 +174,13 @@ export default function BookingServiceActionsCard({
           {/* Edit */}
           <Grid size={{ xs: 12, md: 4 }}>
             <Button
+              href={`/front-office/room-booking/edit-booking?bookingId=${booking?.documentId}`}
               fullWidth
               variant="outlined"
               color="inherit"
               startIcon={<EditIcon />}
               sx={{ textTransform: 'none' }}
+              disabled={booking.booking_status === 'Cancelled'}
             >
               Edit Booking
             </Button>
@@ -246,6 +248,7 @@ export default function BookingServiceActionsCard({
               startIcon={<PrintIcon />}
               sx={{ textTransform: 'none' }}
               onClick={handlePrintBookingSlip}
+              disabled={booking.booking_status === 'Cancelled'}
             >
               Print Booking Slip
             </Button>
@@ -260,6 +263,7 @@ export default function BookingServiceActionsCard({
               startIcon={<RoomServiceIcon />}
               onClick={() => setServiceModel(true)}
               sx={{ textTransform: 'none' }}
+              disabled={booking.booking_status === 'Cancelled'}
             >
               Manage Services
             </Button>
@@ -274,6 +278,7 @@ export default function BookingServiceActionsCard({
               startIcon={<FastfoodIcon />}
               onClick={() => setFoodModel(true)}
               sx={{ textTransform: 'none' }}
+              disabled={booking.booking_status === 'Cancelled'}
             >
               Manage Food
             </Button>
@@ -288,6 +293,7 @@ export default function BookingServiceActionsCard({
               startIcon={<PaymentIcon />}
               onClick={() => setPaymentModel(true)}
               sx={{ textTransform: 'none' }}
+              disabled={booking.booking_status === 'Cancelled'}
             >
               Manage Payment
             </Button>
@@ -301,6 +307,7 @@ export default function BookingServiceActionsCard({
               startIcon={<HotelIcon />}
               onClick={() => setRoomTariffDialog(true)}
               sx={{ textTransform: 'none' }}
+              disabled={booking.booking_status === 'Cancelled'}
             >
               Manage Room Tariff
             </Button>
@@ -314,6 +321,7 @@ export default function BookingServiceActionsCard({
               startIcon={<ReceiptIcon />}
               sx={{ textTransform: 'none' }}
               onClick={() => setInvoiceModel(true)}
+              disabled={booking.booking_status === 'Cancelled'}
             >
               Create Invoice
             </Button>
