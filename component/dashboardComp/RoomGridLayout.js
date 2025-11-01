@@ -10,7 +10,6 @@ import {
   Box,
   Chip,
   Paper,
-  Card,
   Button,
   TextField,
 } from '@mui/material';
@@ -64,7 +63,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
   // 🔹 For each date, compute filtered data
   const getDayWiseData = (selectedDate) => {
     const checkedInRooms = [];
-    const expectedCheckoutRooms = [];
+    const blockedRooms = [];
     const confirmedRooms = [];
     const occupiedRoomNos = new Set();
 
@@ -89,21 +88,6 @@ const RoomGridLayout = ({ bookings, rooms }) => {
         });
       }
 
-      // 🔹 Expected checkout rooms
-      if (
-        bk.checked_in === true &&
-        bk.checked_out !== true &&
-        checkOut.toDateString() === selectedDate.toDateString()
-      ) {
-        bk.rooms?.forEach((room) => {
-          const roomInfo = rooms.find((r) => r.room_no === room.room_no);
-          expectedCheckoutRooms.push({
-            ...room,
-            category: roomInfo?.category?.name || 'Uncategorized',
-          });
-        });
-      }
-
       // 🔹 Confirmed rooms (not yet checked-in)
       if (
         bk.booking_status === 'Confirmed' &&
@@ -119,12 +103,29 @@ const RoomGridLayout = ({ bookings, rooms }) => {
           });
         });
       }
+
+      // 🔹 Blocked rooms
+      if (
+        bk.booking_status === 'Blocked' &&
+        bk.checked_in !== true &&
+        selectedDate >= checkIn &&
+        selectedDate <= checkOut
+      ) {
+        bk.rooms?.forEach((room) => {
+          const roomInfo = rooms.find((r) => r.room_no === room.room_no);
+          blockedRooms.push({
+            ...room,
+            category: roomInfo?.category?.name || 'Uncategorized',
+          });
+        });
+      }
     });
 
-    // 🔹 Combine occupied room numbers (checked-in + confirmed)
+    // 🔹 Combine occupied room numbers (checked-in + confirmed + blocked)
     const occupiedNos = new Set([
       ...occupiedRoomNos,
       ...confirmedRooms.map((r) => r.room_no),
+      ...blockedRooms.map((r) => r.room_no),
     ]);
 
     // 🔹 Available rooms = not in occupiedNos
@@ -132,7 +133,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
       ?.filter((room) => !occupiedNos.has(room.room_no))
       .map((room) => ({
         ...room,
-        category: room.category?.name || 'Uncategorized', // ensure string
+        category: room.category?.name || 'Uncategorized',
       }));
 
     // 🔹 Helper: group rooms by category
@@ -149,8 +150,8 @@ const RoomGridLayout = ({ bookings, rooms }) => {
     return {
       availableGrouped: groupByCategory(availableRooms),
       checkedInGrouped: groupByCategory(checkedInRooms),
-      expectedCheckoutGrouped: groupByCategory(expectedCheckoutRooms),
       confirmedGrouped: groupByCategory(confirmedRooms),
+      blockedGrouped: groupByCategory(blockedRooms),
     };
   };
 
@@ -177,16 +178,14 @@ const RoomGridLayout = ({ bookings, rooms }) => {
         const {
           availableGrouped,
           checkedInGrouped,
-          expectedCheckoutGrouped,
           confirmedGrouped,
+          blockedGrouped,
         } = getDayWiseData(date);
 
         const availableCount = Object.values(availableGrouped).flat().length;
         const checkedInCount = Object.values(checkedInGrouped).flat().length;
-        const expectedCheckoutCount = Object.values(
-          expectedCheckoutGrouped
-        ).flat().length;
         const confirmedCount = Object.values(confirmedGrouped).flat().length;
+        const blockedCount = Object.values(blockedGrouped).flat().length;
 
         return (
           <motion.div
@@ -195,14 +194,13 @@ const RoomGridLayout = ({ bookings, rooms }) => {
             style={{ marginBottom: 8 }}
           >
             <Accordion
-              expanded={expandedIndex === index} // controlled
+              expanded={expandedIndex === index}
               onChange={handleAccordionChange(index)}
               disableGutters
               sx={{
                 p: 1,
-
                 borderRadius: 3,
-                bgcolor: '#fdfff3ff', // subtle bg
+                bgcolor: '#fdfff3ff',
                 border: 'none',
                 overflow: 'hidden',
               }}
@@ -235,10 +233,10 @@ const RoomGridLayout = ({ bookings, rooms }) => {
                 </Typography>
                 <Typography
                   variant="body2"
-                  color="red"
+                  color="orange"
                   sx={{ fontWeight: 500 }}
                 >
-                  Checkout ({expectedCheckoutCount})
+                  Blocked ({blockedCount})
                 </Typography>
               </AccordionSummary>
 
@@ -267,11 +265,11 @@ const RoomGridLayout = ({ bookings, rooms }) => {
                       chipBg: '#ffb0ecff',
                     },
                     {
-                      title: `Expected Checkout (${expectedCheckoutCount})`,
-                      data: expectedCheckoutGrouped,
-                      color: 'red',
-                      bg: '#ffe0e0ff',
-                      chipBg: '#ffbcbcff',
+                      title: `Blocked (${blockedCount})`,
+                      data: blockedGrouped,
+                      color: 'orange',
+                      bg: '#fff7e6',
+                      chipBg: '#ffe0b3',
                     },
                   ].map((col, idx) => (
                     <Grid key={idx} size={{ xs: 12, md: 3 }}>
