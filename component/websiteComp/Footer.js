@@ -170,7 +170,7 @@ const Footer = ({ menuItems }) => {
                     variant="body1"
                     sx={{ color: '#e2e8f0', fontWeight: 600 }}
                   >
-                    +1 (555) 123-4567
+                    (+91) 8967531369
                   </Typography>
                 </Box>
               </Box>
@@ -203,7 +203,7 @@ const Footer = ({ menuItems }) => {
                     variant="body1"
                     sx={{ color: '#e2e8f0', fontWeight: 600 }}
                   >
-                    hello@solvotel.com
+                    solvotel@gmail.com
                   </Typography>
                 </Box>
               </Box>
@@ -236,11 +236,7 @@ const Footer = ({ menuItems }) => {
                     variant="body1"
                     sx={{ color: '#e2e8f0', fontWeight: 600, lineHeight: 1.4 }}
                   >
-                    123 Business Avenue
-                    <br />
-                    Suite 100
-                    <br />
-                    San Francisco, CA 94107
+                    Chaulkhola, Ramnagar-ii, Purba Medinipur, 721455
                   </Typography>
                 </Box>
               </Box>

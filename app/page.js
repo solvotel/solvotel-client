@@ -137,14 +137,18 @@ export default function Home() {
                   mb: 3,
                 }}
               >
-                Revolutionize Your Hotel & Restaurant Business
+                Solvotel – India’s No.1 Hotel Management Software
               </Typography>
               <Typography
                 variant="h6"
                 sx={{ color: '#64748b', mb: 4, fontSize: '1.2rem' }}
               >
-                All-in-one management solution to streamline operations,
-                increase revenue, and enhance guest experience.
+                Welcome to Solvotel, the best hotel management soŌware trusted
+                by hotels, resorts, hostels, and boutique properties across
+                India. Designed to simplify every aspect of hotel operations,
+                Solvotel is a powerful cloud-based hotel PMS (Property
+                Management System) that helps you manage reservations, front
+                desk, housekeeping, billing, and more — all in one place.
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 <Button
@@ -213,83 +217,93 @@ export default function Home() {
 
       {/* About Us Section */}
       <Box sx={{ py: 8, backgroundColor: 'white' }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={6} alignItems="center">
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 700,
-                  mb: 3,
-                  color: '#1e293b',
-                }}
-              >
-                About Solvotel
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: '#64748b',
-                  mb: 3,
-                  fontSize: '1.1rem',
-                  lineHeight: 1.7,
-                }}
-              >
-                We are revolutionizing the hospitality industry with innovative
-                technology solutions that empower hotels and restaurants to
-                deliver exceptional guest experiences while streamlining their
-                operations.
-              </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: '#64748b',
-                  mb: 4,
-                  fontSize: '1.1rem',
-                  lineHeight: 1.7,
-                }}
-              >
-                Our mission is to provide comprehensive management tools that
-                help businesses increase revenue, reduce costs, and create
-                memorable experiences for their guests.
-              </Typography>
-              <Button
-                variant="outlined"
-                href="/about-us"
-                sx={{
-                  borderColor: '#2563eb',
-                  color: '#2563eb',
-                  px: 4,
-                  py: 1.5,
-                  fontWeight: 600,
-                  '&:hover': {
-                    borderColor: '#1d4ed8',
-                    backgroundColor: '#f0f9ff',
-                  },
-                }}
-              >
-                Learn More About Us
-              </Button>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Box
-                sx={{
-                  background:
-                    'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                  borderRadius: 4,
-                  height: 400,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '1.5rem',
-                  fontWeight: 600,
-                }}
-              >
-                Our Team & Vision
-              </Box>
-            </Grid>
+        <Container maxWidth="lg" sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: 700,
+              mb: 3,
+              color: '#1e293b',
+            }}
+          >
+            All-in-One Cloud Hotel Management System
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: '#64748b',
+              mb: 3,
+
+              lineHeight: 1.7,
+            }}
+          >
+            Solvotel is more than just a property management system (PMS) —
+            it&apos;s a complete hospitality management software built to
+            streamline your hotel operations. Whether you manage a small B&amp;B
+            or a large resort, our all-in-one hotel management system includes:
+          </Typography>
+          <Grid container spacing={2}>
+            {[
+              'Hotel Booking Management System – Manage room inventory, bookings, and cancellations in real time.',
+              'Hotel Reservation System Software – Simplify reservations with our integrated online booking engine.',
+              'Hotel Front Desk Software – Handle guest check-ins, check-outs, and room assignments effortlessly.',
+              'Hotel Housekeeping Software – Assign tasks, track room status, and maintain cleanliness standards efficiently.',
+              'Hotel Billing and Invoicing Sotiware – Generate accurate bills, manage taxes, and automate invoicing.',
+              'Hotel Channel Manager Integration – Sync your hotel with leading OTAs and prevent double bookings.',
+              'Hotel Software with Mobile App – Access your PMS from anywhere, anytime, with Solvotel’s mobile-friendly app.',
+              'Contactless Check-in Software – Offer a seamless guest experience with digital check-in and check-out options.',
+              'Hotel Analytucs and Reporting Tools – Get insights into revenue, occupancy, and guest behavior to make data-driven decisions.',
+            ].map((text, index) => (
+              <Grid size={{ xs: 12, sm: 6 }} key={index}>
+                <Box
+                  sx={{
+                    backgroundColor: 'white',
+                    borderRadius: 3,
+                    p: 2.5,
+                    height: '100%',
+                    boxShadow: '0 3px 8px rgba(0,0,0,0.08)',
+                    transition: 'all 0.3s ease',
+                    border: '1px solid #e2e8f0',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
+                      borderColor: '#2563eb',
+                    },
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: '#1e293b',
+                      fontSize: '0.95rem',
+                      lineHeight: 1.6,
+                      fontWeight: 500,
+                    }}
+                  >
+                    • {text}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
           </Grid>
+          <Button
+            variant="outlined"
+            href="/about-us"
+            sx={{
+              mt: 4,
+              borderColor: '#2563eb',
+              color: '#2563eb',
+              px: 4,
+              py: 1.5,
+              fontWeight: 600,
+              '&:hover': {
+                borderColor: '#1d4ed8',
+                backgroundColor: '#f0f9ff',
+              },
+            }}
+          >
+            View More
+          </Button>
         </Container>
       </Box>
 
@@ -297,7 +311,7 @@ export default function Home() {
       <Box sx={{ py: 8, backgroundColor: '#f8fafc' }}>
         <Container maxWidth="lg">
           <Typography
-            variant="h3"
+            variant="h4"
             align="center"
             sx={{
               fontWeight: 700,
@@ -305,10 +319,9 @@ export default function Home() {
               color: '#1e293b',
             }}
           >
-            Our Comprehensive Services
+            Why Choose Solvotel&apos;s Cloud-Based Hotel PMS?
           </Typography>
           <Typography
-            variant="h6"
             align="center"
             sx={{
               color: '#64748b',
@@ -317,8 +330,10 @@ export default function Home() {
               mx: 'auto',
             }}
           >
-            End-to-end solutions covering every aspect of your hospitality
-            business
+            Our cloud hotel management software gives hoteliers the freedom to
+            operate from any device, anywhere. Unlike tradional on-premise
+            systems, Solvotel ensures data security, real-time updates, and zero
+            maintenance.
           </Typography>
 
           <Grid container spacing={3}>

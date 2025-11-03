@@ -20,20 +20,20 @@ export default function Contact() {
     {
       icon: <PhoneIcon sx={{ fontSize: 32, color: '#2563eb' }} />,
       title: 'Phone',
-      details: '+1 (555) 123-4567',
+      details: '(+91) 8967531369',
       subtitle: 'Mon-Fri from 9am to 6pm',
     },
     {
       icon: <EmailIcon sx={{ fontSize: 32, color: '#059669' }} />,
       title: 'Email',
-      details: 'hello@solvotel.com',
+      details: 'solvotel@gmail.com',
       subtitle: 'We reply within 24 hours',
     },
     {
       icon: <LocationOnIcon sx={{ fontSize: 32, color: '#d97706' }} />,
       title: 'Office',
-      details: '123 Business Ave, Suite 100',
-      subtitle: 'San Francisco, CA 94107',
+      details: 'Chaulkhola, Ramnagar-ii, ',
+      subtitle: 'Purba Medinipur, 721455',
     },
     {
       icon: <ScheduleIcon sx={{ fontSize: 32, color: '#dc2626' }} />,
