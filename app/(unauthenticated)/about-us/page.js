@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import Image from 'next/image';
 
 export default function About() {
   const stats = [
@@ -21,20 +22,16 @@ export default function About() {
 
   const team = [
     {
-      name: 'Sarah Chen',
-      role: 'CEO & Founder',
-      avatar: '/api/placeholder/80/80',
-    },
-    { name: 'Marcus Rodriguez', role: 'CTO', avatar: '/api/placeholder/80/80' },
-    {
-      name: 'Emily Watson',
-      role: 'Head of Product',
-      avatar: '/api/placeholder/80/80',
+      name: 'Mr. Manas Sahoo',
+      role: 'Co-founder & COO',
+      avatar:
+        'https://res.cloudinary.com/deyxdpnom/image/upload/v1762178538/WhatsApp_Image_2025-11-03_at_18.21.16_0f1fd727_iymbqj.jpg',
     },
     {
-      name: 'David Kim',
-      role: 'Sales Director',
-      avatar: '/api/placeholder/80/80',
+      name: 'Mr. Nanda Giri',
+      role: 'Co-founder & CEO',
+      avatar:
+        'https://res.cloudinary.com/deyxdpnom/image/upload/v1762178538/WhatsApp_Image_2025-11-03_at_18.23.00_98c98d0a_jorjhk.jpg',
     },
   ];
 
@@ -210,7 +207,7 @@ export default function About() {
 
           <Grid container spacing={4}>
             {team.map((member, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
+              <Grid size={{ xs: 12, sm: 6 }} key={index}>
                 <Card
                   sx={{
                     border: 'none',
@@ -220,20 +217,13 @@ export default function About() {
                   }}
                 >
                   <CardContent sx={{ p: 4 }}>
-                    <Avatar
-                      sx={{
-                        width: 80,
-                        height: 80,
-                        mx: 'auto',
-                        mb: 3,
-                        backgroundColor: '#2563eb',
-                      }}
-                    >
-                      {member.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')}
-                    </Avatar>
+                    <Image
+                      src={member.avatar}
+                      height={360}
+                      width={300}
+                      alt={member.name}
+                      style={{ borderRadius: '10%' }}
+                    />
                     <Typography
                       variant="h6"
                       sx={{ fontWeight: 600, mb: 1, color: '#1e293b' }}
