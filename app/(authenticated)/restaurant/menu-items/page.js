@@ -247,9 +247,9 @@ const Page = () => {
                     <TableCell>{row.category}</TableCell>
                     <TableCell>{row.segment}</TableCell>
                     <TableCell>{row.hsn}</TableCell>
-                    <TableCell>{row.rate / 2}</TableCell>
-                    <TableCell>{row.rate / 2}</TableCell>
-                    <TableCell>{row.gst}</TableCell>
+                    <TableCell>{row.rate}</TableCell>
+                    <TableCell>{row.gst / 2}</TableCell>
+                    <TableCell>{row.gst / 2}</TableCell>
                     <TableCell>{row.total}</TableCell>
                     <TableCell sx={{ width: '100px' }}>
                       <Tooltip title="Edit">

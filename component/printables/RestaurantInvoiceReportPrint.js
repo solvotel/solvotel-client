@@ -67,10 +67,10 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
                 'Invoice No',
                 'Date/Time',
                 'Customer Name',
-                'Total Amount',
-                'SGST',
-                'CGST',
-                'Payable Amount',
+                'Total Amount ₹',
+                'SGST ₹',
+                'CGST ₹',
+                'Payable Amount ₹',
                 'Payment Method',
               ].map((item, index) => (
                 <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>

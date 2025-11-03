@@ -45,6 +45,9 @@ const Page = () => {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    // Normalize to ignore time part
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
 
     // Filter purchases within date range
     const filteredInvoices =
@@ -141,10 +144,10 @@ const Page = () => {
                       'Invoice No',
                       'Date/Time',
                       'Customer Name',
-                      'Total Amount',
-                      'SGST',
-                      'CGST',
-                      'Payable Amount',
+                      'Total Amount ₹',
+                      'SGST ₹ ',
+                      'CGST ₹ ',
+                      'Payable Amount ₹ ',
                       'Payment Method',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>

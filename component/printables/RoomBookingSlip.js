@@ -155,9 +155,9 @@ const BookingSlip = React.forwardRef((props, ref) => {
           <Typography>
             <b>Check‑Out:</b> {GetCustomDate(booking?.checkout_date)}
           </Typography>
-          <Typography>
+          {/* <Typography>
             <b>Type:</b> {booking?.booking_type}
-          </Typography>
+          </Typography> */}
 
           <Typography>
             <b>No. of Nights:</b>{' '}

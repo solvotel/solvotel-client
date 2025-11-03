@@ -18,7 +18,6 @@ const BookingList = ({
   currentlyStaying,
   expectedCheckin,
   expectedCheckout,
-  selectedDate,
 }) => {
   // Small card for each booking
   const renderBookingMiniCard = (bk) => (
@@ -62,55 +61,6 @@ const BookingList = ({
       {' '}
       <Box sx={{ p: 3 }}>
         <Grid container spacing={3}>
-          {/* Currently Staying */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card
-              sx={{
-                background: 'linear-gradient(135deg, #e0f2ff, #b3e5fc)',
-                borderRadius: 4,
-                boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
-                height: '500px',
-                overflowY: 'auto',
-                // Thin scrollbar
-                '&::-webkit-scrollbar': {
-                  width: '6px', // scrollbar width
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: 'transparent', // track color
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0,0,0,0.2)', // thumb color
-                  borderRadius: 3,
-                },
-                '&::-webkit-scrollbar-thumb:hover': {
-                  backgroundColor: 'rgba(0,0,0,0.3)', // on hover
-                },
-                // For Firefox
-                scrollbarWidth: 'thin',
-                scrollbarColor: 'rgba(0,0,0,0.2) transparent',
-              }}
-            >
-              <CardContent>
-                <Box display="flex" alignItems="center" gap={1.2} mb={2}>
-                  <Hotel size={22} color="#01579b" />
-                  <Typography variant="h6" fontWeight="bold" color="#01579b">
-                    Currently Staying ({currentlyStaying?.length || 0})
-                  </Typography>
-                </Box>
-
-                <Box>
-                  {currentlyStaying?.length > 0 ? (
-                    currentlyStaying.map((bk) => renderBookingMiniCard(bk))
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No guests currently staying.
-                    </Typography>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-
           {/* Expected Check In */}
           <Grid size={{ xs: 12, md: 4 }}>
             <Card
@@ -118,7 +68,7 @@ const BookingList = ({
                 background: 'linear-gradient(135deg, #d0f8ce, #a5d6a7)',
                 borderRadius: 4,
                 boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
-                height: '500px',
+                maxHeight: '500px',
                 overflowY: 'auto',
                 // Thin scrollbar
                 '&::-webkit-scrollbar': {
@@ -159,6 +109,54 @@ const BookingList = ({
               </CardContent>
             </Card>
           </Grid>
+          {/* Currently Staying */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Card
+              sx={{
+                background: 'linear-gradient(135deg, #e0f2ff, #b3e5fc)',
+                borderRadius: 4,
+                boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
+                maxHeight: '500px',
+                overflowY: 'auto',
+                // Thin scrollbar
+                '&::-webkit-scrollbar': {
+                  width: '6px', // scrollbar width
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: 'transparent', // track color
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0,0,0,0.2)', // thumb color
+                  borderRadius: 3,
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  backgroundColor: 'rgba(0,0,0,0.3)', // on hover
+                },
+                // For Firefox
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(0,0,0,0.2) transparent',
+              }}
+            >
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={1.2} mb={2}>
+                  <Hotel size={22} color="#01579b" />
+                  <Typography variant="h6" fontWeight="bold" color="#01579b">
+                    Stay Over ({currentlyStaying?.length || 0})
+                  </Typography>
+                </Box>
+
+                <Box>
+                  {currentlyStaying?.length > 0 ? (
+                    currentlyStaying.map((bk) => renderBookingMiniCard(bk))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      No guests currently staying.
+                    </Typography>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
 
           {/* Expected Checkout */}
           <Grid size={{ xs: 12, md: 4 }}>
@@ -167,7 +165,7 @@ const BookingList = ({
                 background: 'linear-gradient(135deg, #ffebee, #ffcdd2)',
                 borderRadius: 4,
                 boxShadow: '0 4px 14px rgba(0,0,0,0.1)',
-                height: '500px',
+                maxHeight: '500px',
                 overflowY: 'auto',
                 // Thin scrollbar
                 '&::-webkit-scrollbar': {

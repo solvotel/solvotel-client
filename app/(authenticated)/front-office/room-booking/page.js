@@ -117,12 +117,10 @@ const Page = () => {
               onChange={(e) => setSearch(e.target.value)}
             />
             <Button
+              href="/front-office/room-booking/create-new"
               variant="contained"
               startIcon={<AddIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
-              onClick={() =>
-                router.push('/front-office/room-booking/create-new')
-              }
             >
               New Booking
             </Button>

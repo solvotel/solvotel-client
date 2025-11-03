@@ -116,6 +116,9 @@ export default function BookingDetailsStep({
           <MenuItem value="EP">EP (Room Only)</MenuItem>
           <MenuItem value="CP">CP (Room + Breakfast)</MenuItem>
           <MenuItem value="AP">AP (All Meals)</MenuItem>
+          <MenuItem value="MAP">
+            MAP (Room + Breakfast + One Major Meal)
+          </MenuItem>
         </TextField>
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>

@@ -46,7 +46,9 @@ const Page = () => {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-
+    // Normalize to ignore time part
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
     // Filter purchases within date range
     const filteredInvoices =
       data?.filter((pur) => {
@@ -140,8 +142,9 @@ const Page = () => {
                       'Invoice No',
                       'Date/Time',
                       'Customer Name',
-                      'Total Amount',
-                      'GST',
+                      'Taxable Amount',
+                      'SGST',
+                      'CGST',
                       'Payable Amount',
                       'Payment Method',
                     ].map((item, index) => (
@@ -153,49 +156,51 @@ const Page = () => {
                 </TableHead>
                 <TableBody>
                   {filteredData?.map((row) => {
-                    const totalRoomAmount = row?.room_tokens.reduce(
-                      (sum, r) => sum + (r.rate || 0),
+                    const totalRoomGst = row?.room_tokens.reduce(
+                      (sum, r) => sum + (parseFloat(r.gst) || 0),
                       0
                     );
-                    const totalServiceAmount = row?.service_billing.reduce(
-                      (sum, s) => sum + (s.rate || 0),
+                    const totalServiceGst = row?.service_tokens.reduce(
+                      (sum, s) => sum + (parseFloat(s.total_gst) || 0),
                       0
                     );
-                    const totalFoodAmount = row?.food_items.reduce(
-                      (sum, f) => sum + (f.rate || 0),
+                    const totalFoodGst = row?.food_tokens.reduce(
+                      (sum, f) => sum + (parseFloat(f.total_gst) || 0),
                       0
                     );
                     const payableRoomAmount = row?.room_tokens.reduce(
-                      (sum, r) => sum + (r.amount || 0),
+                      (sum, r) => sum + (parseFloat(r.amount) || 0),
                       0
                     );
-                    const payableServiceAmount = row?.service_billing.reduce(
-                      (sum, s) => sum + (s.amount || 0),
+                    const payableServiceAmount = row?.service_tokens.reduce(
+                      (sum, s) => sum + (parseFloat(s.total_amount) || 0),
                       0
                     );
-                    const payableFoodAmount = row?.food_items.reduce(
-                      (sum, f) => sum + (f.amount || 0),
+                    const payableFoodAmount = row?.food_tokens.reduce(
+                      (sum, f) => sum + (parseFloat(f.total_amount) || 0),
                       0
                     );
-                    const finalRate =
-                      totalFoodAmount + totalRoomAmount + totalServiceAmount;
-                    const payable =
+
+                    const finalGst = parseFloat(
+                      totalRoomGst + totalServiceGst + totalFoodGst
+                    ).toFixed(2);
+                    const finalTotalAmount =
                       payableRoomAmount +
                       payableServiceAmount +
                       payableFoodAmount;
-
-                    const gst = payable - finalRate;
+                    const finalRate = finalTotalAmount - finalGst;
                     return (
                       <TableRow key={row.documentId}>
                         <TableCell>{row.invoice_no}</TableCell>
                         <TableCell>
                           {GetCustomDate(row.date)}&nbsp;{row.time}
                         </TableCell>
-                        <TableCell>{row.customer_name}</TableCell>
+                        <TableCell>{row?.customer_name}</TableCell>
                         <TableCell>{finalRate.toFixed(2)}</TableCell>
-                        <TableCell>{gst.toFixed(2)}</TableCell>
-                        <TableCell>{payable.toFixed(2)}</TableCell>
-                        <TableCell>{row.mop}</TableCell>
+                        <TableCell>{finalGst / 2}</TableCell>
+                        <TableCell>{finalGst / 2}</TableCell>
+                        <TableCell>{finalTotalAmount.toFixed(2)}</TableCell>
+                        <TableCell>{row?.mop}</TableCell>
                       </TableRow>
                     );
                   })}

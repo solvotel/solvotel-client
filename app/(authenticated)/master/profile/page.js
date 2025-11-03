@@ -1,7 +1,11 @@
 'use client';
 import { Typography, Box, Breadcrumbs, Link, Grid } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { UpdateHotelLogo, UpdateProfileForm } from '@/component/updateForms';
+import {
+  UpdateHotelLogo,
+  UpdateHotelProfileForm,
+  UpdateRestaurantProfileForm,
+} from '@/component/updateForms';
 import { GetSingleData } from '@/utils/ApiFunctions';
 import { useAuth } from '@/context';
 import { Loader } from '@/component/common';
@@ -31,7 +35,8 @@ export default function HotelRestaurantForm() {
       ) : (
         <Grid container spacing={2} p={3}>
           <Grid size={{ xs: 12, md: 8 }}>
-            <UpdateProfileForm data={data} auth={auth} />
+            <UpdateHotelProfileForm data={data} auth={auth} />
+            <UpdateRestaurantProfileForm data={data} auth={auth} />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <UpdateHotelLogo data={data} auth={auth} />

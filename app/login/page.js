@@ -154,7 +154,7 @@ export default function FacebookLogin() {
             alt="logo"
           />
           <Typography sx={{ fontSize: '28px', color: '#fff' }}>
-            Solvotel helps you manage and share with the people in your life.
+            “Solvotel — Because Great Service Starts Behind the Desk.”
           </Typography>
         </Box>
 
@@ -169,7 +169,15 @@ export default function FacebookLogin() {
           }}
         >
           <Typography
-            variant="h6"
+            variant="h4"
+            sx={{
+              textAlign: 'center',
+            }}
+          >
+            Hello! Hotelier
+          </Typography>
+          <Typography
+            variant="body1"
             sx={{
               textAlign: 'center',
 

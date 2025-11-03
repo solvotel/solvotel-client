@@ -112,6 +112,10 @@ const Page = () => {
     if (!formData.mobile) newErrors.mobile = 'Mobile is required';
     else if (!/^[0-9]{10}$/.test(formData.mobile))
       newErrors.mobile = 'Enter valid 10-digit number';
+    // ✅ Email validation (optional but must be valid if entered)
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Enter a valid email address';
+    }
 
     if (formData.id_type === 'Passport') {
       if (!formData.passport_issue_date)
@@ -326,10 +330,13 @@ const Page = () => {
                   <TextField
                     fullWidth
                     label="Email"
+                    type="email"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
+                    error={!!errors.email}
+                    helperText={errors.email}
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -402,6 +409,7 @@ const Page = () => {
                     <MenuItem value="PAN Card">PAN Card</MenuItem>
                     <MenuItem value="Driving License">Driving License</MenuItem>
                     <MenuItem value="Passport">Passport</MenuItem>
+                    <MenuItem value="Others">Others</MenuItem>
                   </TextField>
                 </Grid>
                 <Grid size={{ xs: 12 }}>

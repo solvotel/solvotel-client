@@ -18,12 +18,12 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { motion } from 'framer-motion';
 import { GetTodaysDate } from '@/utils/DateFetcher';
+import AddIcon from '@mui/icons-material/Add';
 
 const RoomGridLayout = ({ bookings, rooms }) => {
   const todaysDate = GetTodaysDate().dateString;
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [startDate, setStartDate] = useState(todaysDate);
-  console.log(startDate);
 
   const handleAccordionChange = (index) => (event, isExpanded) => {
     setExpandedIndex(isExpanded ? index : false);
@@ -157,23 +157,35 @@ const RoomGridLayout = ({ bookings, rooms }) => {
 
   return (
     <Box p={3}>
-      <Box sx={{ mb: 1 }}>
-        <Button variant="contained" sx={{ minWidth: 0 }} onClick={handlePrev}>
-          <ChevronLeftIcon />
-        </Button>
-        <TextField
-          size="small"
-          label="📅 Select Date"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          sx={{ mx: 1 }}
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-        />
-        <Button variant="contained" sx={{ minWidth: 0 }} onClick={handleNext}>
-          <ChevronRightIcon />
+      <Box sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+        <Box>
+          <Button variant="contained" sx={{ minWidth: 0 }} onClick={handlePrev}>
+            <ChevronLeftIcon />
+          </Button>
+          <TextField
+            size="small"
+            label="📅 Select Date"
+            type="date"
+            InputLabelProps={{ shrink: true }}
+            sx={{ mx: 1 }}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+          <Button variant="contained" sx={{ minWidth: 0 }} onClick={handleNext}>
+            <ChevronRightIcon />
+          </Button>
+        </Box>
+
+        <Button
+          href="/front-office/room-booking/create-new"
+          variant="contained"
+          startIcon={<AddIcon />}
+          sx={{ borderRadius: 2, textTransform: 'none' }}
+        >
+          New Booking
         </Button>
       </Box>
+
       {next7Days.map((date, index) => {
         const {
           availableGrouped,

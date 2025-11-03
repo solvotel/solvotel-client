@@ -194,11 +194,6 @@ export default function Navbar() {
                   <DropdownMenu
                     items={[
                       {
-                        href: '/',
-                        icon: <LayoutDashboard size={16} />,
-                        label: 'Room Dashboard',
-                      },
-                      {
                         href: '/front-office/room-booking',
                         icon: <BookOpen size={16} />,
                         label: 'Booking',

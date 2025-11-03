@@ -1,4 +1,5 @@
-import UpdateProfileForm from './UpdateProfileForm';
+import UpdateHotelProfileForm from './UpdateHotelProfileForm';
+import UpdateRestaurantProfileForm from './UpdateRestaurantProfileForm';
 import UpdateHotelLogo from './UpdateHotelLogo';
 
-export { UpdateProfileForm, UpdateHotelLogo };
+export { UpdateHotelProfileForm, UpdateRestaurantProfileForm, UpdateHotelLogo };

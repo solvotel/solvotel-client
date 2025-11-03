@@ -45,7 +45,9 @@ const Page = () => {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-
+    // Normalize to ignore time part
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
     // Filter purchases within date range
     const filteredInvoices =
       data?.filter((pur) => {

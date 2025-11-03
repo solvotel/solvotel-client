@@ -159,7 +159,7 @@ const Page = () => {
                       <TableCell>{finalRate.toFixed(2)}</TableCell>
                       <TableCell>{finalGst / 2}</TableCell>
                       <TableCell>{finalGst / 2}</TableCell>
-                      <TableCell>{finalTotalAmount}</TableCell>
+                      <TableCell>{finalTotalAmount.toFixed(2)}</TableCell>
                       <TableCell>{row.mop}</TableCell>
                       <TableCell sx={{ width: '150px' }}>
                         <Tooltip title="View">

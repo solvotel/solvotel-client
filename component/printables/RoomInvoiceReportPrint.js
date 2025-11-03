@@ -32,12 +32,6 @@ const CustomTableContainer = styled(TableContainer)``;
 const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
   const { filteredData, startDate, endDate } = props;
 
-  const totalAmount = filteredData?.reduce((sum, i) => sum + i.total_amount, 0);
-  const totalGst = filteredData?.reduce((sum, i) => sum + i.tax, 0);
-  const totalPayable = filteredData?.reduce(
-    (sum, i) => sum + i.payable_amount,
-    0
-  );
   return (
     <Box
       ref={ref}
@@ -67,8 +61,9 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
                 'Invoice No',
                 'Date/Time',
                 'Customer Name',
-                'Total Amount',
-                'GST',
+                'Taxable Amount',
+                'SGST',
+                'CGST',
                 'Payable Amount',
                 'Payment Method',
               ].map((item, index) => (
@@ -78,36 +73,37 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
               ))}
             </TableRow>
             {filteredData?.map((row) => {
-              const totalRoomAmount = row?.room_tokens.reduce(
-                (sum, r) => sum + (r.rate || 0),
+              const totalRoomGst = row?.room_tokens.reduce(
+                (sum, r) => sum + (parseFloat(r.gst) || 0),
                 0
               );
-              const totalServiceAmount = row?.service_billing.reduce(
-                (sum, s) => sum + (s.rate || 0),
+              const totalServiceGst = row?.service_tokens.reduce(
+                (sum, s) => sum + (parseFloat(s.total_gst) || 0),
                 0
               );
-              const totalFoodAmount = row?.food_items.reduce(
-                (sum, f) => sum + (f.rate || 0),
+              const totalFoodGst = row?.food_tokens.reduce(
+                (sum, f) => sum + (parseFloat(f.total_gst) || 0),
                 0
               );
               const payableRoomAmount = row?.room_tokens.reduce(
-                (sum, r) => sum + (r.amount || 0),
+                (sum, r) => sum + (parseFloat(r.amount) || 0),
                 0
               );
-              const payableServiceAmount = row?.service_billing.reduce(
-                (sum, s) => sum + (s.amount || 0),
+              const payableServiceAmount = row?.service_tokens.reduce(
+                (sum, s) => sum + (parseFloat(s.total_amount) || 0),
                 0
               );
-              const payableFoodAmount = row?.food_items.reduce(
-                (sum, f) => sum + (f.amount || 0),
+              const payableFoodAmount = row?.food_tokens.reduce(
+                (sum, f) => sum + (parseFloat(f.total_amount) || 0),
                 0
               );
-              const finalRate =
-                totalFoodAmount + totalRoomAmount + totalServiceAmount;
-              const payable =
-                payableRoomAmount + payableServiceAmount + payableFoodAmount;
 
-              const gst = payable - finalRate;
+              const finalGst = parseFloat(
+                totalRoomGst + totalServiceGst + totalFoodGst
+              ).toFixed(2);
+              const finalTotalAmount =
+                payableRoomAmount + payableServiceAmount + payableFoodAmount;
+              const finalRate = finalTotalAmount - finalGst;
               return (
                 <TableRow key={row.documentId}>
                   <BodyCell>{row.invoice_no}</BodyCell>
@@ -116,8 +112,9 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
                   </BodyCell>
                   <BodyCell>{row.customer_name}</BodyCell>
                   <BodyCell>{finalRate.toFixed(2)}</BodyCell>
-                  <BodyCell>{gst.toFixed(2)}</BodyCell>
-                  <BodyCell>{payable.toFixed(2)}</BodyCell>
+                  <BodyCell>{finalGst / 2}</BodyCell>
+                  <BodyCell>{finalGst / 2}</BodyCell>
+                  <BodyCell>{finalTotalAmount.toFixed(2)}</BodyCell>
                   <BodyCell>{row.mop}</BodyCell>
                 </TableRow>
               );

@@ -66,8 +66,8 @@ const Page = () => {
       description: '',
       bed_type: '',
       hsn: '',
-      tariff: 0,
-      gst: 0,
+      tariff: null,
+      gst: null,
       total: 0,
       base_adults: 1,
       base_child: 0,
@@ -417,8 +417,8 @@ const Page = () => {
                     fullWidth
                     value={formData.tariff}
                     onChange={(e) => {
-                      const tariff = parseFloat(e.target.value) || 0;
-                      const gst = parseFloat(formData.gst) || 0;
+                      const tariff = parseFloat(e.target.value) || null;
+                      const gst = parseFloat(formData.gst) || null;
                       setFormData({
                         ...formData,
                         tariff,
@@ -439,8 +439,8 @@ const Page = () => {
                     fullWidth
                     value={formData.gst}
                     onChange={(e) => {
-                      const gst = parseFloat(e.target.value) || 0;
-                      const tariff = parseFloat(formData.tariff) || 0;
+                      const gst = parseFloat(e.target.value) || null;
+                      const tariff = parseFloat(formData.tariff) || null;
                       setFormData({
                         ...formData,
                         gst,
