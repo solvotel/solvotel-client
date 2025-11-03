@@ -252,7 +252,7 @@ export default function Home() {
               'Hotel Channel Manager Integration – Sync your hotel with leading OTAs and prevent double bookings.',
               'Hotel Software with Mobile App – Access your PMS from anywhere, anytime, with Solvotel’s mobile-friendly app.',
               'Contactless Check-in Software – Offer a seamless guest experience with digital check-in and check-out options.',
-              'Hotel Analytucs and Reporting Tools – Get insights into revenue, occupancy, and guest behavior to make data-driven decisions.',
+              'Hotel Analytics and Reporting Tools – Get insights into revenue, occupancy, and guest behavior to make data-driven decisions.',
             ].map((text, index) => (
               <Grid size={{ xs: 12, sm: 6 }} key={index}>
                 <Box

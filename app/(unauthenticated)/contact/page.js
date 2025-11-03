@@ -21,7 +21,7 @@ export default function Contact() {
       icon: <PhoneIcon sx={{ fontSize: 32, color: '#2563eb' }} />,
       title: 'Phone',
       details: '(+91) 8967531369',
-      subtitle: 'Mon-Fri from 9am to 6pm',
+      subtitle: '24x7 Available',
     },
     {
       icon: <EmailIcon sx={{ fontSize: 32, color: '#059669' }} />,
