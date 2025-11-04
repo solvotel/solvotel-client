@@ -31,6 +31,7 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
     hotel_checkin: data.hotel_checkin || '',
     hotel_checkout: data.hotel_checkout || '',
     hotel_terms: data.hotel_terms || '',
+    hotel_footer: data.hotel_footer || '',
   });
 
   const handleChange = (e) => {
@@ -248,6 +249,17 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.hotel_terms}
                 helperText={errors.hotel_terms || ''}
+              />
+            </Grid>
+            <Grid size={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Invoice Footer"
+                name="hotel_footer"
+                value={formData.hotel_footer}
+                onChange={handleChange}
               />
             </Grid>
           </Grid>

@@ -77,7 +77,12 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       <p style={{ margin: '5px 0' }}>-------------------------------</p>
 
       <div style={{ textAlign: 'center' }}>
-        <p>Thank you! Visit again.</p>
+        <p
+          align="center"
+          style={{ fontSize: '10px', color: '#555', margin: 0 }}
+        >
+          {profile?.res_footer}
+        </p>
       </div>
     </div>
   );

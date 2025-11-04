@@ -136,7 +136,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
           }}
         />
       )}
-      <Box sx={{ m: 2, position: 'relative', zIndex: 1 }}>
+      <Box sx={{ p: 2, position: 'relative', zIndex: 1 }}>
         <TableContainer>
           <Table>
             <TableHead>
@@ -309,7 +309,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
             </TableBody>
             <TableBody>
               {Array.from({
-                length: 18 - (allTokens?.length || 0),
+                length: 17 - (allTokens?.length || 0),
               }).map((_, idx) => (
                 <TableRow key={`empty-${idx}`}>
                   {[...Array(7)].map((__, cellIdx) => (
@@ -397,6 +397,14 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
             </TableBody>
           </Table>
         </TableContainer>
+        <Typography
+          align="center"
+          variant="body2"
+          mt={1}
+          color="text.secondary"
+        >
+          {hotel?.hotel_footer}
+        </Typography>
       </Box>
     </div>
   );

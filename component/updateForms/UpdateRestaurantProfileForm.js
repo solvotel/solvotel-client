@@ -27,6 +27,7 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
     res_district: data.res_district || '',
     res_state: data.res_state || 'West Bengal',
     res_pincode: data.res_pincode || '',
+    res_footer: data.res_footer || '',
   });
 
   const [errors, setErrors] = useState({});
@@ -285,6 +286,17 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 type="number"
                 error={!!errors.res_pincode}
                 helperText={errors.res_pincode}
+              />
+            </Grid>
+            <Grid size={12}>
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="Invoice Footer"
+                name="res_footer"
+                value={formData.res_footer}
+                onChange={handleChange}
               />
             </Grid>
           </Grid>

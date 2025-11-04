@@ -245,7 +245,12 @@ const Page = () => {
                         <TableCell>{GetCustomDate(row.date)}</TableCell>
                         <TableCell>{row.source}</TableCell>
                         <TableCell>
-                          <Link href={row.url || '#'}>{row.invNo}</Link>
+                          <Link
+                            href={row.url || '#'}
+                            style={{ textDecoration: 'none' }}
+                          >
+                            {row.invNo}
+                          </Link>
                         </TableCell>
                         <TableCell>{row.mop}</TableCell>
                         <TableCell align="right">
@@ -307,6 +312,7 @@ const Page = () => {
                         amount: i.total_price,
                         mop: '-',
                         invNo: i.invoice_no,
+                        url: `/inventory/purchase-entries/${i.documentId}`,
                       })),
                       ...filteredData.otherExpenses.map((i) => ({
                         date: i.date,
@@ -314,13 +320,21 @@ const Page = () => {
                         description: i.title,
                         amount: i.amount,
                         mop: '-',
-                        invNo: '-',
+                        invNo: i.id || '-',
+                        url: `/expenses/${i.documentId}`,
                       })),
                     ].map((row, index) => (
                       <TableRow key={index}>
                         <TableCell>{GetCustomDate(row.date)}</TableCell>
                         <TableCell>{row.category}</TableCell>
-                        <TableCell>{row.invNo}</TableCell>
+                        <TableCell>
+                          <Link
+                            href={row.url || '#'}
+                            style={{ textDecoration: 'none' }}
+                          >
+                            {row.invNo}
+                          </Link>
+                        </TableCell>
                         <TableCell>{row.mop}</TableCell>
                         <TableCell align="right">
                           {Number(row.amount)?.toLocaleString('en-IN', {

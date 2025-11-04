@@ -37,6 +37,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
@@ -288,7 +289,16 @@ const Page = () => {
                     <TableCell>{row.rate}</TableCell>
                     <TableCell>{row.tax}</TableCell>
                     <TableCell>{row.total_price}</TableCell>
-                    <TableCell sx={{ width: '100px' }}>
+                    <TableCell sx={{ width: '120px' }}>
+                      <Tooltip title="View">
+                        <IconButton
+                          color="secondary"
+                          href={`/inventory/sales-entries/${row.documentId}`}
+                          size="small"
+                        >
+                          <VisibilityIcon fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Edit">
                         <IconButton
                           color="primary"

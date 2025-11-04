@@ -381,7 +381,7 @@ export default function Navbar() {
                         label: 'Restaurant Invoice Report',
                       },
                       {
-                        href: '/reports/booking-report',
+                        href: '/front-office/room-invoice-report',
                         icon: <ClipboardList size={16} />,
                         label: 'Room Invoice Report',
                       },
