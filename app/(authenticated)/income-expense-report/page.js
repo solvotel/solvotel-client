@@ -203,6 +203,8 @@ const Page = () => {
                     <TableRow>
                       <TableCell sx={{ color: 'white' }}>Date</TableCell>
                       <TableCell sx={{ color: 'white' }}>Source</TableCell>
+                      <TableCell sx={{ color: 'white' }}>Invoice No</TableCell>
+                      <TableCell sx={{ color: 'white' }}>MOP</TableCell>
 
                       <TableCell align="right" sx={{ color: 'white' }}>
                         Amount (₹)
@@ -216,24 +218,36 @@ const Page = () => {
                         source: 'Restaurant Invoice',
                         details: i.customer_name,
                         amount: i.payable_amount,
+                        mop: i.mop || '-',
+                        invNo: i.invoice_no,
+                        url: `/restaurant/invoices/${i.documentId}`,
                       })),
                       ...filteredData.roomInvoices.map((i) => ({
                         date: i.date,
                         source: 'Room Invoice',
                         details: i.guest_name,
                         amount: i.payable_amount,
+                        mop: i.mop || '-',
+                        invNo: i.invoice_no,
+                        url: `/front-office/room-invoice/${i.documentId}`,
                       })),
                       ...filteredData.saleEntries.map((i) => ({
                         date: i.date,
                         source: 'Inventory Sale',
                         details: i.item_name,
                         amount: i.total_price,
+                        mop: '-',
+                        invNo: i.invoice_no,
+                        url: `/inventory/sales-entries/${i.documentId}`,
                       })),
                     ].map((row, index) => (
                       <TableRow key={index}>
                         <TableCell>{GetCustomDate(row.date)}</TableCell>
                         <TableCell>{row.source}</TableCell>
-
+                        <TableCell>
+                          <Link href={row.url || '#'}>{row.invNo}</Link>
+                        </TableCell>
+                        <TableCell>{row.mop}</TableCell>
                         <TableCell align="right">
                           {row.amount?.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
@@ -243,7 +257,7 @@ const Page = () => {
                     ))}
                     <TableRow sx={{ backgroundColor: '#e8f5e9' }}>
                       <TableCell
-                        colSpan={2}
+                        colSpan={4}
                         align="right"
                         sx={{ fontWeight: 'bold' }}
                       >
@@ -277,7 +291,8 @@ const Page = () => {
                     <TableRow>
                       <TableCell sx={{ color: 'white' }}>Date</TableCell>
                       <TableCell sx={{ color: 'white' }}>Category</TableCell>
-
+                      <TableCell sx={{ color: 'white' }}>Invoice No</TableCell>
+                      <TableCell sx={{ color: 'white' }}>MOP</TableCell>
                       <TableCell align="right" sx={{ color: 'white' }}>
                         Amount (₹)
                       </TableCell>
@@ -290,18 +305,23 @@ const Page = () => {
                         category: 'Inventory Purchase',
                         description: i.vendor_name,
                         amount: i.total_price,
+                        mop: '-',
+                        invNo: i.invoice_no,
                       })),
                       ...filteredData.otherExpenses.map((i) => ({
                         date: i.date,
                         category: 'Other Expense',
                         description: i.title,
                         amount: i.amount,
+                        mop: '-',
+                        invNo: '-',
                       })),
                     ].map((row, index) => (
                       <TableRow key={index}>
                         <TableCell>{GetCustomDate(row.date)}</TableCell>
                         <TableCell>{row.category}</TableCell>
-
+                        <TableCell>{row.invNo}</TableCell>
+                        <TableCell>{row.mop}</TableCell>
                         <TableCell align="right">
                           {Number(row.amount)?.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
@@ -311,7 +331,7 @@ const Page = () => {
                     ))}
                     <TableRow sx={{ backgroundColor: '#ffebee' }}>
                       <TableCell
-                        colSpan={2}
+                        colSpan={4}
                         align="right"
                         sx={{ fontWeight: 'bold' }}
                       >

@@ -21,15 +21,11 @@ import { GetCustomDate } from '@/utils/DateFetcher';
 import { GetDataList, GetSingleData } from '@/utils/ApiFunctions';
 import { Loader } from '@/component/common';
 import { useMemo, useState } from 'react';
-
-import RoomInvoiceViewDialog from '@/component/bookingComp/RoomInvoiceViewDialog';
 import { useAuth } from '@/context';
 
 const Page = () => {
   const { auth } = useAuth();
   const [search, setSearch] = useState('');
-  const [viewOpen, setViewOpen] = useState(false);
-  const [viewData, setViewData] = useState(null);
 
   const hotel = GetSingleData({
     endPoint: 'hotels',
@@ -165,10 +161,7 @@ const Page = () => {
                         <Tooltip title="View">
                           <IconButton
                             color="secondary"
-                            onClick={() => {
-                              setViewData(row);
-                              setViewOpen(true);
-                            }}
+                            href={`/front-office/room-invoice/${row.documentId}`}
                             size="small"
                           >
                             <VisibilityIcon fontSize="inherit" />
@@ -188,15 +181,6 @@ const Page = () => {
               </TableBody>
             </Table>
           </TableContainer>
-
-          {/* View Dialog */}
-          <RoomInvoiceViewDialog
-            viewOpen={viewOpen}
-            setViewOpen={setViewData}
-            viewData={viewData}
-            hotel={hotel}
-            roomBookings={roomBookings}
-          />
         </Box>
       )}
     </>

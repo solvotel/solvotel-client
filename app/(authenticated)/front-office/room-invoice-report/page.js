@@ -22,12 +22,13 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { RestaurantInvoiceReportPrint } from '@/component/printables/RestaurantInvoiceReportPrint';
 import { RoomInvoiceReportPrint } from '@/component/printables/RoomInvoiceReportPrint';
+import { exportToExcel } from '@/utils/exportToExcel';
 
 const Page = () => {
   const { auth } = useAuth();
@@ -40,6 +41,7 @@ const Page = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setfilteredData] = useState([]);
+  const [dataToExport, setDataToExport] = useState([]);
 
   const handleSearch = () => {
     if (!startDate || !endDate) return;
@@ -56,7 +58,53 @@ const Page = () => {
         return d >= start && d <= end;
       }) || [];
 
+    const dataToExport = filteredInvoices.map((row) => {
+      const totalRoomGst = row?.room_tokens.reduce(
+        (sum, r) => sum + (parseFloat(r.gst) || 0),
+        0
+      );
+      const totalServiceGst = row?.service_tokens.reduce(
+        (sum, s) => sum + (parseFloat(s.total_gst) || 0),
+        0
+      );
+      const totalFoodGst = row?.food_tokens.reduce(
+        (sum, f) => sum + (parseFloat(f.total_gst) || 0),
+        0
+      );
+      const payableRoomAmount = row?.room_tokens.reduce(
+        (sum, r) => sum + (parseFloat(r.amount) || 0),
+        0
+      );
+      const payableServiceAmount = row?.service_tokens.reduce(
+        (sum, s) => sum + (parseFloat(s.total_amount) || 0),
+        0
+      );
+      const payableFoodAmount = row?.food_tokens.reduce(
+        (sum, f) => sum + (parseFloat(f.total_amount) || 0),
+        0
+      );
+
+      const finalGst = parseFloat(
+        totalRoomGst + totalServiceGst + totalFoodGst
+      ).toFixed(2);
+      const finalTotalAmount =
+        payableRoomAmount + payableServiceAmount + payableFoodAmount;
+      const finalRate = finalTotalAmount - finalGst;
+      return {
+        'Invoice No': row.invoice_no,
+        'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
+        'Customer Name': row?.customer_name,
+        GSTIN: row?.customer_gst,
+        'Taxable Amount': finalRate.toFixed(2),
+        SGST: finalGst / 2,
+        CGST: finalGst / 2,
+        'Payable Amount': finalTotalAmount.toFixed(2),
+        'Payment Method': row?.mop,
+      };
+    });
+
     setfilteredData(filteredInvoices);
+    setDataToExport(dataToExport);
   };
 
   const componentRef = useRef(null);
@@ -64,6 +112,9 @@ const Page = () => {
     contentRef: componentRef,
     documentTitle: 'stock-report',
   });
+  const handleExport = () => {
+    exportToExcel(dataToExport, 'room_invoice_report');
+  };
 
   return (
     <>
@@ -122,15 +173,27 @@ const Page = () => {
                   Search
                 </Button>
               </Box>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<PrintIcon />}
-                disabled={filteredData.length === 0}
-                onClick={handlePrint}
-              >
-                Print
-              </Button>
+              <Box>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<PrintIcon />}
+                  disabled={filteredData.length === 0}
+                  onClick={handlePrint}
+                  sx={{ mr: 1 }}
+                >
+                  Print
+                </Button>
+                <Button
+                  onClick={handleExport}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="success"
+                  startIcon={<FileDownloadIcon />}
+                >
+                  Export
+                </Button>
+              </Box>
             </Box>
 
             {/* Data Table */}
@@ -142,6 +205,7 @@ const Page = () => {
                       'Invoice No',
                       'Date/Time',
                       'Customer Name',
+                      'GSTIN',
                       'Taxable Amount',
                       'SGST',
                       'CGST',
@@ -196,6 +260,7 @@ const Page = () => {
                           {GetCustomDate(row.date)}&nbsp;{row.time}
                         </TableCell>
                         <TableCell>{row?.customer_name}</TableCell>
+                        <TableCell>{row?.customer_gst}</TableCell>
                         <TableCell>{finalRate.toFixed(2)}</TableCell>
                         <TableCell>{finalGst / 2}</TableCell>
                         <TableCell>{finalGst / 2}</TableCell>

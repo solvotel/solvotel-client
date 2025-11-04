@@ -22,11 +22,12 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { RoomBookingReportPrint } from '@/component/printables/RoomBookingReportPrint';
+import { exportToExcel } from '@/utils/exportToExcel';
 
 const Page = () => {
   const { auth } = useAuth();
@@ -39,23 +40,55 @@ const Page = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setfilteredData] = useState([]);
+  const [dataToExport, setDataToExport] = useState([]);
 
   const handleSearch = () => {
     if (!startDate || !endDate) return;
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    // Normalize to ignore time part
+
+    // Normalize times to cover the whole days
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
-    // Filter purchases within date range
+
     const filteredInvoices =
-      data?.filter((pur) => {
-        const d = new Date(pur.createdAt);
-        return d >= start && d <= end;
+      data?.filter((booking) => {
+        const createdAt = booking.createdAt
+          ? new Date(booking.createdAt)
+          : null;
+        const checkin = booking.checkin_date
+          ? new Date(booking.checkin_date)
+          : null;
+        const checkout = booking.checkout_date
+          ? new Date(booking.checkout_date)
+          : null;
+
+        // Check if any of the three dates fall within the range
+        const isCreatedInRange =
+          createdAt && createdAt >= start && createdAt <= end;
+        const isCheckinInRange = checkin && checkin >= start && checkin <= end;
+        const isCheckoutInRange =
+          checkout && checkout >= start && checkout <= end;
+
+        return isCreatedInRange || isCheckinInRange || isCheckoutInRange;
       }) || [];
 
+    const dataToExport = filteredInvoices.map((row) => ({
+      'Booking ID': row.booking_id,
+      'Booking Date': GetCustomDate(row.createdAt),
+      'Check-in Date': GetCustomDate(row.checkin_date),
+      'Check-out Date': GetCustomDate(row.checkout_date),
+      'Room No': row.rooms.map((r) => r.room_no).join(', '),
+      Guest: row.customer.name,
+      'Company Name': row.customer.company_name,
+      GSTIN: row.customer.gst_no,
+      'Meal Plan': row.meal_plan,
+      Notes: row.remarks,
+    }));
+
     setfilteredData(filteredInvoices);
+    setDataToExport(dataToExport);
   };
 
   const componentRef = useRef(null);
@@ -63,6 +96,10 @@ const Page = () => {
     contentRef: componentRef,
     documentTitle: 'stock-report',
   });
+
+  const handleExport = () => {
+    exportToExcel(dataToExport, 'room_booking_report');
+  };
   return (
     <>
       {' '}
@@ -121,15 +158,27 @@ const Page = () => {
                   Search
                 </Button>
               </Box>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<PrintIcon />}
-                disabled={filteredData.length === 0}
-                onClick={handlePrint}
-              >
-                Print
-              </Button>
+              <Box>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<PrintIcon />}
+                  disabled={filteredData.length === 0}
+                  onClick={handlePrint}
+                  sx={{ mr: 1 }}
+                >
+                  Print
+                </Button>
+                <Button
+                  onClick={handleExport}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="success"
+                  startIcon={<FileDownloadIcon />}
+                >
+                  Export
+                </Button>
+              </Box>
             </Box>
 
             {/* Data Table */}

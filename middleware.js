@@ -6,7 +6,14 @@ export function middleware(req) {
   const token = req.cookies.get('token')?.value;
 
   // Define public routes that don't require authentication
-  const publicRoutes = ['/', '/about-us', '/contact', '/services', '/login'];
+  const publicRoutes = [
+    '/',
+    '/about-us',
+    '/contact',
+    '/services',
+    '/pricing',
+    '/login',
+  ];
 
   // Check if current route is public
   const isPublicRoute = publicRoutes.some(

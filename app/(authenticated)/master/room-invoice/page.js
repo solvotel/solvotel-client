@@ -213,10 +213,7 @@ const Page = () => {
                         <Tooltip title="View">
                           <IconButton
                             color="secondary"
-                            onClick={() => {
-                              setViewData(row);
-                              setViewOpen(true);
-                            }}
+                            href={`/front-office/room-invoice/${row.documentId}`}
                             size="small"
                           >
                             <VisibilityIcon fontSize="inherit" />

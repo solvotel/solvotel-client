@@ -22,11 +22,12 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { Loader } from '@/component/common';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { RestaurantInvoiceReportPrint } from '@/component/printables/RestaurantInvoiceReportPrint';
+import { exportToExcel } from '@/utils/exportToExcel';
 
 const Page = () => {
   const { auth } = useAuth();
@@ -39,6 +40,7 @@ const Page = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setfilteredData] = useState([]);
+  const [dataToExport, setDataToExport] = useState([]);
 
   const handleSearch = () => {
     if (!startDate || !endDate) return;
@@ -56,7 +58,20 @@ const Page = () => {
         return d >= start && d <= end;
       }) || [];
 
+    const dataToExport = filteredInvoices.map((row) => ({
+      'Invoice No': row.invoice_no,
+      'Date/Time': `${row.date} ${row.time}`,
+      'Customer Name': row.customer_name,
+      GSTIN: row.customer_gst,
+      'Total Amount ₹': row.total_amount,
+      'SGST ₹ ': row.tax / 2,
+      'CGST ₹ ': row.tax / 2,
+      'Payable Amount ₹ ': row.payable_amount,
+      'Payment Method': row.mop,
+    }));
+
     setfilteredData(filteredInvoices);
+    setDataToExport(dataToExport);
   };
 
   const componentRef = useRef(null);
@@ -64,6 +79,9 @@ const Page = () => {
     contentRef: componentRef,
     documentTitle: 'stock-report',
   });
+  const handleExport = () => {
+    exportToExcel(dataToExport, 'restaurant_invoice_report');
+  };
 
   return (
     <>
@@ -124,15 +142,27 @@ const Page = () => {
                   Search
                 </Button>
               </Box>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<PrintIcon />}
-                disabled={filteredData.length === 0}
-                onClick={handlePrint}
-              >
-                Print
-              </Button>
+              <Box>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<PrintIcon />}
+                  disabled={filteredData.length === 0}
+                  onClick={handlePrint}
+                  sx={{ mr: 1 }}
+                >
+                  Print
+                </Button>
+                <Button
+                  onClick={handleExport}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="success"
+                  startIcon={<FileDownloadIcon />}
+                >
+                  Export
+                </Button>
+              </Box>
             </Box>
 
             {/* Data Table */}
@@ -144,6 +174,7 @@ const Page = () => {
                       'Invoice No',
                       'Date/Time',
                       'Customer Name',
+                      'GSTIN',
                       'Total Amount ₹',
                       'SGST ₹ ',
                       'CGST ₹ ',
@@ -164,6 +195,7 @@ const Page = () => {
                         {row.date}:{row.time}
                       </TableCell>
                       <TableCell>{row.customer_name}</TableCell>
+                      <TableCell>{row.customer_gst}</TableCell>
                       <TableCell>{row.total_amount}</TableCell>
                       <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.tax / 2}</TableCell>

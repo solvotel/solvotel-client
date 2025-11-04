@@ -1,13 +1,8 @@
 'use client';
 
 import { useAuth } from '@/context';
-import {
-  DeleteData,
-  GetDataList,
-  CreateNewData,
-  UpdateData,
-} from '@/utils/ApiFunctions';
-import { useState, useMemo, useRef } from 'react';
+import { GetDataList } from '@/utils/ApiFunctions';
+import { useState, useRef } from 'react';
 
 // mui
 import {
@@ -17,14 +12,6 @@ import {
   Link,
   Typography,
   TextField,
-  Chip,
-  IconButton,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
   Table,
   TableBody,
   TableCell,
@@ -32,21 +19,17 @@ import {
   TableHead,
   TableRow,
   Paper,
-  FormControlLabel,
-  Switch,
-  Grid,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import { SuccessToast } from '@/utils/GenerateToast';
-import PrintIcon from '@mui/icons-material/Print';
 
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+
+import PrintIcon from '@mui/icons-material/Print';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { Loader } from '@/component/common';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 import { StockReportPrint } from '@/component/printables/StockReportPrint';
 import { useReactToPrint } from 'react-to-print';
+import { exportToExcel } from '@/utils/exportToExcel';
 
 const Page = () => {
   const { auth } = useAuth();
@@ -69,6 +52,7 @@ const Page = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setfilteredData] = useState([]);
+  const [dataToExport, setDataToExport] = useState([]);
 
   const handleSearch = () => {
     if (!startDate || !endDate) return;
@@ -140,6 +124,7 @@ const Page = () => {
       };
     });
 
+    setDataToExport(summary);
     setfilteredData(summary);
   };
 
@@ -148,6 +133,10 @@ const Page = () => {
     contentRef: componentRef,
     documentTitle: 'stock-report',
   });
+
+  const handleExport = () => {
+    exportToExcel(dataToExport, 'stock_report');
+  };
 
   return (
     <>
@@ -206,15 +195,27 @@ const Page = () => {
                   Search
                 </Button>
               </Box>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<PrintIcon />}
-                disabled={filteredData.length === 0}
-                onClick={handlePrint}
-              >
-                Print
-              </Button>
+              <Box>
+                <Button
+                  variant="contained"
+                  color="error"
+                  startIcon={<PrintIcon />}
+                  disabled={filteredData.length === 0}
+                  onClick={handlePrint}
+                  sx={{ mr: 1 }}
+                >
+                  Print
+                </Button>
+                <Button
+                  onClick={handleExport}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="success"
+                  startIcon={<FileDownloadIcon />}
+                >
+                  Export
+                </Button>
+              </Box>
             </Box>
 
             {/* Data Table */}

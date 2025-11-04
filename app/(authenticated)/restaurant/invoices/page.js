@@ -6,9 +6,8 @@ import {
   GetDataList,
   CreateNewData,
   UpdateData,
-  GetSingleData,
 } from '@/utils/ApiFunctions';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 
 // mui
 import {
@@ -18,7 +17,6 @@ import {
   Link,
   Typography,
   TextField,
-  Chip,
   IconButton,
   Tooltip,
   Dialog,
@@ -33,8 +31,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  FormControlLabel,
-  Switch,
   Grid,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -46,9 +42,6 @@ import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { GetCurrentTime } from '@/utils/Timefetcher';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import PrintIcon from '@mui/icons-material/Print';
-import { useReactToPrint } from 'react-to-print';
-import { RestaurantPosInvoice } from '@/component/printables/RestaurantPosInvoice';
 
 const generateNextInvoiceNo = (invoices) => {
   if (!invoices || invoices.length === 0) {
@@ -82,11 +75,6 @@ const Page = () => {
     endPoint: 'restaurant-menus',
   });
 
-  const myProfile = GetSingleData({
-    auth,
-    endPoint: 'hotels',
-    id: auth?.user?.hotel_id,
-  });
   const [search, setSearch] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -98,9 +86,6 @@ const Page = () => {
   const [formErrors, setFormErrors] = useState({});
 
   const [selectedItem, setSelectedItem] = useState();
-
-  const [viewOpen, setViewOpen] = useState(false);
-  const [viewData, setViewData] = useState(null);
 
   // filter data by name
   const filteredData = useMemo(() => {
@@ -282,12 +267,6 @@ const Page = () => {
     setSelectedRow(null);
   };
 
-  const componentRef = useRef(null);
-  const handlePrint = useReactToPrint({
-    contentRef: componentRef,
-    documentTitle: 'res-inv',
-  });
-
   return (
     <>
       <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
@@ -368,10 +347,7 @@ const Page = () => {
                       <Tooltip title="View">
                         <IconButton
                           color="secondary"
-                          onClick={() => {
-                            setViewData(row);
-                            setViewOpen(true);
-                          }}
+                          href={`/restaurant/invoices/${row.documentId}`}
                           size="small"
                         >
                           <VisibilityIcon fontSize="inherit" />
@@ -765,93 +741,6 @@ const Page = () => {
               <Button onClick={() => setFormOpen(false)}>Cancel</Button>
               <Button onClick={handleSave} variant="contained">
                 {editing ? 'Update' : 'Create'}
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* view invoice dialog */}
-          <Dialog
-            open={viewOpen}
-            onClose={() => setViewOpen(false)}
-            maxWidth="md"
-            fullWidth
-          >
-            <DialogTitle>Invoice: {viewData?.invoice_no}</DialogTitle>
-            <DialogContent dividers>
-              {viewData && (
-                <>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Date: {viewData.date} | Time: {viewData.time}
-                  </Typography>
-                  <Typography variant="subtitle1" gutterBottom>
-                    Customer: {viewData.customer_name} (
-                    {viewData.customer_phone})
-                  </Typography>
-                  <Typography variant="subtitle1" gutterBottom>
-                    GST: {viewData.customer_gst}
-                  </Typography>
-
-                  <Typography variant="subtitle1" gutterBottom>
-                    Address: {viewData.customer_address}
-                  </Typography>
-
-                  {/* Items Table */}
-                  <TableContainer component={Paper} sx={{ mt: 2 }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Name</TableCell>
-                          <TableCell>HSN</TableCell>
-                          <TableCell>Rate</TableCell>
-                          <TableCell>Qty</TableCell>
-                          <TableCell>SGST %</TableCell>
-                          <TableCell>CGST %</TableCell>
-                          <TableCell>Total</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {viewData.menu_items?.map((item, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell>{item.item}</TableCell>
-                            <TableCell>{item.hsn}</TableCell>
-                            <TableCell>{item.rate}</TableCell>
-                            <TableCell>{item.qty}</TableCell>
-                            <TableCell>{item.gst / 2}</TableCell>
-                            <TableCell>{item.gst / 2}</TableCell>
-                            <TableCell>{item.amount.toFixed(2)}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-
-                  {/* Summary */}
-                  <Box mt={2}>
-                    <Typography>Total: ₹{viewData.total_amount}</Typography>
-                    <Typography>SGST: ₹{viewData.tax / 2}</Typography>
-                    <Typography>CGST: ₹{viewData.tax / 2}</Typography>
-                    <Typography>Payable: ₹{viewData.payable_amount}</Typography>
-                    <Typography>Payment Method: {viewData.mop}</Typography>
-                  </Box>
-                  <div style={{ display: 'none' }}>
-                    <RestaurantPosInvoice
-                      ref={componentRef}
-                      invoice={viewData}
-                      profile={myProfile}
-                      size="58mm"
-                    />
-                  </div>
-                </>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setViewOpen(false)}>Close</Button>
-              <Button
-                variant="contained"
-                startIcon={<PrintIcon />}
-                onClick={handlePrint}
-              >
-                Print Invoice
               </Button>
             </DialogActions>
           </Dialog>
