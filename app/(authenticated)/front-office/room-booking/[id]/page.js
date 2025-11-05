@@ -100,7 +100,7 @@ export default function RoomBookings({ params }) {
                   handlePrintBookingSlip={handlePrintBookingSlip}
                   roomInvoices={roomInvoices}
                 />
-                <PaymentHistoryCard booking={data} hotel={hotel} />
+                <PaymentHistoryCard booking={data} hotel={hotel} auth={auth} />
                 <InvoiceListCard
                   booking={data}
                   roomInvoices={roomInvoices}

@@ -93,6 +93,10 @@ const RoomAvailabilityStep = ({
     if (!room.room_bookings || room.room_bookings.length === 0) return true;
 
     return !room.room_bookings.some((booking) => {
+      // If this booking is already checked out, ignore it
+      if (booking.checked_out) return false;
+
+      // Otherwise, check for overlapping dates
       return (
         (checkin_date >= booking.checkin_date &&
           checkin_date < booking.checkout_date) ||
