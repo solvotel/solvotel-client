@@ -29,7 +29,6 @@ export default function EditRoomInvoiceDialog({
 }) {
   const [loading, setLoading] = useState(false);
   const [invData, setInvData] = useState({});
-  // Initialize editable copies
   const [roomTokens, setRoomTokens] = useState([]);
   const [serviceTokens, setServiceTokens] = useState([]);
   const [foodTokens, setFoodTokens] = useState([]);
@@ -49,11 +48,18 @@ export default function EditRoomInvoiceDialog({
     }
   }, [editData]);
 
-  // --- UTILS ---
+  // --- CALCULATIONS ---
+
   const calcAmount = (rate, gst) => {
     const r = parseFloat(rate) || 0;
     const g = parseFloat(gst) || 0;
     return +(r + (r * g) / 100).toFixed(2);
+  };
+
+  const calcRateFromAmount = (amount, gst) => {
+    const a = parseFloat(amount) || 0;
+    const g = parseFloat(gst) || 0;
+    return +(a / (1 + g / 100)).toFixed(2);
   };
 
   const calcTotals = (items) => {
@@ -76,18 +82,28 @@ export default function EditRoomInvoiceDialog({
 
   const handleRoomChange = (index, field, value) => {
     const updated = [...roomTokens];
-    updated[index][field] = value;
-    updated[index].amount = calcAmount(updated[index].rate, updated[index].gst);
+    const item = updated[index];
+    item[field] = value;
+
+    if (field === 'rate' || field === 'gst') {
+      item.amount = calcAmount(item.rate, item.gst);
+    } else if (field === 'amount') {
+      item.rate = calcRateFromAmount(value, item.gst);
+    }
+
     setRoomTokens(updated);
   };
 
   const handleServiceItemChange = (tokenIndex, itemIndex, field, value) => {
     const updated = [...serviceTokens];
-    updated[tokenIndex].items[itemIndex][field] = value;
-    updated[tokenIndex].items[itemIndex].amount = calcAmount(
-      updated[tokenIndex].items[itemIndex].rate,
-      updated[tokenIndex].items[itemIndex].gst
-    );
+    const item = updated[tokenIndex].items[itemIndex];
+    item[field] = value;
+
+    if (field === 'rate' || field === 'gst') {
+      item.amount = calcAmount(item.rate, item.gst);
+    } else if (field === 'amount') {
+      item.rate = calcRateFromAmount(value, item.gst);
+    }
 
     const totals = calcTotals(updated[tokenIndex].items);
     updated[tokenIndex].total_amount = totals.total_amount;
@@ -98,11 +114,14 @@ export default function EditRoomInvoiceDialog({
 
   const handleFoodItemChange = (tokenIndex, itemIndex, field, value) => {
     const updated = [...foodTokens];
-    updated[tokenIndex].items[itemIndex][field] = value;
-    updated[tokenIndex].items[itemIndex].amount = calcAmount(
-      updated[tokenIndex].items[itemIndex].rate,
-      updated[tokenIndex].items[itemIndex].gst
-    );
+    const item = updated[tokenIndex].items[itemIndex];
+    item[field] = value;
+
+    if (field === 'rate' || field === 'gst') {
+      item.amount = calcAmount(item.rate, item.gst);
+    } else if (field === 'amount') {
+      item.rate = calcRateFromAmount(value, item.gst);
+    }
 
     const totals = calcTotals(updated[tokenIndex].items);
     updated[tokenIndex].total_amount = totals.total_amount;
@@ -111,7 +130,7 @@ export default function EditRoomInvoiceDialog({
     setFoodTokens(updated);
   };
 
-  // save data
+  // --- SAVE DATA ---
   const handleSave = async () => {
     try {
       setLoading(true);
@@ -140,6 +159,8 @@ export default function EditRoomInvoiceDialog({
     }
   };
 
+  // --- UI ---
+
   return (
     <Dialog
       open={editOpen}
@@ -154,7 +175,7 @@ export default function EditRoomInvoiceDialog({
           🧾 Invoice: {editData?.invoice_no}
         </Typography>
 
-        {/* Customer Info */}
+        {/* CUSTOMER INFO */}
         <Grid container spacing={2} mb={2}>
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
@@ -264,7 +285,17 @@ export default function EditRoomInvoiceDialog({
                       sx={{ width: 60 }}
                     />
                   </TableCell>
-                  <TableCell align="right">{row.amount}</TableCell>
+                  <TableCell align="right">
+                    <TextField
+                      size="small"
+                      type="number"
+                      value={row.amount}
+                      onChange={(e) =>
+                        handleRoomChange(i, 'amount', e.target.value)
+                      }
+                      sx={{ width: 80 }}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -330,7 +361,22 @@ export default function EditRoomInvoiceDialog({
                           sx={{ width: 60 }}
                         />
                       </TableCell>
-                      <TableCell align="right">{item.amount}</TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={item.amount}
+                          onChange={(e) =>
+                            handleServiceItemChange(
+                              ti,
+                              ii,
+                              'amount',
+                              e.target.value
+                            )
+                          }
+                          sx={{ width: 80 }}
+                        />
+                      </TableCell>
                     </TableRow>
                   ))}
                   <TableRow>
@@ -395,7 +441,22 @@ export default function EditRoomInvoiceDialog({
                           sx={{ width: 60 }}
                         />
                       </TableCell>
-                      <TableCell align="right">{item.amount}</TableCell>
+                      <TableCell align="right">
+                        <TextField
+                          size="small"
+                          type="number"
+                          value={item.amount}
+                          onChange={(e) =>
+                            handleFoodItemChange(
+                              ti,
+                              ii,
+                              'amount',
+                              e.target.value
+                            )
+                          }
+                          sx={{ width: 80 }}
+                        />
+                      </TableCell>
                     </TableRow>
                   ))}
                   <TableRow>

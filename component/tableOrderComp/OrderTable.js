@@ -100,12 +100,28 @@ const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
                   <TableCell>
                     {order.closing_method || '-'}&nbsp;
                     {order.token_status === 'Closed' && (
-                      <span style={{ fontSize: 10, color: 'blue' }}>
-                        (
-                        {order?.room_booking?.booking_id ||
-                          order?.restaurant_invoice?.invoice_no}
-                        )
-                      </span>
+                      <>
+                        {(order?.room_booking?.booking_id ||
+                          order?.restaurant_invoice?.invoice_no) && (
+                          <Link
+                            href={
+                              order?.room_booking
+                                ? `/front-office/room-booking/${order.room_booking.documentId}`
+                                : `/restaurant/invoices/${order.restaurant_invoice.documentId}`
+                            }
+                            style={{
+                              fontSize: 10,
+                              color: 'blue',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            (
+                            {order?.room_booking?.booking_id ||
+                              order?.restaurant_invoice?.invoice_no}
+                            )
+                          </Link>
+                        )}
+                      </>
                     )}
                   </TableCell>
                   <TableCell>₹{totalAmount.toFixed(2) || 0}</TableCell>

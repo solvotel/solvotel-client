@@ -6,7 +6,6 @@ import {
   Box,
   Typography,
   TextField,
-  MenuItem,
   IconButton,
   Table,
   TableBody,
@@ -19,8 +18,6 @@ import {
   Button,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import { SuccessToast } from '@/utils/GenerateToast';
 
 export default function ManageRoomTariff({
@@ -36,10 +33,25 @@ export default function ManageRoomTariff({
     const updated = [...roomTokens];
     updated[index][field] = value;
 
-    // Calculate amount whenever rate or gst changes
-    const rate = parseFloat(updated[index].rate) || 0;
-    const gst = parseFloat(updated[index].gst) || 0;
-    updated[index].amount = +(rate + (rate * gst) / 100).toFixed(2);
+    let rate = parseFloat(updated[index].rate) || 0;
+    let gst = parseFloat(updated[index].gst) || 0;
+    let amount = parseFloat(updated[index].amount) || 0;
+
+    // 🔹 If Rate and GST entered → calculate Amount
+    if (field === 'rate' || field === 'gst') {
+      if (rate && gst) {
+        amount = +(rate + (rate * gst) / 100).toFixed(2);
+        updated[index].amount = amount;
+      }
+    }
+
+    // 🔹 If Amount and GST entered → calculate Rate
+    if (field === 'amount' || field === 'gst') {
+      if (amount && gst && field === 'amount') {
+        rate = +(amount / (1 + gst / 100)).toFixed(2);
+        updated[index].rate = rate;
+      }
+    }
 
     setRoomTokens(updated);
     setHighlightedIndex(index);
@@ -53,8 +65,8 @@ export default function ManageRoomTariff({
         return;
       }
     }
-    handleManageRoomTariff(roomTokens);
 
+    handleManageRoomTariff(roomTokens);
     SuccessToast('Room Tariff updated successfully');
     setOpen(false);
   };
@@ -160,7 +172,17 @@ export default function ManageRoomTariff({
                         fullWidth
                       />
                     </TableCell>
-                    <TableCell>{room.amount.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={room.amount}
+                        onChange={(e) =>
+                          handleInlineChange(index, 'amount', e.target.value)
+                        }
+                        fullWidth
+                      />
+                    </TableCell>
                   </TableRow>
                 </Fade>
               ))}

@@ -17,7 +17,6 @@ import {
   Stack,
   Fade,
   Button,
-  FormControl,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -37,7 +36,7 @@ export default function ManageServices({
   const handleAddRow = () => {
     setServices((prev) => [
       ...prev,
-      { item: '', hsn: '', rate: '', gst: '', amount: 0 },
+      { item: '', hsn: '', rate: '', gst: '', amount: '' },
     ]);
     setHighlightedIndex(services.length);
     setTimeout(() => setHighlightedIndex(null), 1200);
@@ -47,10 +46,25 @@ export default function ManageServices({
     const updated = [...services];
     updated[index][field] = value;
 
-    // Calculate amount whenever rate or gst changes
-    const rate = parseFloat(updated[index].rate) || 0;
-    const gst = parseFloat(updated[index].gst) || 0;
-    updated[index].amount = +(rate + (rate * gst) / 100).toFixed(2);
+    let rate = parseFloat(updated[index].rate) || 0;
+    let gst = parseFloat(updated[index].gst) || 0;
+    let amount = parseFloat(updated[index].amount) || 0;
+
+    // 🔹 If Rate and GST entered → Calculate Amount
+    if (field === 'rate' || field === 'gst') {
+      if (rate && gst) {
+        amount = +(rate + (rate * gst) / 100).toFixed(2);
+        updated[index].amount = amount;
+      }
+    }
+
+    // 🔹 If Amount and GST entered → Calculate Rate
+    if (field === 'amount' || field === 'gst') {
+      if (amount && gst && field === 'amount') {
+        rate = +(amount / (1 + gst / 100)).toFixed(2);
+        updated[index].rate = rate;
+      }
+    }
 
     setServices(updated);
     setHighlightedIndex(index);
@@ -80,12 +94,18 @@ export default function ManageServices({
       WarningToast('Atleast 1 Item required');
       return;
     }
+
     const total_gst = services.reduce((acc, item) => {
-      const gstAmount = (item.amount * (item.gst || 0)) / 100;
+      const baseRate = parseFloat(item.rate) || 0;
+      const gstAmount = (baseRate * (parseFloat(item.gst) || 0)) / 100;
       return acc + gstAmount;
     }, 0);
 
-    const total_amount = services.reduce((acc, item) => acc + item.amount, 0);
+    const total_amount = services.reduce(
+      (acc, item) => acc + (parseFloat(item.amount) || 0),
+      0
+    );
+
     const payload = {
       id: new Date().getTime().toString(36),
       room_no: room,
@@ -135,6 +155,8 @@ export default function ManageServices({
             <CloseIcon />
           </IconButton>
         </Box>
+
+        {/* Room Selector */}
         <Box width={200} mb={1}>
           <TextField
             select
@@ -156,6 +178,7 @@ export default function ManageServices({
             ))}
           </TextField>
         </Box>
+
         {/* Table */}
         <Paper
           sx={{
@@ -245,7 +268,17 @@ export default function ManageServices({
                         fullWidth
                       />
                     </TableCell>
-                    <TableCell>{service.amount.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <TextField
+                        size="small"
+                        type="number"
+                        value={service.amount}
+                        onChange={(e) =>
+                          handleInlineChange(index, 'amount', e.target.value)
+                        }
+                        fullWidth
+                      />
+                    </TableCell>
                     <TableCell>
                       <IconButton
                         color="error"

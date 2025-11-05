@@ -17,7 +17,6 @@ import {
   Paper,
   Table,
 } from '@mui/material';
-
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const CreateNewOrder = ({
@@ -37,9 +36,9 @@ const CreateNewOrder = ({
     const itemObj = menuItems.find((m) => m.documentId === selectedItem);
     if (!itemObj) return;
 
-    const rate = itemObj.rate || 0;
-    const gstPercent = itemObj.gst || 0;
-    const gstValue = (rate * gstPercent) / 100;
+    const rate = parseFloat(itemObj.rate) || 0;
+    const gstPercent = parseFloat(itemObj.gst) || 0;
+    const amount = rate + (rate * gstPercent) / 100;
 
     const newItem = {
       item: itemObj.item,
@@ -47,7 +46,7 @@ const CreateNewOrder = ({
       rate,
       qty: 1,
       gst: gstPercent,
-      amount: rate + gstValue,
+      amount: parseFloat(amount.toFixed(2)),
     };
 
     setFormData({
@@ -57,6 +56,34 @@ const CreateNewOrder = ({
 
     setSelectedItem('');
   };
+
+  const handleItemChange = (index, field, value) => {
+    const updated = [...formData.food_items];
+    const item = { ...updated[index] };
+    const numericValue = parseFloat(value) || 0;
+
+    item[field] = numericValue;
+
+    const rate = parseFloat(item.rate) || null;
+    const qty = parseFloat(item.qty) || 1;
+    const gst = parseFloat(item.gst) || null;
+    const amount = parseFloat(item.amount) || null;
+
+    if (field === 'rate' || field === 'gst' || field === 'qty') {
+      // Forward calculation
+      const newAmount = qty * rate * (1 + gst / 100);
+      item.amount = parseFloat(newAmount.toFixed(2));
+    } else if (field === 'amount') {
+      // Reverse calculation
+      const base = amount / qty;
+      const newRate = base / (1 + gst / 100);
+      item.rate = parseFloat(newRate.toFixed(2));
+    }
+
+    updated[index] = item;
+    setFormData({ ...formData, food_items: updated });
+  };
+
   return (
     <>
       <Dialog
@@ -89,10 +116,12 @@ const CreateNewOrder = ({
               ))}
             </TextField>
           </Box>
+
           {/* Items Section */}
           <Typography variant="h6" gutterBottom>
             Items
           </Typography>
+
           <Grid container spacing={2} alignItems="center" mb={2}>
             <Grid item size={{ xs: 10 }}>
               <TextField
@@ -149,68 +178,60 @@ const CreateNewOrder = ({
                     <TableRow key={idx}>
                       <TableCell>{item.item}</TableCell>
                       <TableCell>{item.hsn}</TableCell>
+
+                      {/* Rate */}
                       <TableCell>
                         <TextField
                           type="number"
                           size="small"
                           value={item.rate}
-                          onChange={(e) => {
-                            const newRate = parseFloat(e.target.value) || 0;
-                            const updated = [...formData.food_items];
-                            updated[idx].rate = newRate;
-                            updated[idx].amount =
-                              updated[idx].qty * newRate +
-                              (updated[idx].qty * newRate * updated[idx].gst) /
-                                100;
-                            setFormData({
-                              ...formData,
-                              food_items: updated,
-                            });
-                          }}
+                          onChange={(e) =>
+                            handleItemChange(idx, 'rate', e.target.value)
+                          }
                           sx={{ width: 80 }}
                         />
                       </TableCell>
+
+                      {/* Qty */}
                       <TableCell>
                         <TextField
                           type="number"
                           size="small"
                           value={item.qty}
-                          onChange={(e) => {
-                            const newQty = parseInt(e.target.value) || 1;
-                            const updated = [...formData.food_items];
-                            updated[idx].qty = newQty;
-                            updated[idx].amount =
-                              newQty * item.rate +
-                              (newQty * item.rate * updated[idx].gst) / 100;
-                            setFormData({
-                              ...formData,
-                              food_items: updated,
-                            });
-                          }}
+                          onChange={(e) =>
+                            handleItemChange(idx, 'qty', e.target.value)
+                          }
                           sx={{ width: 60 }}
                         />
                       </TableCell>
+
+                      {/* GST */}
                       <TableCell>
                         <TextField
                           type="number"
                           size="small"
                           value={item.gst}
-                          onChange={(e) => {
-                            const newGst = parseFloat(e.target.value) || 0;
-                            const updated = [...formData.food_items];
-                            updated[idx].gst = newGst;
-                            updated[idx].amount =
-                              updated[idx].qty * item.rate +
-                              (updated[idx].qty * item.rate * newGst) / 100;
-                            setFormData({
-                              ...formData,
-                              food_items: updated,
-                            });
-                          }}
+                          onChange={(e) =>
+                            handleItemChange(idx, 'gst', e.target.value)
+                          }
                           sx={{ width: 60 }}
                         />
                       </TableCell>
-                      <TableCell>{item.amount.toFixed(2)}</TableCell>
+
+                      {/* Total (Editable for reverse calc) */}
+                      <TableCell>
+                        <TextField
+                          type="number"
+                          size="small"
+                          value={item.amount}
+                          onChange={(e) =>
+                            handleItemChange(idx, 'amount', e.target.value)
+                          }
+                          sx={{ width: 100 }}
+                        />
+                      </TableCell>
+
+                      {/* Delete */}
                       <TableCell>
                         <IconButton
                           color="error"
@@ -259,12 +280,12 @@ const CreateNewOrder = ({
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 3 }}>
                   <Typography>
-                    SGST: <b>{tax.toFixed(2) / 2}</b>
+                    SGST: <b>{(tax / 2).toFixed(2)}</b>
                   </Typography>
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 3 }}>
                   <Typography>
-                    CGST: <b>{tax.toFixed(2) / 2}</b>
+                    CGST: <b>{(tax / 2).toFixed(2)}</b>
                   </Typography>
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 3 }}>

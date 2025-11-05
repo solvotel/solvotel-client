@@ -31,16 +31,20 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { Login as LoginIcon, Logout as LogoutIcon } from '@mui/icons-material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Loader } from '@/component/common';
 import { useRouter } from 'next/navigation';
-import { GetCustomDate } from '@/utils/DateFetcher';
+import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { color } from 'framer-motion';
 
 const Page = () => {
   const router = useRouter();
   const { auth } = useAuth();
+  const todaysDate = GetTodaysDate().dateString;
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState(todaysDate);
   const data = GetDataList({
     auth,
     endPoint: 'room-bookings',
@@ -51,10 +55,29 @@ const Page = () => {
   // filter data by name
   const filteredData = useMemo(() => {
     if (!data) return [];
-    return data.filter((item) =>
-      item.booking_id?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [data, search]);
+    if (!startDate) {
+      return data;
+    }
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    return data.filter((booking) => {
+      const createdAt = booking.createdAt ? new Date(booking.createdAt) : null;
+      const checkin = booking.checkin_date
+        ? new Date(booking.checkin_date)
+        : null;
+      const checkout = booking.checkout_date
+        ? new Date(booking.checkout_date)
+        : null;
+
+      return (
+        (createdAt && createdAt >= start && createdAt <= end) ||
+        (checkin && checkin >= start && checkin <= end) ||
+        (checkout && checkout >= start && checkout <= end)
+      );
+    });
+  }, [data, startDate, endDate]);
 
   const getStatus = (booking) => {
     // Destructure for easier reading
@@ -109,13 +132,53 @@ const Page = () => {
             alignItems="center"
             mb={2}
           >
-            <TextField
-              size="small"
-              label="Search by ID"
-              variant="outlined"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <Box>
+              <TextField
+                size="small"
+                label="Start Date"
+                variant="outlined"
+                type="date"
+                InputLabelProps={{ shrink: true }} // 👈 fixes label overlap
+                inputProps={{ max: todaysDate }} // 👈 move `max` inside inputProps
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                sx={{ mr: 1 }}
+              />
+              <TextField
+                size="small"
+                label="End Date"
+                variant="outlined"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                sx={{ mr: 1 }}
+                InputLabelProps={{ shrink: true }} // 👈 fixes label overlap
+                inputProps={{ max: todaysDate }} // 👈 move `max` inside inputProps
+              />
+
+              {startDate || endDate !== todaysDate ? (
+                <Tooltip title="Reset Dates">
+                  <IconButton
+                    onClick={() => {
+                      setStartDate('');
+                      setEndDate(todaysDate);
+                    }}
+                    size="small"
+                    color="error"
+                    sx={{
+                      borderRadius: '4px',
+                      width: 40,
+                      height: 40,
+                    }}
+                  >
+                    <RestartAltIcon fontSize="inherit" />
+                  </IconButton>
+                </Tooltip>
+              ) : (
+                <></>
+              )}
+            </Box>
+
             <Button
               href="/front-office/room-booking/create-new"
               variant="contained"

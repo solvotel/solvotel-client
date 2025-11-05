@@ -83,6 +83,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
           checkedInRooms.push({
             ...room,
             category: roomInfo?.category?.name || 'Uncategorized',
+            bookingId: bk.documentId, // ✅ Added
           });
           occupiedRoomNos.add(room.room_no);
         });
@@ -100,6 +101,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
           confirmedRooms.push({
             ...room,
             category: roomInfo?.category?.name || 'Uncategorized',
+            bookingId: bk.documentId, // ✅ Added
           });
         });
       }
@@ -116,6 +118,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
           blockedRooms.push({
             ...room,
             category: roomInfo?.category?.name || 'Uncategorized',
+            bookingId: bk.documentId, // ✅ Added
           });
         });
       }
@@ -142,7 +145,10 @@ const RoomGridLayout = ({ bookings, rooms }) => {
       roomArray?.forEach((room) => {
         const cat = room.category || 'Uncategorized';
         if (!grouped[cat]) grouped[cat] = [];
-        grouped[cat].push(room.room_no);
+        grouped[cat].push({
+          room_no: room.room_no,
+          bookingId: room.bookingId || null,
+        });
       });
       return grouped;
     };
@@ -314,12 +320,31 @@ const RoomGridLayout = ({ bookings, rooms }) => {
                                 gap: 0.5,
                               }}
                             >
-                              {rooms.map((num) => (
+                              {rooms.map((room) => (
                                 <Chip
-                                  key={num}
-                                  label={num}
+                                  key={room.room_no}
+                                  label={room.room_no}
                                   size="small"
-                                  sx={{ bgcolor: col.chipBg }}
+                                  clickable={!col.title.startsWith('Available')}
+                                  component={
+                                    !col.title.startsWith('Available')
+                                      ? 'a'
+                                      : 'div'
+                                  }
+                                  href={
+                                    !col.title.startsWith('Available')
+                                      ? `/front-office/room-booking/${room.bookingId}`
+                                      : undefined
+                                  }
+                                  sx={{
+                                    bgcolor: col.chipBg,
+                                    cursor: col.title.startsWith('Available')
+                                      ? 'default'
+                                      : 'pointer',
+                                    '&:hover': {
+                                      opacity: 0.8,
+                                    },
+                                  }}
                                 />
                               ))}
                             </Box>

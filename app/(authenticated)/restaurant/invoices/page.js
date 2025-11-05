@@ -579,6 +579,8 @@ const Page = () => {
                         <TableRow key={idx}>
                           <TableCell>{item.item}</TableCell>
                           <TableCell>{item.hsn}</TableCell>
+
+                          {/* Rate Field */}
                           <TableCell>
                             <TextField
                               type="number"
@@ -588,12 +590,13 @@ const Page = () => {
                                 const newRate = parseFloat(e.target.value) || 0;
                                 const updated = [...formData.menu_items];
                                 updated[idx].rate = newRate;
-                                updated[idx].amount =
-                                  updated[idx].qty * newRate +
-                                  (updated[idx].qty *
-                                    newRate *
-                                    updated[idx].gst) /
-                                    100;
+                                const gst = updated[idx].gst || 0;
+                                const qty = updated[idx].qty || 1;
+                                updated[idx].amount = +(
+                                  qty *
+                                  newRate *
+                                  (1 + gst / 100)
+                                ).toFixed(2);
                                 setFormData({
                                   ...formData,
                                   menu_items: updated,
@@ -602,18 +605,24 @@ const Page = () => {
                               sx={{ width: 80 }}
                             />
                           </TableCell>
+
+                          {/* Qty Field */}
                           <TableCell>
                             <TextField
                               type="number"
                               size="small"
                               value={item.qty}
                               onChange={(e) => {
-                                const newQty = parseInt(e.target.value) || 1;
+                                const newQty = parseFloat(e.target.value) || 1;
                                 const updated = [...formData.menu_items];
                                 updated[idx].qty = newQty;
-                                updated[idx].amount =
-                                  newQty * item.rate +
-                                  (newQty * item.rate * updated[idx].gst) / 100;
+                                const rate = updated[idx].rate || 0;
+                                const gst = updated[idx].gst || 0;
+                                updated[idx].amount = +(
+                                  newQty *
+                                  rate *
+                                  (1 + gst / 100)
+                                ).toFixed(2);
                                 setFormData({
                                   ...formData,
                                   menu_items: updated,
@@ -622,6 +631,8 @@ const Page = () => {
                               sx={{ width: 60 }}
                             />
                           </TableCell>
+
+                          {/* GST Field */}
                           <TableCell>
                             <TextField
                               type="number"
@@ -631,9 +642,13 @@ const Page = () => {
                                 const newGst = parseFloat(e.target.value) || 0;
                                 const updated = [...formData.menu_items];
                                 updated[idx].gst = newGst;
-                                updated[idx].amount =
-                                  updated[idx].qty * item.rate +
-                                  (updated[idx].qty * item.rate * newGst) / 100;
+                                const rate = updated[idx].rate || 0;
+                                const qty = updated[idx].qty || 1;
+                                updated[idx].amount = +(
+                                  qty *
+                                  rate *
+                                  (1 + newGst / 100)
+                                ).toFixed(2);
                                 setFormData({
                                   ...formData,
                                   menu_items: updated,
@@ -642,7 +657,36 @@ const Page = () => {
                               sx={{ width: 60 }}
                             />
                           </TableCell>
-                          <TableCell>{item.amount.toFixed(2)}</TableCell>
+
+                          {/* Amount Field (reverse calculation) */}
+                          <TableCell>
+                            <TextField
+                              type="number"
+                              size="small"
+                              value={item.amount}
+                              onChange={(e) => {
+                                const newAmount =
+                                  parseFloat(e.target.value) || 0;
+                                const updated = [...formData.menu_items];
+                                const gst = updated[idx].gst || 0;
+                                const qty = updated[idx].qty || 1;
+                                updated[idx].amount = newAmount;
+                                // Reverse calculate base rate excluding GST
+                                updated[idx].rate = +(
+                                  newAmount /
+                                  qty /
+                                  (1 + gst / 100)
+                                ).toFixed(2);
+                                setFormData({
+                                  ...formData,
+                                  menu_items: updated,
+                                });
+                              }}
+                              sx={{ width: 100 }}
+                            />
+                          </TableCell>
+
+                          {/* Delete Button */}
                           <TableCell>
                             <IconButton
                               color="error"
@@ -668,40 +712,50 @@ const Page = () => {
               )}
 
               {/* Summary Section */}
+              {/* Summary Section */}
               <Typography variant="h6" gutterBottom>
                 Summary
               </Typography>
+
               {(() => {
-                const totalAmount = formData.menu_items.reduce(
-                  (acc, cur) => acc + cur.rate * cur.qty,
-                  0
-                );
-                const tax = formData.menu_items.reduce(
-                  (acc, cur) => acc + (cur.rate * cur.qty * cur.gst) / 100,
-                  0
-                );
-                const payable = totalAmount + tax;
+                // ✅ Calculate live totals
+                const totalAmount = formData.menu_items.reduce((acc, cur) => {
+                  const qty = parseFloat(cur.qty) || 0;
+                  const rate = parseFloat(cur.rate) || 0;
+                  return acc + qty * rate;
+                }, 0);
+
+                const totalTax = formData.menu_items.reduce((acc, cur) => {
+                  const qty = parseFloat(cur.qty) || 0;
+                  const rate = parseFloat(cur.rate) || 0;
+                  const gst = parseFloat(cur.gst) || 0;
+                  return acc + (qty * rate * gst) / 100;
+                }, 0);
+
+                const payable = totalAmount + totalTax;
+                const sgst = totalTax / 2;
+                const cgst = totalTax / 2;
 
                 return (
                   <Grid container spacing={2} mb={2}>
                     <Grid item size={{ xs: 12, sm: 3 }}>
                       <Typography>
-                        Total: <b>{totalAmount.toFixed(2)}</b>
+                        Total: <b>₹{totalAmount.toFixed(2)}</b>
                       </Typography>
                     </Grid>
                     <Grid item size={{ xs: 12, sm: 3 }}>
                       <Typography>
-                        SGST: <b>{tax.toFixed(2) / 2}</b>
+                        SGST: <b>₹{sgst.toFixed(2)}</b>
                       </Typography>
                     </Grid>
                     <Grid item size={{ xs: 12, sm: 3 }}>
                       <Typography>
-                        CGST: <b>{tax.toFixed(2) / 2}</b>
+                        CGST: <b>₹{cgst.toFixed(2)}</b>
                       </Typography>
                     </Grid>
                     <Grid item size={{ xs: 12, sm: 3 }}>
                       <Typography>
-                        Payable: <b>{payable.toFixed(2)}</b>
+                        Payable: <b>₹{payable.toFixed(2)}</b>
                       </Typography>
                     </Grid>
                   </Grid>
