@@ -204,9 +204,9 @@ export default function Navbar() {
                         label: 'Room Invoice',
                       },
                       {
-                        href: '/front-office/room-booking-report',
+                        href: '/front-office/checkout-report',
                         icon: <ClipboardList size={16} />,
-                        label: 'Booking Report',
+                        label: 'Checkout Report',
                       },
                       {
                         href: '/front-office/room-invoice-report',

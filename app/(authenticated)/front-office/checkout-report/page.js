@@ -54,38 +54,75 @@ const Page = () => {
 
     const filteredInvoices =
       data?.filter((booking) => {
-        const createdAt = booking.createdAt
-          ? new Date(booking.createdAt)
-          : null;
-        const checkin = booking.checkin_date
-          ? new Date(booking.checkin_date)
-          : null;
         const checkout = booking.checkout_date
           ? new Date(booking.checkout_date)
           : null;
 
-        // Check if any of the three dates fall within the range
-        const isCreatedInRange =
-          createdAt && createdAt >= start && createdAt <= end;
-        const isCheckinInRange = checkin && checkin >= start && checkin <= end;
         const isCheckoutInRange =
           checkout && checkout >= start && checkout <= end;
 
-        return isCreatedInRange || isCheckinInRange || isCheckoutInRange;
+        return isCheckoutInRange;
       }) || [];
 
-    const dataToExport = filteredInvoices.map((row) => ({
-      'Booking ID': row.booking_id,
-      'Booking Date': GetCustomDate(row.createdAt),
-      'Check-in Date': GetCustomDate(row.checkin_date),
-      'Check-out Date': GetCustomDate(row.checkout_date),
-      'Room No': row.rooms.map((r) => r.room_no).join(', '),
-      Guest: row.customer.name,
-      'Company Name': row.customer.company_name,
-      GSTIN: row.customer.gst_no,
-      'Meal Plan': row.meal_plan,
-      Notes: row.remarks,
-    }));
+    const dataToExport = filteredInvoices.map((row) => {
+      return {
+        'Booking ID': row.booking_id,
+        Guest: row.customer.company_name,
+        'Booking Type': row.booking_type,
+        'Room No': row.rooms.map((r) => r.room_no).join(', '),
+        'Room Tokens': row.room_tokens
+          .reduce(
+            (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
+            0
+          )
+          .toFixed(2),
+        Services: row.service_tokens
+          .reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0)
+          .toFixed(2),
+        'Food Items': row.food_tokens
+          .reduce((sum, f) => sum + (parseFloat(f.total_amount) || 0), 0)
+          .toFixed(2),
+        'Grand Total': (
+          row.room_tokens.reduce(
+            (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
+            0
+          ) +
+          row.service_tokens.reduce(
+            (sum, s) => sum + (parseFloat(s.total_amount) || 0),
+            0
+          ) +
+          row.food_tokens.reduce(
+            (sum, f) => sum + (parseFloat(f.total_amount) || 0),
+            0
+          )
+        ).toFixed(2),
+        'Total Paid': (
+          row.payment_tokens.reduce(
+            (sum, p) => sum + (Number(p.amount) || 0),
+            0
+          ) + (row.advance_payment ? Number(row.advance_payment.amount) : 0)
+        ).toFixed(2),
+        'Due Payment': (
+          row.room_tokens.reduce(
+            (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
+            0
+          ) +
+          row.service_tokens.reduce(
+            (sum, s) => sum + (parseFloat(s.total_amount) || 0),
+            0
+          ) +
+          row.food_tokens.reduce(
+            (sum, f) => sum + (parseFloat(f.total_amount) || 0),
+            0
+          ) -
+          (row.payment_tokens.reduce(
+            (sum, p) => sum + (Number(p.amount) || 0),
+            0
+          ) +
+            (row.advance_payment ? Number(row.advance_payment.amount) : 0))
+        ).toFixed(2),
+      };
+    });
 
     setfilteredData(filteredInvoices);
     setDataToExport(dataToExport);
@@ -94,11 +131,11 @@ const Page = () => {
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
-    documentTitle: 'stock-report',
+    documentTitle: 'checkout-report',
   });
 
   const handleExport = () => {
-    exportToExcel(dataToExport, 'room_booking_report');
+    exportToExcel(dataToExport, 'checkout_report');
   };
   return (
     <>
@@ -111,7 +148,7 @@ const Page = () => {
           <Link underline="hover" color="inherit" href="/">
             Dashboard
           </Link>
-          <Typography color="text.primary">Room Booking Report</Typography>
+          <Typography color="text.primary">Checkout Report</Typography>
         </Breadcrumbs>
       </Box>
       {!data ? (
@@ -188,15 +225,15 @@ const Page = () => {
                   <TableRow sx={{ backgroundColor: 'grey.100' }}>
                     {[
                       'Booking ID',
-                      'Booking Date',
-                      'Check-in Date',
-                      'Check-out Date',
-                      'Room No',
                       'Guest',
-                      'Company Name',
-                      'GSTIN',
-                      'Meal Plan',
-                      'Notes',
+                      'Booking Type',
+                      'Room No',
+                      'Room Tokens',
+                      'Services',
+                      'Food Items',
+                      'Grand Total',
+                      'Total Paid',
+                      'Due Payment',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
                         {item}
@@ -205,22 +242,48 @@ const Page = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredData?.map((row) => (
-                    <TableRow key={row.documentId}>
-                      <TableCell>{row.booking_id}</TableCell>
-                      <TableCell>{GetCustomDate(row.createdAt)}</TableCell>
-                      <TableCell>{GetCustomDate(row.checkin_date)}</TableCell>
-                      <TableCell>{GetCustomDate(row.checkout_date)}</TableCell>
-                      <TableCell>
-                        {row.rooms.map((r) => r.room_no).join(', ')}
-                      </TableCell>
-                      <TableCell>{row.customer.name}</TableCell>
-                      <TableCell>{row.customer.company_name}</TableCell>
-                      <TableCell>{row.customer.gst_no}</TableCell>
-                      <TableCell>{row.meal_plan}</TableCell>
-                      <TableCell>{row.remarks}</TableCell>
-                    </TableRow>
-                  ))}
+                  {filteredData?.map((row) => {
+                    const totalRoomAmount = row?.room_tokens.reduce(
+                      (sum, r) =>
+                        sum + (parseFloat(r.total_amount) || r.amount || 0),
+                      0
+                    );
+                    const totalServiceAmount = row?.service_tokens.reduce(
+                      (sum, s) => sum + (parseFloat(s.total_amount) || 0),
+                      0
+                    );
+                    const totalFoodAmount = row?.food_tokens.reduce(
+                      (sum, f) => sum + (parseFloat(f.total_amount) || 0),
+                      0
+                    );
+                    const totalAmount = row?.payment_tokens.reduce(
+                      (sum, p) => sum + (Number(p.amount) || 0),
+                      0
+                    );
+                    const advancePayment = row?.advance_payment || null;
+                    const advanceAmount = advancePayment?.amount || 0;
+
+                    const grandTotal =
+                      totalRoomAmount + totalServiceAmount + totalFoodAmount;
+                    const amountPayed = totalAmount + advanceAmount;
+                    const dueAmount = grandTotal - amountPayed;
+                    return (
+                      <TableRow key={row.documentId}>
+                        <TableCell>{row.booking_id}</TableCell>
+                        <TableCell>{row.customer.company_name}</TableCell>
+                        <TableCell>{row.booking_type}</TableCell>
+                        <TableCell>
+                          {row.rooms.map((r) => r.room_no).join(', ')}
+                        </TableCell>
+                        <TableCell>{totalRoomAmount}</TableCell>
+                        <TableCell>{totalServiceAmount}</TableCell>
+                        <TableCell>{totalFoodAmount}</TableCell>
+                        <TableCell>{grandTotal}</TableCell>
+                        <TableCell>{amountPayed}</TableCell>
+                        <TableCell>{dueAmount.toFixed(2)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                   {filteredData?.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7} align="center">
