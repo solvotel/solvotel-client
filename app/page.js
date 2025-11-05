@@ -144,7 +144,7 @@ export default function Home() {
                 variant="h6"
                 sx={{ color: '#64748b', mb: 4, fontSize: '1.2rem' }}
               >
-                Welcome to Solvotel, the best hotel management soŌware trusted
+                Welcome to Solvotel, the best hotel management software trusted
                 by hotels, resorts, hostels, and boutique properties across
                 India. Designed to simplify every aspect of hotel operations,
                 Solvotel is a powerful cloud-based hotel PMS (Property
@@ -281,7 +281,7 @@ export default function Home() {
                       fontWeight: 500,
                     }}
                   >
-                    • {text}
+                    {text}
                   </Typography>
                 </Box>
               </Grid>

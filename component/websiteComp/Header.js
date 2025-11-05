@@ -43,7 +43,7 @@ const Header = ({ menuItems }) => {
         <Toolbar sx={{ py: 1 }}>
           {/* Logo with Image */}
           <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
-            <Box
+            {/* <Box
               sx={{
                 width: 45,
                 height: 45,
@@ -65,7 +65,15 @@ const Header = ({ menuItems }) => {
               >
                 S
               </Typography>
-            </Box>
+            </Box> */}
+            <Image
+              src="https://res.cloudinary.com/deyxdpnom/image/upload/v1762307588/20250413_222452_jdscca.jpg"
+              alt="Solvotel"
+              width={45}
+              height={45}
+              priority
+              style={{ borderRadius: '5px', marginRight: '10px' }}
+            />
             <Typography
               variant="h6"
               sx={{
@@ -83,7 +91,7 @@ const Header = ({ menuItems }) => {
           </Box>
           {/* <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             <Image
-              src="https://res.cloudinary.com/deyxdpnom/image/upload/v1760010903/logo_f027a1ac91.webp"
+              src="https://res.cloudinary.com/deyxdpnom/image/upload/v1762307445/20251028_021437_ejluvd.png"
               alt="BookingMaster.in"
               width={130}
               height={30}

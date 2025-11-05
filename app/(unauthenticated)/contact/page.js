@@ -65,7 +65,7 @@ export default function Contact() {
               mb: 3,
             }}
           >
-            Get In Touch
+            PMS Providers Near Me
           </Typography>
           <Typography
             variant="h5"
@@ -77,9 +77,9 @@ export default function Contact() {
               lineHeight: 1.6,
             }}
           >
-            Ready to transform your hospitality business? Contact us today for a
-            personalized demo and discover how Solvotel can help you achieve
-            your goals.
+            Looking for PMS providers near you? Solvotel is available nationwide
+            — with cloud access, you can manage your property from anywhere in
+            India.
           </Typography>
         </Container>
       </Box>
@@ -94,15 +94,16 @@ export default function Contact() {
                 variant="h4"
                 sx={{ fontWeight: 700, mb: 4, color: '#1e293b' }}
               >
-                Let&apos;s Start a Conversation
+                🚀 Get Started Today
               </Typography>
               <Typography
                 variant="body1"
                 sx={{ color: '#64748b', mb: 4, lineHeight: 1.7 }}
               >
-                Whether you&apos;re looking for a demo, have questions about our
-                services, or need technical support, our team is here to help
-                you succeed.
+                Experience the power of Solvotel — the best property management
+                software for small hotels and large enterprises alike. <br />
+                👉 Request your free hotel PMS demo today and transform the way
+                you manage your property.
               </Typography>
 
               <Grid container spacing={3}>
