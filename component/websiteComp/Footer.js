@@ -246,7 +246,8 @@ const Footer = ({ menuItems }) => {
                         lineHeight: 1.4,
                       }}
                     >
-                      Chaulkhola, Ramnagar-ii, Purba Medinipur, 721455
+                      Chaulkhola, Digha-Mandermani Road, East Medinipur,
+                      WB-721455
                     </Typography>
                   </Box>
                 </Box>
@@ -265,7 +266,7 @@ const Footer = ({ menuItems }) => {
                 mb: 1,
               }}
             >
-              Powered By Solvotel.
+              @ Solvotel
             </Typography>
           </Box>
         </Container>
@@ -283,10 +284,36 @@ const Footer = ({ menuItems }) => {
             bottom: 24,
             right: 24,
             backgroundColor: '#25D366',
-            '&:hover': {
-              backgroundColor: '#1ebe5d',
-            },
             zIndex: 1500,
+
+            // PULSE RING
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              border: '14px solid #25D366',
+              animation: 'pulseRing 2s infinite',
+              top: -14,
+              left: -14,
+              zIndex: -1, // behind button
+            },
+
+            '@keyframes pulseRing': {
+              '0%': {
+                transform: 'scale(0.9)',
+                opacity: 0.8,
+              },
+              '70%': {
+                transform: 'scale(1)',
+                opacity: 0,
+              },
+              '100%': {
+                transform: 'scale(1.2)',
+                opacity: 0,
+              },
+            },
           }}
         >
           <WhatsAppIcon sx={{ color: 'white' }} />

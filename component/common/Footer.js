@@ -12,7 +12,7 @@ const Footer = () => {
           py: 2,
         }}
       >
-        <Typography>Powered By Solvotel</Typography>
+        <Typography>@ Solvotel</Typography>
       </Box>
     </>
   );

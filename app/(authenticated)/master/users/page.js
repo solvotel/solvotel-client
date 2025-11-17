@@ -73,13 +73,6 @@ const Page = () => {
     };
   }
 
-  const filteredData = useMemo(() => {
-    if (!data) return [];
-    return data.filter((item) =>
-      item.username?.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [data, search]);
-
   const handleEdit = (row) => {
     setEditing(true);
     setFormData({
@@ -226,85 +219,93 @@ const Page = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData?.map((row) => (
-                  <TableRow key={row.documentId}>
-                    <TableCell>{row.username}</TableCell>
-                    <TableCell>{row.email}</TableCell>
-                    <TableCell>
-                      {row.role?.name === 'hotel-admin'
-                        ? 'Hotel Admin'
-                        : 'Employee'}
-                    </TableCell>
-                    <TableCell width={300} align="center">
-                      {row.role?.name === 'hotel-admin' ? (
-                        <Chip
-                          label="Full Access"
-                          variant="contained"
-                          size="small"
-                          sx={{
-                            m: 0.5,
-                            fontSize: '0.7rem',
-                            color: 'black',
-                            height: 20,
-                            '& .MuiChip-label': {
-                              px: 0.5,
-                              py: 0.5,
-                            },
-                          }}
-                        />
-                      ) : (
-                        <>
-                          {row.access.map((acc, index) => (
-                            <Chip
-                              key={index}
-                              label={acc}
-                              variant="contained"
-                              size="small"
-                              sx={{
-                                m: 0.5,
-                                fontSize: '0.7rem',
-                                color: 'black',
-                                height: 20,
-                                '& .MuiChip-label': {
-                                  textTransform: 'capitalize',
-                                  p: 0.5,
-                                },
-                              }}
-                            />
-                          ))}
-                        </>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {row.confirmed ? (
-                        <Chip label="Active" color="success" size="small" />
-                      ) : (
-                        <Chip label="Deactive" color="error" size="small" />
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton
-                          color="primary"
-                          onClick={() => handleEdit(row)}
-                          size="small"
-                        >
-                          <EditIcon fontSize="inherit" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDeleteClick(row)}
-                          size="small"
-                        >
-                          <DeleteIcon fontSize="inherit" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredData?.length === 0 && (
+                {data
+                  ?.filter((row) =>
+                    row.username?.toLowerCase().includes(search.toLowerCase())
+                  )
+                  ?.map((row) => (
+                    <TableRow key={row.documentId}>
+                      <TableCell>{row.username}</TableCell>
+                      <TableCell>{row.email}</TableCell>
+                      <TableCell>
+                        {row.role?.name === 'hotel-admin'
+                          ? 'Hotel Admin'
+                          : 'Employee'}
+                      </TableCell>
+                      <TableCell width={300} align="center">
+                        {row.role?.name === 'hotel-admin' ? (
+                          <Chip
+                            label="Full Access"
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              m: 0.5,
+                              fontSize: '0.7rem',
+                              color: 'black',
+                              height: 20,
+                              '& .MuiChip-label': {
+                                px: 0.5,
+                                py: 0.5,
+                              },
+                            }}
+                          />
+                        ) : (
+                          <>
+                            {row.access.map((acc, index) => (
+                              <Chip
+                                key={index}
+                                label={acc}
+                                variant="contained"
+                                size="small"
+                                sx={{
+                                  m: 0.5,
+                                  fontSize: '0.7rem',
+                                  color: 'black',
+                                  height: 20,
+                                  '& .MuiChip-label': {
+                                    textTransform: 'capitalize',
+                                    p: 0.5,
+                                  },
+                                }}
+                              />
+                            ))}
+                          </>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {!row.blocked ? (
+                          <Chip label="Active" color="success" size="small" />
+                        ) : (
+                          <Chip label="Deactive" color="error" size="small" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {row.role?.name !== 'hotel-admin' && (
+                          <>
+                            <Tooltip title="Edit">
+                              <IconButton
+                                color="primary"
+                                onClick={() => handleEdit(row)}
+                                size="small"
+                              >
+                                <EditIcon fontSize="inherit" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton
+                                color="error"
+                                onClick={() => handleDeleteClick(row)}
+                                size="small"
+                              >
+                                <DeleteIcon fontSize="inherit" />
+                              </IconButton>
+                            </Tooltip>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                {data?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} align="center">
                       No users found
@@ -414,17 +415,17 @@ const Page = () => {
                   <TextField
                     select
                     fullWidth
-                    label="Confirmed"
-                    value={formData.confirmed}
+                    label="Status"
+                    value={formData.blocked}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        confirmed: e.target.value,
+                        blocked: e.target.value,
                       })
                     }
                   >
-                    <MenuItem value={true}>🟢 Active</MenuItem>
-                    <MenuItem value={false}>🔴 Deactive</MenuItem>
+                    <MenuItem value={false}>🟢 Active</MenuItem>
+                    <MenuItem value={true}>🔴 Deactive</MenuItem>
                   </TextField>
                 </Grid>
               </Grid>

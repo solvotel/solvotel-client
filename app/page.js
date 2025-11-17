@@ -153,6 +153,7 @@ export default function Home() {
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 <Button
+                  href="/contact"
                   variant="contained"
                   size="large"
                   sx={{
@@ -201,7 +202,7 @@ export default function Home() {
               >
                 <Box
                   component="img"
-                  src="https://res.cloudinary.com/deyxdpnom/image/upload/v1761584231/Screenshot_2025-10-27_222555_ho3xwx.png"
+                  src="https://res.cloudinary.com/deyxdpnom/image/upload/v1763418043/banner-1_s2tjtr.png"
                   alt="App Dashboard Preview"
                   sx={{
                     width: '100%',
@@ -254,6 +255,7 @@ export default function Home() {
               'Hotel Software with Mobile App – Access your PMS from anywhere, anytime, with Solvotel’s mobile-friendly app.',
               'Contactless Check-in Software – Offer a seamless guest experience with digital check-in and check-out options.',
               'Hotel Analytics and Reporting Tools – Get insights into revenue, occupancy, and guest behavior to make data-driven decisions.',
+              'Accounting/Financial Integration – Provides the necessary data  such as daily audit reports, transaction summaries, tax details etc.',
             ].map((text, index) => (
               <Grid size={{ xs: 12, sm: 6 }} key={index}>
                 <Box

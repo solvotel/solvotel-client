@@ -22,146 +22,123 @@ import HotelIcon from '@mui/icons-material/Hotel';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import { BuildingIcon } from 'lucide-react';
 
 export default function Pricing() {
   const plans = [
     {
       name: 'European Plan (EP)',
       description: 'Perfect for small hotels & B&Bs',
-      //   originalPrice: '₹8,999',
       discountedPrice: '₹1,799',
-      //   savings: '₹2000',
-      //   popular: false,
       features: [
-        'Up to 20 rooms management',
-        'Basic booking engine',
-        'Front desk operations',
-        'Housekeeping module',
-        'Basic reporting',
-        'Email support',
-        '1 property',
-        'Mobile app access',
+        'Front-office management',
+        'Handle arrivals and departures',
+        'Housekeeping',
+        'Walk-ins and reservations',
+        'Expense management',
+        'Tax management',
+        'Multiple payment methods',
+        'Billing and settlements',
+        'Offline bookings management',
+        'User roles and privileges',
+        'One Outlet (POS)',
       ],
-      //   cta: 'Get Started',
     },
     {
       name: 'Continental Plan (CP)',
       description: 'Ideal for growing hotels',
-      //   originalPrice: '₹15,999',
       discountedPrice: '₹2299',
-      //   savings: '₹3,000',
-      //   popular: true,
       features: [
-        'Up to 50 rooms management',
-        'Advanced booking engine',
-        'Channel manager integration',
-        'Restaurant POS',
-        'Inventory management',
-        'Advanced analytics',
-        '3 properties',
-        'Priority support',
-        'API access',
+        'Front-office management',
+        'Handle arrivals and departures',
+        'Housekeeping',
+        'Walk-ins and reservations',
+        'Expense management',
+        'Tax management',
+        'Multiple payment methods',
+        'Billing and settlements',
+        'Offline bookings management',
+        'User roles and privileges',
+        'One Outlet (POS)',
+        'Store Management',
       ],
       cta: 'Start Free Trial',
     },
     {
       name: 'Modified American Plan (MAP)',
       description: 'For large hotel chains & resorts',
-      //   originalPrice: '₹28,999',
       discountedPrice: '₹2699',
-      //   savings: '₹7,000',
-      //   popular: false,
       features: [
-        'Unlimited rooms',
-        'Multi-property management',
-        'Revenue management system',
-        'Full restaurant suite',
-        'Custom integrations',
-        'Dedicated account manager',
-        'Unlimited properties',
-        '24/7 phone support',
-        'White-label solutions',
+        'Front-office management',
+        'Handle arrivals and departures',
+        'Housekeeping',
+        'Walk-ins and reservations',
+        'Expense management',
+        'Tax management',
+        'Multiple payment methods',
+        'Billing and settlements',
+        'Offline bookings management',
+        'User roles and privileges',
+        'One Outlet (POS)',
+        'Store Management',
+        'Accounting',
+        'Profit/Loss Statement',
       ],
-      //   cta: 'Contact Sales',
     },
     {
       name: 'American Plan (AP)',
       description: 'Complete hospitality ecosystem',
-      //   originalPrice: '₹45,999',
       discountedPrice: '₹3499',
-      //   savings: '₹13,000',
-      //   popular: false,
       features: [
-        'Everything in Enterprise',
-        'AI-powered revenue optimization',
-        'Custom mobile app development',
-        'Advanced business intelligence',
-        'On-premise deployment option',
-        'SLA guarantee',
-        'Training & implementation',
-        'Custom feature development',
+        'Front-office management',
+        'Handle arrivals and departures',
+        'Housekeeping',
+        'Walk-ins and reservations',
+        'Expense management',
+        'Tax management',
+        'Multiple payment methods',
+        'Billing and settlements',
+        'Offline bookings management',
+        'User roles and privileges',
+        'One Outlet (POS)',
+        'Store Management',
+        'Accounting',
+        'Profit/Loss Statement',
+        'Channel Manager',
+        'Day Book',
+        'Night Audit Reports',
       ],
-      //   cta: 'Book Demo',
     },
   ];
 
   const addonServices = [
     {
-      icon: <TrendingUpIcon sx={{ fontSize: 40, color: '#059669' }} />,
+      icon: '📈',
       title: 'Revenue Management',
       description:
-        "We'll take your business 45%-50% higher in growth within months",
-      originalPrice: '₹24,000',
-      discountedPrice: '₹21,500',
-      features: [
-        'Dynamic pricing optimization',
-        'Competitor rate analysis',
-        'Demand forecasting',
-        'Revenue analytics dashboard',
-        'Weekly performance reports',
-      ],
+        'Will take your business 45%–50% higher in growth within months',
+      price: '₹15000 – ₹40000',
     },
     {
-      icon: <WebIcon sx={{ fontSize: 40, color: '#2563eb' }} />,
-      title: 'Website Development',
-      description: 'Custom hotel website with integrated booking engine',
-      originalPrice: '₹35,000',
-      discountedPrice: '₹25,000',
-      features: [
-        'Responsive design',
-        'Booking engine integration',
-        'SEO optimization',
-        'Mobile-friendly',
-        'Content management system',
-      ],
+      icon: '🌏',
+      title: 'Website Development, Booking Engine',
+      description: 'Complete responsive website with custom hotel branding',
+      price: '₹15000 – ₹40000',
     },
+
     {
-      icon: <HotelIcon sx={{ fontSize: 40, color: '#d97706' }} />,
-      title: 'Booking Engine',
-      description: 'Direct booking system to reduce OTA commissions',
-      originalPrice: '₹15,000',
-      discountedPrice: '₹10,000',
-      features: [
-        'Commission-free direct bookings',
-        'Payment gateway integration',
-        'Multi-language support',
-        'Real-time availability',
-        'Booking analytics',
-      ],
+      icon: '📷',
+      title: 'Property Photoshoot',
+      description: 'Professional photography for your property',
+      price: '₹20000 – ₹40000',
     },
+
     {
-      icon: <AnalyticsIcon sx={{ fontSize: 40, color: '#7c3aed' }} />,
-      title: 'Advanced Analytics',
-      description: 'Deep business insights and performance tracking',
-      originalPrice: '₹12,000',
-      discountedPrice: '₹8,500',
-      features: [
-        'Custom reporting dashboards',
-        'Guest behavior analysis',
-        'Competitive benchmarking',
-        'Predictive analytics',
-        'KPI monitoring',
-      ],
+      icon: '🖥️',
+      title: 'Installation Charges',
+      description: 'One-time setup & configuration',
+      price: '₹10000 (One Time)',
     },
   ];
 
@@ -176,7 +153,7 @@ export default function Pricing() {
       >
         <Container maxWidth="lg">
           <Typography
-            variant="h5"
+            variant="h4"
             align="center"
             sx={{
               fontWeight: 800,
@@ -185,7 +162,6 @@ export default function Pricing() {
               WebkitBackgroundClip: 'text',
               color: 'transparent',
               mb: 3,
-              fontSize: { xs: '1.5rem', md: '0.8rem' },
             }}
           >
             Cost of Hotel Property Management Systems
@@ -204,7 +180,7 @@ export default function Pricing() {
             Solvotel offers affordable hotel software plans suitable for every
             budget. Choose from flexible subscription models that fit your
             property size and business goals. Request a hotel PMS demo today and
-            see how you can save Ɵme, reduce errors, and grow revenue.
+            see how you can save time, reduce errors, and grow revenue.
           </Typography>
         </Container>
       </Box>
@@ -381,13 +357,13 @@ export default function Pricing() {
                 >
                   <CardContent
                     sx={{
-                      p: 4,
+                      p: 2,
                       height: '100%',
                       display: 'flex',
                       flexDirection: 'column',
                     }}
                   >
-                    <Box sx={{ textAlign: 'center', mb: 3 }}>
+                    <Box sx={{ textAlign: 'center', mb: 1, fontSize: '50px' }}>
                       {service.icon}
                     </Box>
 
@@ -435,17 +411,7 @@ export default function Pricing() {
                             fontSize: '1.5rem',
                           }}
                         >
-                          {service.discountedPrice}
-                        </Typography>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            color: '#64748b',
-                            textDecoration: 'line-through',
-                            fontSize: '1rem',
-                          }}
-                        >
-                          {service.originalPrice}
+                          {service.price}
                         </Typography>
                       </Box>
                     </Box>

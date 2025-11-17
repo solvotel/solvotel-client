@@ -21,7 +21,7 @@ export default function Contact() {
       icon: <PhoneIcon sx={{ fontSize: 32, color: '#2563eb' }} />,
       title: 'Phone',
       details: '(+91) 8967531369',
-      subtitle: '24x7 Available',
+      subtitle: '24/7 Available',
     },
     {
       icon: <EmailIcon sx={{ fontSize: 32, color: '#059669' }} />,
@@ -32,8 +32,8 @@ export default function Contact() {
     {
       icon: <LocationOnIcon sx={{ fontSize: 32, color: '#d97706' }} />,
       title: 'Office',
-      details: 'Chaulkhola, Ramnagar-ii, ',
-      subtitle: 'Purba Medinipur, 721455',
+      details: 'Chaulkhola, Digha-Mandermani Road',
+      subtitle: 'East Medinipur, WB-721455',
     },
     {
       icon: <ScheduleIcon sx={{ fontSize: 32, color: '#dc2626' }} />,
