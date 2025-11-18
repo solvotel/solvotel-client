@@ -75,15 +75,17 @@ const RoomBookingReportPrint = React.forwardRef((props, ref) => {
               ))}
             </TableRow>
             {filteredData?.map((row, index) => {
+              const foodTokens = row?.food_tokens || [];
+              const serviceTokens = row?.service_tokens || [];
               const totalRoomAmount = row?.room_tokens.reduce(
                 (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
                 0
               );
-              const totalServiceAmount = row?.service_tokens.reduce(
+              const totalServiceAmount = serviceTokens.reduce(
                 (sum, s) => sum + (parseFloat(s.total_amount) || 0),
                 0
               );
-              const totalFoodAmount = row?.food_tokens.reduce(
+              const totalFoodAmount = foodTokens.reduce(
                 (sum, f) => sum + (parseFloat(f.total_amount) || 0),
                 0
               );

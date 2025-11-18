@@ -17,6 +17,7 @@ import {
   Stack,
   Fade,
   Button,
+  Grid,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -32,43 +33,72 @@ export default function ManagePayments({
   handleManagePayments,
 }) {
   const todaysDate = GetTodaysDate().dateString;
-  const [payments, setPayments] = useState([
-    ...(booking?.payment_tokens || []),
-  ]);
-  const [highlightedIndex, setHighlightedIndex] = useState(null);
-
-  const handleAddRow = () => {
-    setPayments((prev) => [
-      ...prev,
-      { date: todaysDate, mode: '', amount: '', remark: '' },
-    ]);
-    setHighlightedIndex(payments.length);
-    setTimeout(() => setHighlightedIndex(null), 1200);
-  };
-
-  const handleInlineChange = (index, field, value) => {
-    const updated = [...payments];
-    updated[index][field] = value;
-    setPayments(updated);
-    setHighlightedIndex(index);
-    setTimeout(() => setHighlightedIndex(null), 800);
-  };
-
-  const handleDeleteRow = (index) => {
-    const updated = [...payments];
-    updated.splice(index, 1);
-    setPayments(updated);
-  };
+  const [errorMessage, setErrorMessage] = useState('');
+  const prevPayments = booking?.payment_tokens || [];
+  const roomTokens = booking?.room_tokens || [];
+  const services = booking?.service_tokens || [];
+  const foodItems = booking?.food_tokens || [];
+  // ---- Summary calculations ----
+  const totalAmount = prevPayments.reduce(
+    (sum, p) => sum + (Number(p.amount) || 0),
+    0
+  );
+  const advancePayment = booking?.advance_payment || null;
+  const advanceAmount = advancePayment?.amount || 0;
+  const totalRoomAmount = roomTokens.reduce(
+    (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
+    0
+  );
+  const totalServiceAmount = services.reduce(
+    (sum, s) => sum + (parseFloat(s.total_amount) || 0),
+    0
+  );
+  const totalFoodAmount = foodItems.reduce(
+    (sum, f) => sum + (parseFloat(f.total_amount) || 0),
+    0
+  );
+  const grandTotal = totalRoomAmount + totalServiceAmount + totalFoodAmount;
+  const amountPayed = totalAmount + advanceAmount;
+  const dueAmount = grandTotal - amountPayed;
+  const [form, setForm] = useState({
+    date: todaysDate,
+    amount: null,
+    mode: '',
+    remark: '',
+  });
 
   const handleSaveAll = () => {
-    for (let p of payments) {
-      if (!p.date || !p.mode || !p.amount) {
-        alert('Please fill Date, Mode, and Amount for all rows before saving.');
-        return;
-      }
+    // Field validation
+
+    if (!form.date || !form.mode || !form.amount) {
+      setErrorMessage('Please fill Date, Mode, and Amount for all rows.');
+      return;
     }
-    handleManagePayments(payments);
+
+    // Calculate total input payments
+
+    // Validation: prevent overpayment
+    if (form.amount > dueAmount) {
+      setErrorMessage(
+        `Total payment (₹${
+          form.amount
+        }) cannot exceed due amount (₹${dueAmount.toFixed(1)}).`
+      );
+      return;
+    }
+
+    // Clear any previous errors
+    setErrorMessage('');
+
+    // Save
+    handleManagePayments(form);
     SuccessToast('Payments added successfully');
+    setForm({
+      date: todaysDate,
+      amount: null,
+      remark: '',
+      mode: '',
+    });
     setOpen(false);
   };
 
@@ -97,112 +127,68 @@ export default function ManagePayments({
           mb={2}
         >
           <Typography variant="h5" fontWeight="bold" color="primary">
-            Manage Payments
+            Add Payments
           </Typography>
           <IconButton onClick={handleClose} sx={{ color: 'gray' }}>
             <CloseIcon />
           </IconButton>
         </Box>
+        {errorMessage && (
+          <Box
+            sx={{
+              p: 1.5,
+              mb: 2,
+              borderRadius: 1,
+              bgcolor: 'error.light',
+              color: 'error.contrastText',
+              fontWeight: 'bold',
+              fontSize: 14,
+            }}
+          >
+            {errorMessage}
+          </Box>
+        )}
 
-        {/* Table */}
-        <Paper
-          sx={{
-            borderRadius: 2,
-            boxShadow: 5,
-            maxHeight: 400,
-            overflow: 'auto',
-          }}
-        >
-          <Table size="small">
-            <TableHead sx={{ bgcolor: 'primary.light' }}>
-              <TableRow>
-                {['Mode', 'Amount (₹)', 'Remark', 'Actions'].map((header) => (
-                  <TableCell
-                    key={header}
-                    sx={{ fontWeight: 'bold', color: 'primary.contrastText' }}
-                  >
-                    {header}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {payments.map((payment, index) => (
-                <Fade in={true} key={index} timeout={300}>
-                  <TableRow
-                    sx={{
-                      bgcolor:
-                        highlightedIndex === index
-                          ? 'rgba(255,229,100,0.3)'
-                          : 'inherit',
-                      '&:hover': { bgcolor: 'grey.100', transition: '0.3s' },
-                      transition: 'background-color 0.5s',
-                    }}
-                  >
-                    <TableCell>
-                      <TextField
-                        select
-                        size="small"
-                        value={payment.mode}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'mode', e.target.value)
-                        }
-                        fullWidth
-                      >
-                        {paymentMethods.map((mode, index) => (
-                          <MenuItem key={index} value={mode?.name}>
-                            {mode?.name}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        type="number"
-                        size="small"
-                        value={payment.amount}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'amount', e.target.value)
-                        }
-                        fullWidth
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        size="small"
-                        value={payment.remark}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'remark', e.target.value)
-                        }
-                        fullWidth
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <IconButton
-                        color="error"
-                        onClick={() => handleDeleteRow(index)}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                </Fade>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            {' '}
+            <TextField
+              select
+              label="Mode"
+              value={form.mode}
+              onChange={(e) => setForm({ ...form, mode: e.target.value })}
+              fullWidth
+            >
+              {paymentMethods.map((mode, index) => (
+                <MenuItem key={index} value={mode?.name}>
+                  {mode?.name}
+                </MenuItem>
               ))}
-            </TableBody>
-          </Table>
-        </Paper>
+            </TextField>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField
+              label="Amount (₹)"
+              type="number"
+              value={form.amount}
+              onChange={(e) => setForm({ ...form, amount: e.target.value })}
+              fullWidth
+            />
+          </Grid>
+          <Grid size={{ xs: 12, md: 12 }}>
+            <TextField
+              label="Remark"
+              value={form.remark}
+              onChange={(e) => setForm({ ...form, remark: e.target.value })}
+              fullWidth
+            />
+          </Grid>
+        </Grid>
 
         {/* Buttons */}
         <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={handleAddRow}
-          >
-            Add Payment
-          </Button>
           <Button variant="contained" color="success" onClick={handleSaveAll}>
-            Save All
+            Save
           </Button>
         </Stack>
       </Box>

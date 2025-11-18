@@ -166,6 +166,12 @@ const BookingSlip = React.forwardRef((props, ref) => {
               checkout: booking?.checkout_date,
             })}
           </Typography>
+          <Typography>
+            <b>No. of Guest:</b> {booking?.adult + booking?.children}
+          </Typography>
+          <Typography>
+            <b>Meal Plan:</b> {booking?.meal_plan}
+          </Typography>
         </Box>
       </Box>
 

@@ -278,31 +278,31 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   >
                     {parseFloat(
                       token?.amount - (token?.cgst + token?.sgst)
-                    ).toFixed(2)}
+                    ).toFixed(1)}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.sgst}
+                    {token?.sgst.toFixed(1)}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.cgst}
+                    {token?.cgst.toFixed(1)}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.cgst + token?.sgst}
+                    {(token?.cgst + token?.sgst).toFixed(1)}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.amount}
+                    {token?.amount.toFixed(1)}
                   </CustomTableCell>
                 </TableRow>
               ))}
@@ -339,26 +339,26 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 </CustomTableCell>
                 <CustomTableCell align="center">
                   <Typography>
-                    {parseFloat(totals?.totalSgst).toFixed(2)}
+                    {parseFloat(totals?.totalSgst).toFixed(1)}
                   </Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
                   <Typography>
-                    {parseFloat(totals?.totalCgst).toFixed(2)}
+                    {parseFloat(totals?.totalCgst).toFixed(1)}
                   </Typography>
                 </CustomTableCell>
 
                 <CustomTableCell align="center">
                   <Typography>
                     {parseFloat(totals?.totalSgst + totals?.totalCgst).toFixed(
-                      2
+                      1
                     )}
                   </Typography>
                 </CustomTableCell>
 
                 <CustomTableCell align="center">
                   <Typography>
-                    {parseFloat(totals?.totalAmount).toFixed(2)}
+                    {parseFloat(totals?.totalAmount).toFixed(1)}
                   </Typography>
                 </CustomTableCell>
               </TableRow>

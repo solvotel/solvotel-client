@@ -1,20 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  Paper,
-  Link,
-} from '@mui/material';
-import { motion } from 'framer-motion';
+
 import { useAuth } from '@/context';
 import { GetDataList } from '@/utils/ApiFunctions';
 import { GetTodaysDate } from '@/utils/DateFetcher';
-import { Hotel, LogIn, LogOut } from 'lucide-react';
+
 import {
   BookingList,
   OverviewStats,
@@ -26,7 +17,6 @@ const Page = () => {
   const { auth } = useAuth();
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState(today);
-  const todaysDate = GetTodaysDate().dateString;
 
   // Fetch all bookings
   const bookings = GetDataList({

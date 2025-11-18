@@ -1,17 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Paper,
-  Typography,
-  Grid,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-} from '@mui/material';
+import { Paper, Typography, Grid, Button } from '@mui/material';
 
 import {
   Print as PrintIcon,
@@ -35,7 +25,6 @@ import {
 } from './forms';
 import { UpdateData } from '@/utils/ApiFunctions';
 import CancelBookingDialog from './CancelBookingDialog';
-import { set } from 'react-hook-form';
 
 import { SuccessToast } from '@/utils/GenerateToast';
 import CheckoutDialog from './CheckoutDialog';
@@ -105,8 +94,10 @@ export default function BookingServiceActionsCard({
     }
   };
 
-  const handleManagePayments = async (payments) => {
-    const cleanedPaymemtsItems = payments.map(({ id, ...rest }) => rest);
+  const handleManagePayments = async (payment) => {
+    const prevPayments = booking?.payment_tokens || [];
+    const newPaymentArray = [...prevPayments, payment];
+    const cleanedPaymemtsItems = newPaymentArray.map(({ id, ...rest }) => rest);
     const res = await UpdateData({
       endPoint: 'room-bookings',
       auth,
@@ -230,6 +221,7 @@ export default function BookingServiceActionsCard({
                   startIcon={<LogoutIcon />}
                   sx={{ textTransform: 'none' }}
                   onClick={() => setCheckoutDialogOpen(true)}
+                  disabled={booking.booking_status === 'Blocked'}
                 >
                   Mark Check-Out
                 </Button>
@@ -248,7 +240,10 @@ export default function BookingServiceActionsCard({
               startIcon={<PrintIcon />}
               sx={{ textTransform: 'none' }}
               onClick={handlePrintBookingSlip}
-              disabled={booking.booking_status === 'Cancelled'}
+              disabled={
+                booking.booking_status === 'Cancelled' ||
+                booking.booking_status === 'Blocked'
+              }
             >
               Print Booking Slip
             </Button>
@@ -263,7 +258,10 @@ export default function BookingServiceActionsCard({
               startIcon={<RoomServiceIcon />}
               onClick={() => setServiceModel(true)}
               sx={{ textTransform: 'none' }}
-              disabled={booking.booking_status === 'Cancelled'}
+              disabled={
+                booking.booking_status === 'Cancelled' ||
+                booking.booking_status === 'Blocked'
+              }
             >
               Manage Services
             </Button>
@@ -278,7 +276,10 @@ export default function BookingServiceActionsCard({
               startIcon={<FastfoodIcon />}
               onClick={() => setFoodModel(true)}
               sx={{ textTransform: 'none' }}
-              disabled={booking.booking_status === 'Cancelled'}
+              disabled={
+                booking.booking_status === 'Cancelled' ||
+                booking.booking_status === 'Blocked'
+              }
             >
               Manage Food
             </Button>
@@ -293,7 +294,10 @@ export default function BookingServiceActionsCard({
               startIcon={<PaymentIcon />}
               onClick={() => setPaymentModel(true)}
               sx={{ textTransform: 'none' }}
-              disabled={booking.booking_status === 'Cancelled'}
+              disabled={
+                booking.booking_status === 'Cancelled' ||
+                booking.booking_status === 'Blocked'
+              }
             >
               Manage Payment
             </Button>
@@ -307,7 +311,10 @@ export default function BookingServiceActionsCard({
               startIcon={<HotelIcon />}
               onClick={() => setRoomTariffDialog(true)}
               sx={{ textTransform: 'none' }}
-              disabled={booking.booking_status === 'Cancelled'}
+              disabled={
+                booking.booking_status === 'Cancelled' ||
+                booking.booking_status === 'Blocked'
+              }
             >
               Manage Room Tariff
             </Button>
@@ -321,7 +328,10 @@ export default function BookingServiceActionsCard({
               startIcon={<ReceiptIcon />}
               sx={{ textTransform: 'none' }}
               onClick={() => setInvoiceModel(true)}
-              disabled={booking.booking_status === 'Cancelled'}
+              disabled={
+                booking.booking_status === 'Cancelled' ||
+                booking.booking_status === 'Blocked'
+              }
             >
               Create Invoice
             </Button>

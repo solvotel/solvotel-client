@@ -65,6 +65,8 @@ const Page = () => {
       }) || [];
 
     const dataToExport = filteredInvoices.map((row) => {
+      const foodTokens = row?.food_tokens || [];
+      const serviceTokens = row?.service_tokens || [];
       return {
         'Booking ID': row.booking_id,
         Guest: row.customer.company_name,
@@ -76,10 +78,10 @@ const Page = () => {
             0
           )
           .toFixed(2),
-        Services: row.service_tokens
+        Services: serviceTokens
           .reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0)
           .toFixed(2),
-        'Food Items': row.food_tokens
+        'Food Items': foodTokens
           .reduce((sum, f) => sum + (parseFloat(f.total_amount) || 0), 0)
           .toFixed(2),
         'Grand Total': (
@@ -87,11 +89,11 @@ const Page = () => {
             (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
             0
           ) +
-          row.service_tokens.reduce(
+          serviceTokens.reduce(
             (sum, s) => sum + (parseFloat(s.total_amount) || 0),
             0
           ) +
-          row.food_tokens.reduce(
+          foodTokens.reduce(
             (sum, f) => sum + (parseFloat(f.total_amount) || 0),
             0
           )
@@ -107,11 +109,11 @@ const Page = () => {
             (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
             0
           ) +
-          row.service_tokens.reduce(
+          serviceTokens.reduce(
             (sum, s) => sum + (parseFloat(s.total_amount) || 0),
             0
           ) +
-          row.food_tokens.reduce(
+          foodTokens.reduce(
             (sum, f) => sum + (parseFloat(f.total_amount) || 0),
             0
           ) -
@@ -243,16 +245,18 @@ const Page = () => {
                 </TableHead>
                 <TableBody>
                   {filteredData?.map((row) => {
+                    const foodTokens = row?.food_tokens || [];
+                    const serviceTokens = row?.service_tokens || [];
                     const totalRoomAmount = row?.room_tokens.reduce(
                       (sum, r) =>
                         sum + (parseFloat(r.total_amount) || r.amount || 0),
                       0
                     );
-                    const totalServiceAmount = row?.service_tokens.reduce(
+                    const totalServiceAmount = serviceTokens.reduce(
                       (sum, s) => sum + (parseFloat(s.total_amount) || 0),
                       0
                     );
-                    const totalFoodAmount = row?.food_tokens.reduce(
+                    const totalFoodAmount = foodTokens.reduce(
                       (sum, f) => sum + (parseFloat(f.total_amount) || 0),
                       0
                     );

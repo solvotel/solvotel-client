@@ -95,6 +95,17 @@ const Page = () => {
       ErrorToast('Method Name is Required');
       return;
     }
+    // Duplicate check
+    const duplicate = data?.find(
+      (item) =>
+        item.name.toLowerCase() === formData.name.toLowerCase() &&
+        item.documentId !== formData.documentId // allow same item while editing
+    );
+
+    if (duplicate) {
+      ErrorToast('Payment Method with this name already exists');
+      return;
+    }
     if (editing) {
       const {
         id,
