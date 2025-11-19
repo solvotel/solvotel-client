@@ -15,7 +15,8 @@ import { Loader } from '@/component/common';
 
 const Page = () => {
   const { auth } = useAuth();
-  const today = new Date();
+  const todaysDate = GetTodaysDate().dateString;
+  const today = new Date(todaysDate);
   const [selectedDate, setSelectedDate] = useState(today);
 
   // Fetch all bookings

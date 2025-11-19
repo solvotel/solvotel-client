@@ -48,9 +48,9 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
   const serviceTokens = [];
   const foodTokens = [];
 
-  // room tokens
   data?.room_tokens?.forEach((room) => {
-    const gstAmount = (room.amount * room.gst) / 100;
+    const finalRate = room?.rate * room.days;
+    const gstAmount = (finalRate * room.gst) / 100;
     const sgst = gstAmount / 2;
     const cgst = gstAmount / 2;
     roomTokens.push({
@@ -64,10 +64,9 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
     });
   });
 
-  // service tokens
   data?.service_tokens?.forEach((service) => {
     service.items?.forEach((it) => {
-      const gstAmount = (it.amount * it.gst) / 100;
+      const gstAmount = it.amount - parseFloat(it.rate);
       const sgst = gstAmount / 2;
       const cgst = gstAmount / 2;
       serviceTokens.push({
@@ -82,10 +81,10 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
     });
   });
 
-  // Food tokens
   data?.food_tokens?.forEach((food) => {
     food.items?.forEach((it) => {
-      const gstAmount = (it.amount * it.gst) / 100;
+      const finalRate = it?.rate * it.qty;
+      const gstAmount = it.amount - finalRate;
       const sgst = gstAmount / 2;
       const cgst = gstAmount / 2;
       foodTokens.push({
@@ -101,18 +100,8 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
   });
 
   const allTokens = [...roomTokens, ...serviceTokens, ...foodTokens];
-  // ✅ Calculate totals
-  const totals = allTokens.reduce(
-    (acc, curr) => {
-      acc.totalSgst += curr?.sgst;
-      acc.totalCgst += curr?.cgst;
-      acc.totalAmount += curr?.amount;
-      return acc;
-    },
-    { totalSgst: 0, totalCgst: 0, totalAmount: 0 }
-  );
 
-  let totalInWords = toWords.convert(totals?.totalAmount);
+  let totalInWords = toWords.convert(data?.payable_amount);
 
   return (
     <div ref={ref}>
@@ -332,33 +321,22 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>
-                    {totals?.totalAmount -
-                      (totals?.totalSgst + totals?.totalCgst)}
-                  </Typography>
+                  <Typography>{data.total_amount.toFixed(1)}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>
-                    {parseFloat(totals?.totalSgst).toFixed(1)}
-                  </Typography>
+                  <Typography>{parseFloat(data.tax / 2).toFixed(1)}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>
-                    {parseFloat(totals?.totalCgst).toFixed(1)}
-                  </Typography>
+                  <Typography>{parseFloat(data.tax / 2).toFixed(1)}</Typography>
+                </CustomTableCell>
+
+                <CustomTableCell align="center">
+                  <Typography>{parseFloat(data.tax).toFixed(1)}</Typography>
                 </CustomTableCell>
 
                 <CustomTableCell align="center">
                   <Typography>
-                    {parseFloat(totals?.totalSgst + totals?.totalCgst).toFixed(
-                      1
-                    )}
-                  </Typography>
-                </CustomTableCell>
-
-                <CustomTableCell align="center">
-                  <Typography>
-                    {parseFloat(totals?.totalAmount).toFixed(1)}
+                    {parseFloat(data?.payable_amount).toFixed(1)}
                   </Typography>
                 </CustomTableCell>
               </TableRow>

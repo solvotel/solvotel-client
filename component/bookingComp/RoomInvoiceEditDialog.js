@@ -132,6 +132,30 @@ export default function EditRoomInvoiceDialog({
 
   // --- SAVE DATA ---
   const handleSave = async () => {
+    const serviceAndFood = [...foodTokens, ...serviceTokens];
+    const totalRoomRate = roomTokens.reduce(
+      (sum, item) => sum + (parseFloat(item.rate * item.days) || 0),
+      0
+    );
+
+    const totalRoomAmount = roomTokens.reduce(
+      (sum, item) => sum + (parseFloat(item.amount) || 0),
+      0
+    );
+    const totalRoomGst = totalRoomAmount - totalRoomRate;
+
+    const totalOtherAmount = serviceAndFood.reduce(
+      (sum, item) => sum + (parseFloat(item.total_amount) || 0),
+      0
+    );
+    const totalOtherGst = serviceAndFood.reduce(
+      (sum, item) => sum + (parseFloat(item.total_gst) || 0),
+      0
+    );
+
+    const totalGst = totalRoomGst + totalOtherGst;
+
+    const payableAmount = totalOtherAmount + totalRoomAmount;
     try {
       setLoading(true);
       const cleanedRoomTokens = roomTokens.map(({ id, ...rest }) => rest);
@@ -141,6 +165,9 @@ export default function EditRoomInvoiceDialog({
           room_tokens: cleanedRoomTokens,
           food_tokens: foodTokens,
           service_tokens: serviceTokens,
+          payable_amount: payableAmount,
+          tax: totalGst,
+          total_amount: payableAmount - totalGst,
         },
       };
       await UpdateData({

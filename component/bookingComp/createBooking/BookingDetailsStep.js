@@ -1,13 +1,14 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { TextField, Grid, MenuItem } from '@mui/material';
+import { GetTodaysDate } from '@/utils/DateFetcher';
 
 export default function BookingDetailsStep({
   bookingDetails,
   setBookingDetails,
-
   hotelData,
 }) {
+  const todaysdate = GetTodaysDate().dateString;
   useEffect(() => {
     setBookingDetails({
       ...bookingDetails,
@@ -77,6 +78,9 @@ export default function BookingDetailsStep({
           InputLabelProps={{ shrink: true }}
           value={bookingDetails.checkin_date || ''}
           onChange={(e) => handleChange('checkin_date', e.target.value)}
+          inputProps={{
+            min: todaysdate,
+          }}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
@@ -87,6 +91,9 @@ export default function BookingDetailsStep({
           InputLabelProps={{ shrink: true }}
           value={bookingDetails.checkout_date || ''}
           onChange={(e) => handleChange('checkout_date', e.target.value)}
+          inputProps={{
+            min: todaysdate,
+          }}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>

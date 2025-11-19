@@ -59,46 +59,15 @@ const Page = () => {
       }) || [];
 
     const dataToExport = filteredInvoices.map((row) => {
-      const totalRoomGst = row?.room_tokens.reduce(
-        (sum, r) => sum + (parseFloat(r.gst) || 0),
-        0
-      );
-      const totalServiceGst = row?.service_tokens.reduce(
-        (sum, s) => sum + (parseFloat(s.total_gst) || 0),
-        0
-      );
-      const totalFoodGst = row?.food_tokens.reduce(
-        (sum, f) => sum + (parseFloat(f.total_gst) || 0),
-        0
-      );
-      const payableRoomAmount = row?.room_tokens.reduce(
-        (sum, r) => sum + (parseFloat(r.amount) || 0),
-        0
-      );
-      const payableServiceAmount = row?.service_tokens.reduce(
-        (sum, s) => sum + (parseFloat(s.total_amount) || 0),
-        0
-      );
-      const payableFoodAmount = row?.food_tokens.reduce(
-        (sum, f) => sum + (parseFloat(f.total_amount) || 0),
-        0
-      );
-
-      const finalGst = parseFloat(
-        totalRoomGst + totalServiceGst + totalFoodGst
-      ).toFixed(2);
-      const finalTotalAmount =
-        payableRoomAmount + payableServiceAmount + payableFoodAmount;
-      const finalRate = finalTotalAmount - finalGst;
       return {
         'Invoice No': row.invoice_no,
         'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
         'Customer Name': row?.customer_name,
         GSTIN: row?.customer_gst,
-        'Taxable Amount': finalRate.toFixed(2),
-        SGST: finalGst / 2,
-        CGST: finalGst / 2,
-        'Payable Amount': finalTotalAmount.toFixed(2),
+        'Taxable Amount': row.total_amount.toFixed(2),
+        SGST: row.tax / 2,
+        CGST: row.tax / 2,
+        'Payable Amount': row.payable_amount.toFixed(2),
         'Payment Method': row?.mop,
       };
     });
@@ -220,39 +189,6 @@ const Page = () => {
                 </TableHead>
                 <TableBody>
                   {filteredData?.map((row) => {
-                    const totalRoomGst = row?.room_tokens.reduce(
-                      (sum, r) => sum + (parseFloat(r.gst) || 0),
-                      0
-                    );
-                    const totalServiceGst = row?.service_tokens.reduce(
-                      (sum, s) => sum + (parseFloat(s.total_gst) || 0),
-                      0
-                    );
-                    const totalFoodGst = row?.food_tokens.reduce(
-                      (sum, f) => sum + (parseFloat(f.total_gst) || 0),
-                      0
-                    );
-                    const payableRoomAmount = row?.room_tokens.reduce(
-                      (sum, r) => sum + (parseFloat(r.amount) || 0),
-                      0
-                    );
-                    const payableServiceAmount = row?.service_tokens.reduce(
-                      (sum, s) => sum + (parseFloat(s.total_amount) || 0),
-                      0
-                    );
-                    const payableFoodAmount = row?.food_tokens.reduce(
-                      (sum, f) => sum + (parseFloat(f.total_amount) || 0),
-                      0
-                    );
-
-                    const finalGst = parseFloat(
-                      totalRoomGst + totalServiceGst + totalFoodGst
-                    ).toFixed(2);
-                    const finalTotalAmount =
-                      payableRoomAmount +
-                      payableServiceAmount +
-                      payableFoodAmount;
-                    const finalRate = finalTotalAmount - finalGst;
                     return (
                       <TableRow key={row.documentId}>
                         <TableCell>{row.invoice_no}</TableCell>
@@ -261,10 +197,10 @@ const Page = () => {
                         </TableCell>
                         <TableCell>{row?.customer_name}</TableCell>
                         <TableCell>{row?.customer_gst}</TableCell>
-                        <TableCell>{finalRate.toFixed(2)}</TableCell>
-                        <TableCell>{finalGst / 2}</TableCell>
-                        <TableCell>{finalGst / 2}</TableCell>
-                        <TableCell>{finalTotalAmount.toFixed(2)}</TableCell>
+                        <TableCell>{row.total_amount.toFixed(2)}</TableCell>
+                        <TableCell>{row.tax / 2}</TableCell>
+                        <TableCell>{row.tax / 2}</TableCell>
+                        <TableCell>{row.payable_amount.toFixed(2)}</TableCell>
                         <TableCell>{row?.mop}</TableCell>
                       </TableRow>
                     );

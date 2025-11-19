@@ -57,8 +57,9 @@ const generateNextBookingId = (bookings) => {
 export default function BookingForm() {
   const router = useRouter();
   const { auth } = useAuth();
-  const todaysdate = new Date();
-  let tomorrow = new Date();
+  const today = GetTodaysDate().dateString;
+  const todaysdate = new Date(today);
+  let tomorrow = new Date(today);
   tomorrow.setDate(todaysdate.getDate() + 1);
   const formatDate = (date) => date.toISOString().split('T')[0];
 
@@ -100,21 +101,35 @@ export default function BookingForm() {
 
   const validateStep = () => {
     setError(''); // clear previous errors
+
+    // STEP 0 → Guest selection
     if (activeStep === 0 && !selectedGuest) {
       setError('Please select or add a guest before continuing.');
       return false;
     }
-    if (
-      activeStep === 1 &&
-      (!bookingDetails.checkin_date || !bookingDetails.checkout_date)
-    ) {
-      setError('Please provide valid booking dates.');
-      return false;
+
+    // STEP 1 → Booking details
+    if (activeStep === 1) {
+      const { checkin_date, checkout_date } = bookingDetails;
+
+      if (!checkin_date || !checkout_date) {
+        setError('Please provide valid booking dates.');
+        return false;
+      }
+
+      // ❌ Validation: Check-in must not be after Check-out
+      if (checkin_date > checkout_date) {
+        setError('Check-in date cannot be later than the check-out date.');
+        return false;
+      }
     }
+
+    // STEP 2 → Rooms selection
     if (activeStep === 2 && selectedRooms.length === 0) {
       setError('Please select a room.');
       return false;
     }
+
     return true;
   };
 

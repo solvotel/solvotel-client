@@ -112,6 +112,20 @@ export default function CreateInvoiceModal({
       )
     );
 
+  // Select / Deselect All - Rooms
+  const handleSelectAllRooms = (checked) =>
+    setRoomTokens((prev) =>
+      prev.map((item) => ({ ...item, invoice: checked }))
+    );
+
+  // Select / Deselect All - Services
+  const handleSelectAllServices = (checked) =>
+    setServices((prev) => prev.map((item) => ({ ...item, invoice: checked })));
+
+  // Select / Deselect All - Food
+  const handleSelectAllFood = (checked) =>
+    setFoodItems((prev) => prev.map((item) => ({ ...item, invoice: checked })));
+
   const sanitizeArray = (arr, keysToRemove = ['id']) =>
     arr.map((obj) => {
       const cleanObj = { ...obj };
@@ -126,14 +140,29 @@ export default function CreateInvoiceModal({
       const selectedFood = foodItems.filter((f) => f.invoice);
       const serviceAndFood = [...selectedServices, ...selectedFood];
 
+      const totalRoomRate = selectedRooms.reduce(
+        (sum, item) => sum + (parseFloat(item.rate * item.days) || 0),
+        0
+      );
+
       const totalRoomAmount = selectedRooms.reduce(
         (sum, item) => sum + (parseFloat(item.amount) || 0),
         0
       );
-      const total_other_amount = serviceAndFood.reduce(
+      const totalRoomGst = totalRoomAmount - totalRoomRate;
+
+      const totalOtherAmount = serviceAndFood.reduce(
         (sum, item) => sum + (parseFloat(item.total_amount) || 0),
         0
       );
+      const totalOtherGst = serviceAndFood.reduce(
+        (sum, item) => sum + (parseFloat(item.total_gst) || 0),
+        0
+      );
+
+      const totalGst = totalRoomGst + totalOtherGst;
+
+      const payableAmount = totalOtherAmount + totalRoomAmount;
 
       if (
         selectedRooms.length === 0 &&
@@ -161,7 +190,9 @@ export default function CreateInvoiceModal({
           food_tokens: selectedFood,
           hotel_id: auth?.user?.hotel_id,
           room_booking: booking.documentId,
-          payable_amount: total_other_amount + totalRoomAmount,
+          payable_amount: payableAmount,
+          tax: totalGst,
+          total_amount: payableAmount - totalGst,
           mop: mop,
         },
       };
@@ -296,7 +327,19 @@ export default function CreateInvoiceModal({
             <Table size="small">
               <TableHead sx={{ bgcolor: '#f5f5f5' }}>
                 <TableRow>
-                  <TableCell></TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={
+                        roomTokens.length > 0 &&
+                        roomTokens.every((r) => r.invoice)
+                      }
+                      indeterminate={
+                        roomTokens.some((r) => r.invoice) &&
+                        !roomTokens.every((r) => r.invoice)
+                      }
+                      onChange={(e) => handleSelectAllRooms(e.target.checked)}
+                    />
+                  </TableCell>
                   <TableCell>Room No</TableCell>
                   <TableCell>Items</TableCell>
                   <TableCell align="right">SGST (%)</TableCell>
@@ -304,6 +347,7 @@ export default function CreateInvoiceModal({
                   <TableCell align="right">Amount (₹)</TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody>
                 {roomTokens.length ? (
                   roomTokens.map((row, i) => (
@@ -347,7 +391,20 @@ export default function CreateInvoiceModal({
             <Table size="small">
               <TableHead sx={{ bgcolor: '#f5f5f5' }}>
                 <TableRow>
-                  <TableCell></TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={
+                        services.length > 0 && services.every((s) => s.invoice)
+                      }
+                      indeterminate={
+                        services.some((s) => s.invoice) &&
+                        !services.every((s) => s.invoice)
+                      }
+                      onChange={(e) =>
+                        handleSelectAllServices(e.target.checked)
+                      }
+                    />
+                  </TableCell>
                   <TableCell>Room No</TableCell>
                   <TableCell>Items</TableCell>
                   <TableCell align="right">SGST (₹)</TableCell>
@@ -355,6 +412,7 @@ export default function CreateInvoiceModal({
                   <TableCell align="right">Amount (₹)</TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody>
                 {services.length ? (
                   services.map((row, i) => (
@@ -400,7 +458,19 @@ export default function CreateInvoiceModal({
             <Table size="small">
               <TableHead sx={{ bgcolor: '#f5f5f5' }}>
                 <TableRow>
-                  <TableCell></TableCell>
+                  <TableCell>
+                    <Checkbox
+                      checked={
+                        foodItems.length > 0 &&
+                        foodItems.every((f) => f.invoice)
+                      }
+                      indeterminate={
+                        foodItems.some((f) => f.invoice) &&
+                        !foodItems.every((f) => f.invoice)
+                      }
+                      onChange={(e) => handleSelectAllFood(e.target.checked)}
+                    />
+                  </TableCell>
                   <TableCell>Room No</TableCell>
                   <TableCell>Items</TableCell>
                   <TableCell align="right">SGST (₹)</TableCell>
@@ -408,6 +478,7 @@ export default function CreateInvoiceModal({
                   <TableCell align="right">Amount (₹)</TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody>
                 {foodItems.length ? (
                   foodItems.map((row, i) => (

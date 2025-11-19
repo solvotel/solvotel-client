@@ -163,40 +163,6 @@ const Page = () => {
               </TableHead>
               <TableBody>
                 {filteredData?.map((row) => {
-                  const totalRoomGst = row?.room_tokens.reduce(
-                    (sum, r) => sum + (parseFloat(r.gst) || 0),
-                    0
-                  );
-                  const totalServiceGst = row?.service_tokens.reduce(
-                    (sum, s) => sum + (parseFloat(s.total_gst) || 0),
-                    0
-                  );
-                  const totalFoodGst = row?.food_tokens.reduce(
-                    (sum, f) => sum + (parseFloat(f.total_gst) || 0),
-                    0
-                  );
-                  const payableRoomAmount = row?.room_tokens.reduce(
-                    (sum, r) => sum + (parseFloat(r.amount) || 0),
-                    0
-                  );
-                  const payableServiceAmount = row?.service_tokens.reduce(
-                    (sum, s) => sum + (parseFloat(s.total_amount) || 0),
-                    0
-                  );
-                  const payableFoodAmount = row?.food_tokens.reduce(
-                    (sum, f) => sum + (parseFloat(f.total_amount) || 0),
-                    0
-                  );
-
-                  const finalGst = parseFloat(
-                    totalRoomGst + totalServiceGst + totalFoodGst
-                  ).toFixed(2);
-                  const finalTotalAmount =
-                    payableRoomAmount +
-                    payableServiceAmount +
-                    payableFoodAmount;
-                  const finalRate = finalTotalAmount - finalGst;
-
                   return (
                     <TableRow key={row.documentId}>
                       <TableCell>{row.invoice_no}</TableCell>
@@ -204,10 +170,10 @@ const Page = () => {
                         {GetCustomDate(row.date)}&nbsp;{row.time}
                       </TableCell>
                       <TableCell>{row.customer_name}</TableCell>
-                      <TableCell>{finalRate.toFixed(2)}</TableCell>
-                      <TableCell>{finalGst / 2}</TableCell>
-                      <TableCell>{finalGst / 2}</TableCell>
-                      <TableCell>{finalTotalAmount.toFixed(2)}</TableCell>
+                      <TableCell>{row.total_amount.toFixed(2)}</TableCell>
+                      <TableCell>{row.tax / 2}</TableCell>
+                      <TableCell>{row.tax / 2}</TableCell>
+                      <TableCell>{row.payable_amount.toFixed(2)}</TableCell>
                       <TableCell>{row.mop}</TableCell>
                       <TableCell sx={{ width: '150px' }}>
                         <Tooltip title="View">

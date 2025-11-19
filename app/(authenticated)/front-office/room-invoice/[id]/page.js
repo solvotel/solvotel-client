@@ -67,7 +67,8 @@ export default function Page({ params }) {
   const foodTokens = [];
 
   invoiceData?.room_tokens?.forEach((room) => {
-    const gstAmount = (room.amount * room.gst) / 100;
+    const finalRate = room?.rate * room.days;
+    const gstAmount = (finalRate * room.gst) / 100;
     const sgst = gstAmount / 2;
     const cgst = gstAmount / 2;
     roomTokens.push({
@@ -83,7 +84,7 @@ export default function Page({ params }) {
 
   invoiceData?.service_tokens?.forEach((service) => {
     service.items?.forEach((it) => {
-      const gstAmount = (it.amount * it.gst) / 100;
+      const gstAmount = it.amount - parseFloat(it.rate);
       const sgst = gstAmount / 2;
       const cgst = gstAmount / 2;
       serviceTokens.push({
@@ -100,7 +101,8 @@ export default function Page({ params }) {
 
   invoiceData?.food_tokens?.forEach((food) => {
     food.items?.forEach((it) => {
-      const gstAmount = (it.amount * it.gst) / 100;
+      const finalRate = it?.rate * it.qty;
+      const gstAmount = it.amount - finalRate;
       const sgst = gstAmount / 2;
       const cgst = gstAmount / 2;
       foodTokens.push({
@@ -116,15 +118,6 @@ export default function Page({ params }) {
   });
 
   const allTokens = [...roomTokens, ...serviceTokens, ...foodTokens];
-  const totals = allTokens.reduce(
-    (acc, curr) => {
-      acc.totalSgst += curr.sgst;
-      acc.totalCgst += curr.cgst;
-      acc.totalAmount += curr.amount;
-      return acc;
-    },
-    { totalSgst: 0, totalCgst: 0, totalAmount: 0 }
-  );
 
   return (
     <>
@@ -241,19 +234,15 @@ export default function Page({ params }) {
         <Box>
           <Typography variant="h6">💰 Summary</Typography>
           <Typography>
-            Subtotal : ₹
-            {(
-              totals.totalAmount -
-              (totals.totalSgst + totals.totalCgst)
-            ).toFixed(2)}
+            Subtotal : ₹{invoiceData.total_amount.toFixed(2)}
           </Typography>
-          <Typography>SGST : ₹{totals.totalSgst.toFixed(2)}</Typography>
-          <Typography>CGST : ₹{totals.totalCgst.toFixed(2)}</Typography>
+          <Typography>SGST : ₹{(invoiceData.tax / 2).toFixed(2)}</Typography>
+          <Typography>CGST : ₹{(invoiceData.tax / 2).toFixed(2)}</Typography>
           <Typography fontWeight="bold" color="primary">
-            Grand Total : ₹{totals.totalAmount.toFixed(2)}
+            Grand Total : ₹{invoiceData.payable_amount.toFixed(2)}
           </Typography>
           <Typography mt={1}>
-            <strong>Payment Method:</strong> {invoiceData.mop || '—'}
+            <strong>Payment Method:</strong> {invoiceData.mop || 'N/A'}
           </Typography>
         </Box>
       </Box>

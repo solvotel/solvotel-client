@@ -73,37 +73,6 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
               ))}
             </TableRow>
             {filteredData?.map((row) => {
-              const totalRoomGst = row?.room_tokens.reduce(
-                (sum, r) => sum + (parseFloat(r.gst) || 0),
-                0
-              );
-              const totalServiceGst = row?.service_tokens.reduce(
-                (sum, s) => sum + (parseFloat(s.total_gst) || 0),
-                0
-              );
-              const totalFoodGst = row?.food_tokens.reduce(
-                (sum, f) => sum + (parseFloat(f.total_gst) || 0),
-                0
-              );
-              const payableRoomAmount = row?.room_tokens.reduce(
-                (sum, r) => sum + (parseFloat(r.amount) || 0),
-                0
-              );
-              const payableServiceAmount = row?.service_tokens.reduce(
-                (sum, s) => sum + (parseFloat(s.total_amount) || 0),
-                0
-              );
-              const payableFoodAmount = row?.food_tokens.reduce(
-                (sum, f) => sum + (parseFloat(f.total_amount) || 0),
-                0
-              );
-
-              const finalGst = parseFloat(
-                totalRoomGst + totalServiceGst + totalFoodGst
-              ).toFixed(2);
-              const finalTotalAmount =
-                payableRoomAmount + payableServiceAmount + payableFoodAmount;
-              const finalRate = finalTotalAmount - finalGst;
               return (
                 <TableRow key={row.documentId}>
                   <BodyCell>{row.invoice_no}</BodyCell>
@@ -111,10 +80,10 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
                     {GetCustomDate(row.date)}&nbsp;{row.time}
                   </BodyCell>
                   <BodyCell>{row.customer_name}</BodyCell>
-                  <BodyCell>{finalRate.toFixed(2)}</BodyCell>
-                  <BodyCell>{finalGst / 2}</BodyCell>
-                  <BodyCell>{finalGst / 2}</BodyCell>
-                  <BodyCell>{finalTotalAmount.toFixed(2)}</BodyCell>
+                  <BodyCell>{row.total_amount.toFixed(2)}</BodyCell>
+                  <BodyCell>{row.tax / 2}</BodyCell>
+                  <BodyCell>{row.tax / 2}</BodyCell>
+                  <BodyCell>{row.payable_amount.toFixed(2)}</BodyCell>
                   <BodyCell>{row.mop}</BodyCell>
                 </TableRow>
               );
