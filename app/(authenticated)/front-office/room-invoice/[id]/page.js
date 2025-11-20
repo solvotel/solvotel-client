@@ -66,6 +66,41 @@ export default function Page({ params }) {
   const serviceTokens = [];
   const foodTokens = [];
 
+  // invoiceData?.service_tokens?.forEach((service) => {
+  //   service.items?.forEach((it) => {
+  //     const gstAmount = it.amount - parseFloat(it.rate);
+  //     const sgst = gstAmount / 2;
+  //     const cgst = gstAmount / 2;
+  //     serviceTokens.push({
+  //       item: it.item,
+  //       hsn: it.hsn,
+  //       rate: it.rate,
+  //       gst: gstAmount,
+  //       sgst,
+  //       cgst,
+  //       amount: it.amount,
+  //     });
+  //   });
+  // });
+
+  // invoiceData?.food_tokens?.forEach((food) => {
+  //   food.items?.forEach((it) => {
+  //     const finalRate = it?.rate * it.qty;
+  //     const gstAmount = it.amount - finalRate;
+  //     const sgst = gstAmount / 2;
+  //     const cgst = gstAmount / 2;
+  //     foodTokens.push({
+  //       item: it.item,
+  //       hsn: it.hsn,
+  //       rate: it.rate,
+  //       gst: gstAmount,
+  //       sgst,
+  //       cgst,
+  //       amount: it.amount,
+  //     });
+  //   });
+  // });
+
   invoiceData?.room_tokens?.forEach((room) => {
     const finalRate = room?.rate * room.days;
     const gstAmount = (finalRate * room.gst) / 100;
@@ -73,6 +108,7 @@ export default function Page({ params }) {
     const cgst = gstAmount / 2;
     roomTokens.push({
       item: room.item,
+      room: room.room,
       hsn: room.hsn,
       rate: room.rate,
       gst: gstAmount,
@@ -83,37 +119,33 @@ export default function Page({ params }) {
   });
 
   invoiceData?.service_tokens?.forEach((service) => {
-    service.items?.forEach((it) => {
-      const gstAmount = it.amount - parseFloat(it.rate);
-      const sgst = gstAmount / 2;
-      const cgst = gstAmount / 2;
-      serviceTokens.push({
-        item: it.item,
-        hsn: it.hsn,
-        rate: it.rate,
-        gst: gstAmount,
-        sgst,
-        cgst,
-        amount: it.amount,
-      });
+    const gst = parseFloat(service.total_gst).toFixed(1);
+    const payable = parseFloat(service.total_amount).toFixed(1);
+
+    serviceTokens.push({
+      item: 'Room Service Charges',
+      room: service.room_no,
+      hsn: '996331',
+      rate: payable - gst,
+      gst: gst,
+      sgst: gst / 2,
+      cgst: gst / 2,
+      amount: payable,
     });
   });
-
   invoiceData?.food_tokens?.forEach((food) => {
-    food.items?.forEach((it) => {
-      const finalRate = it?.rate * it.qty;
-      const gstAmount = it.amount - finalRate;
-      const sgst = gstAmount / 2;
-      const cgst = gstAmount / 2;
-      foodTokens.push({
-        item: it.item,
-        hsn: it.hsn,
-        rate: it.rate,
-        gst: gstAmount,
-        sgst,
-        cgst,
-        amount: it.amount,
-      });
+    const gst = parseFloat(food.total_gst).toFixed(1);
+    const payable = parseFloat(food.total_amount).toFixed(1);
+
+    foodTokens.push({
+      item: 'Food Charges',
+      room: food.room_no,
+      hsn: '996331',
+      rate: payable - gst,
+      gst: gst,
+      sgst: gst / 2,
+      cgst: gst / 2,
+      amount: payable,
     });
   });
 
@@ -213,16 +245,15 @@ export default function Page({ params }) {
             <TableBody>
               {allTokens.map((token, index) => (
                 <TableRow key={index}>
-                  <TableCell>{token.item}</TableCell>
-                  <TableCell>{token.hsn}</TableCell>
-                  <TableCell align="right">
-                    {parseFloat(
-                      token.amount - (token.cgst + token.sgst)
-                    ).toFixed(2)}
+                  <TableCell>
+                    {token.item} <br />
+                    <span style={{ fontSize: '12px' }}>Room: {token.room}</span>
                   </TableCell>
-                  <TableCell align="right">{token.sgst.toFixed(2)}</TableCell>
-                  <TableCell align="right">{token.cgst.toFixed(2)}</TableCell>
-                  <TableCell align="right">{token.amount.toFixed(2)}</TableCell>
+                  <TableCell>{token.hsn}</TableCell>
+                  <TableCell align="right">{token.rate}</TableCell>
+                  <TableCell align="right">{token?.sgst}</TableCell>
+                  <TableCell align="right">{token?.cgst}</TableCell>
+                  <TableCell align="right">{token?.amount}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

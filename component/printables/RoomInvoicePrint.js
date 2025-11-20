@@ -55,6 +55,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
     const cgst = gstAmount / 2;
     roomTokens.push({
       item: room.item,
+      room: room.room,
       hsn: room.hsn,
       rate: room.rate,
       gst: gstAmount,
@@ -65,37 +66,33 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
   });
 
   data?.service_tokens?.forEach((service) => {
-    service.items?.forEach((it) => {
-      const gstAmount = it.amount - parseFloat(it.rate);
-      const sgst = gstAmount / 2;
-      const cgst = gstAmount / 2;
-      serviceTokens.push({
-        item: it.item,
-        hsn: it.hsn,
-        rate: it.rate,
-        gst: gstAmount,
-        sgst,
-        cgst,
-        amount: it.amount,
-      });
+    const gst = parseFloat(service.total_gst).toFixed(1);
+    const payable = parseFloat(service.total_amount).toFixed(1);
+
+    serviceTokens.push({
+      item: 'Room Service Charges',
+      room: service.room_no,
+      hsn: '996331',
+      rate: payable - gst,
+      gst: gst,
+      sgst: gst / 2,
+      cgst: gst / 2,
+      amount: payable,
     });
   });
-
   data?.food_tokens?.forEach((food) => {
-    food.items?.forEach((it) => {
-      const finalRate = it?.rate * it.qty;
-      const gstAmount = it.amount - finalRate;
-      const sgst = gstAmount / 2;
-      const cgst = gstAmount / 2;
-      foodTokens.push({
-        item: it.item,
-        hsn: it.hsn,
-        rate: it.rate,
-        gst: gstAmount,
-        sgst,
-        cgst,
-        amount: it.amount,
-      });
+    const gst = parseFloat(food.total_gst).toFixed(1);
+    const payable = parseFloat(food.total_amount).toFixed(1);
+
+    foodTokens.push({
+      item: 'Food Charges',
+      room: food.room_no,
+      hsn: '996331',
+      rate: payable - gst,
+      gst: gst,
+      sgst: gst / 2,
+      cgst: gst / 2,
+      amount: payable,
     });
   });
 
@@ -254,6 +251,8 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
                     {token?.item}
+                    <br />
+                    <span style={{ fontSize: '12px' }}>Room: {token.room}</span>
                   </CustomTableCell>
                   <CustomTableCell
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
@@ -265,40 +264,38 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                     align="center"
                   >
-                    {parseFloat(
-                      token?.amount - (token?.cgst + token?.sgst)
-                    ).toFixed(1)}
+                    {token?.rate}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.sgst.toFixed(1)}
+                    {token?.sgst}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.cgst.toFixed(1)}
+                    {token?.cgst}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {(token?.cgst + token?.sgst).toFixed(1)}
+                    {token?.gst}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.amount.toFixed(1)}
+                    {token?.amount}
                   </CustomTableCell>
                 </TableRow>
               ))}
             </TableBody>
             <TableBody>
               {Array.from({
-                length: 17 - (allTokens?.length || 0),
+                length: 10 - (allTokens?.length || 0),
               }).map((_, idx) => (
                 <TableRow key={`empty-${idx}`}>
                   {[...Array(7)].map((__, cellIdx) => (
