@@ -5,9 +5,16 @@ import { TextField, Grid, MenuItem } from '@mui/material';
 export default function BookingDetailsStep({
   bookingDetails,
   setBookingDetails,
-  hotelData,
+  setSelectedRooms,
 }) {
   const handleChange = (field, value) => {
+    // Only reset rooms if date **actually changed**
+    if (
+      (field === 'checkin_date' && bookingDetails.checkin_date !== value) ||
+      (field === 'checkout_date' && bookingDetails.checkout_date !== value)
+    ) {
+      setSelectedRooms([]);
+    }
     setBookingDetails({ ...bookingDetails, [field]: value });
   };
 
@@ -67,7 +74,7 @@ export default function BookingDetailsStep({
           fullWidth
           InputLabelProps={{ shrink: true }}
           value={bookingDetails.checkin_date || ''}
-          disabled
+          onChange={(e) => handleChange('checkin_date', e.target.value)}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
@@ -77,7 +84,7 @@ export default function BookingDetailsStep({
           fullWidth
           InputLabelProps={{ shrink: true }}
           value={bookingDetails.checkout_date || ''}
-          disabled
+          onChange={(e) => handleChange('checkout_date', e.target.value)}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>

@@ -101,7 +101,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
 
   const allTokens = [...roomTokens, ...serviceTokens, ...foodTokens];
 
-  let totalInWords = toWords.convert(data?.payable_amount);
+  let totalInWords = toWords?.convert(data?.payable_amount || 0);
 
   return (
     <div ref={ref}>
@@ -321,17 +321,21 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{data.total_amount.toFixed(1)}</Typography>
+                  <Typography>{data?.total_amount.toFixed(1)}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{parseFloat(data.tax / 2).toFixed(1)}</Typography>
+                  <Typography>
+                    {parseFloat(data?.tax / 2).toFixed(1)}
+                  </Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{parseFloat(data.tax / 2).toFixed(1)}</Typography>
+                  <Typography>
+                    {parseFloat(data?.tax / 2).toFixed(1)}
+                  </Typography>
                 </CustomTableCell>
 
                 <CustomTableCell align="center">
-                  <Typography>{parseFloat(data.tax).toFixed(1)}</Typography>
+                  <Typography>{parseFloat(data?.tax).toFixed(1)}</Typography>
                 </CustomTableCell>
 
                 <CustomTableCell align="center">

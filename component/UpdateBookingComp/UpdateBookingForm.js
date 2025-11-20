@@ -20,6 +20,7 @@ import GuestStep from './GuestStep';
 import BookingDetailsStep from './BookingDetailsStep';
 import RoomAvailabilityStep from './RoomAvailabilityStep';
 import FinalPreviewStep from './FinalPreviewStep';
+import { GetTodaysDate } from '@/utils/DateFetcher';
 
 const steps = [
   'Guest',
@@ -51,8 +52,9 @@ const UpdateBookingForm = ({
 }) => {
   const router = useRouter();
   const { auth } = useAuth();
-  const todaysdate = new Date();
-  let tomorrow = new Date();
+  const today = GetTodaysDate().dateString;
+  const todaysdate = new Date(today);
+  let tomorrow = new Date(today);
   tomorrow.setDate(todaysdate.getDate() + 1);
   const formatDate = (date) => date.toISOString().split('T')[0];
   const [loading, setLoading] = useState(false);
@@ -112,12 +114,6 @@ const UpdateBookingForm = ({
   const handleBack = () => {
     setActiveStep((prev) => {
       const newStep = prev - 1;
-
-      // If going back from step 2 to 1
-      if (prev === 2 && newStep === 1) {
-        setSelectedRooms([]);
-        setRoomTokens([]);
-      }
 
       return newStep;
     });
@@ -217,6 +213,7 @@ const UpdateBookingForm = ({
                 bookingDetails={bookingDetails}
                 setBookingDetails={setBookingDetails}
                 hotelData={hotelData}
+                setSelectedRooms={setSelectedRooms}
               />
             )}
             {activeStep === 2 && (
