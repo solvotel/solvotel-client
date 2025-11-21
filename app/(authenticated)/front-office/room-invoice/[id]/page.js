@@ -66,40 +66,23 @@ export default function Page({ params }) {
   const serviceTokens = [];
   const foodTokens = [];
 
-  // invoiceData?.service_tokens?.forEach((service) => {
-  //   service.items?.forEach((it) => {
-  //     const gstAmount = it.amount - parseFloat(it.rate);
-  //     const sgst = gstAmount / 2;
-  //     const cgst = gstAmount / 2;
-  //     serviceTokens.push({
-  //       item: it.item,
-  //       hsn: it.hsn,
-  //       rate: it.rate,
-  //       gst: gstAmount,
-  //       sgst,
-  //       cgst,
-  //       amount: it.amount,
-  //     });
-  //   });
-  // });
-
-  // invoiceData?.food_tokens?.forEach((food) => {
-  //   food.items?.forEach((it) => {
-  //     const finalRate = it?.rate * it.qty;
-  //     const gstAmount = it.amount - finalRate;
-  //     const sgst = gstAmount / 2;
-  //     const cgst = gstAmount / 2;
-  //     foodTokens.push({
-  //       item: it.item,
-  //       hsn: it.hsn,
-  //       rate: it.rate,
-  //       gst: gstAmount,
-  //       sgst,
-  //       cgst,
-  //       amount: it.amount,
-  //     });
-  //   });
-  // });
+  invoiceData?.service_tokens?.forEach((service) => {
+    service.items?.forEach((it) => {
+      const gstAmount = it.amount - parseFloat(it.rate);
+      const sgst = parseFloat(gstAmount / 2).toFixed(1);
+      const cgst = parseFloat(gstAmount / 2).toFixed(1);
+      serviceTokens.push({
+        item: it.item,
+        hsn: it.hsn || '-',
+        rate: it.rate,
+        gst: gstAmount,
+        sgst,
+        cgst,
+        room: service.room_no,
+        amount: it.amount,
+      });
+    });
+  });
 
   invoiceData?.room_tokens?.forEach((room) => {
     const finalRate = room?.rate * room.days;
@@ -118,21 +101,6 @@ export default function Page({ params }) {
     });
   });
 
-  invoiceData?.service_tokens?.forEach((service) => {
-    const gst = parseFloat(service.total_gst).toFixed(1);
-    const payable = parseFloat(service.total_amount).toFixed(1);
-
-    serviceTokens.push({
-      item: 'Room Service Charges',
-      room: service.room_no,
-      hsn: '996331',
-      rate: payable - gst,
-      gst: gst,
-      sgst: gst / 2,
-      cgst: gst / 2,
-      amount: payable,
-    });
-  });
   invoiceData?.food_tokens?.forEach((food) => {
     const gst = parseFloat(food.total_gst).toFixed(1);
     const payable = parseFloat(food.total_amount).toFixed(1);
@@ -279,7 +247,7 @@ export default function Page({ params }) {
       </Box>
 
       {/* ✅ Hidden printable component */}
-      <div style={{ display: 'none' }}>
+      <div style={{ display: 'block' }}>
         <RoomInvoicePrint
           ref={componentRef}
           data={invoiceData}

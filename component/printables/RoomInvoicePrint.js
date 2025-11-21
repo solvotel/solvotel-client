@@ -11,6 +11,7 @@ import {
   TableRow,
   TableBody,
 } from '@mui/material';
+import Image from 'next/image';
 import React from 'react';
 import { ToWords } from 'to-words';
 
@@ -18,7 +19,8 @@ const CustomTableCell = styled(TableCell)`
   border: 1px solid black;
   padding: 5px;
   & > p {
-    font-size: 15px;
+    font-size: 14px;
+    line-height: '0.9em';
   }
 `;
 const toWords = new ToWords({
@@ -48,6 +50,24 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
   const serviceTokens = [];
   const foodTokens = [];
 
+  data?.service_tokens?.forEach((service) => {
+    service.items?.forEach((it) => {
+      const gstAmount = it.amount - parseFloat(it.rate);
+      const sgst = parseFloat(gstAmount / 2).toFixed(1);
+      const cgst = parseFloat(gstAmount / 2).toFixed(1);
+      serviceTokens.push({
+        item: it.item,
+        hsn: it.hsn || '-',
+        rate: it.rate,
+        gst: gstAmount,
+        sgst,
+        cgst,
+        room: service.room_no,
+        amount: it.amount,
+      });
+    });
+  });
+
   data?.room_tokens?.forEach((room) => {
     const finalRate = room?.rate * room.days;
     const gstAmount = (finalRate * room.gst) / 100;
@@ -65,21 +85,6 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
     });
   });
 
-  data?.service_tokens?.forEach((service) => {
-    const gst = parseFloat(service.total_gst).toFixed(1);
-    const payable = parseFloat(service.total_amount).toFixed(1);
-
-    serviceTokens.push({
-      item: 'Room Service Charges',
-      room: service.room_no,
-      hsn: '996331',
-      rate: payable - gst,
-      gst: gst,
-      sgst: gst / 2,
-      cgst: gst / 2,
-      amount: payable,
-    });
-  });
   data?.food_tokens?.forEach((food) => {
     const gst = parseFloat(food.total_gst).toFixed(1);
     const payable = parseFloat(food.total_amount).toFixed(1);
@@ -102,27 +107,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
 
   return (
     <div ref={ref}>
-      {/* ✅ Watermark Layer */}
-      {hotel?.hotel_logo?.url && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: '60%',
-            height: '60%',
-            transform: 'translate(-50%, -50%)',
-            backgroundImage: `url(${hotel.hotel_logo.url})`,
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'center',
-            backgroundSize: 'contain',
-            opacity: 0.08, // transparency for watermark
-            zIndex: 0,
-            pointerEvents: 'none', // allows clicks/printing normally
-          }}
-        />
-      )}
-      <Box sx={{ p: 2, position: 'relative', zIndex: 1 }}>
+      <Box sx={{ p: 2 }}>
         <TableContainer>
           <Table>
             <TableHead>
@@ -135,44 +120,67 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
               </TableRow>
               <TableRow>
                 <CustomTableCell colSpan={7} align="center">
-                  <Typography align="center" variant="h5">
-                    {hotel?.hotel_name}
-                  </Typography>
-                  <Typography align="center">
-                    Contact: {hotel?.hotel_mobile}
-                    {`, ${hotel?.hotel_alt_mobile} `} | Email:{' '}
-                    {hotel?.hotel_email || 'N/A'}
-                  </Typography>
-                  <Typography align="center">
-                    {hotel?.hotel_address_line1},{hotel?.hotel_address_line2},
-                    {hotel?.hotel_state},{hotel?.hotel_pincode}
-                  </Typography>
-                  <Typography align="center">
-                    GSTIN:{hotel?.hotel_gst_no}
-                  </Typography>
                   <Box
                     sx={{ display: 'flex', justifyContent: 'space-between' }}
                   >
-                    <Typography>Bill to</Typography>
-                    <Typography>Booking Id: {booking.booking_id}</Typography>
+                    <Box sx={{ display: 'flex' }}>
+                      <img
+                        src={
+                          hotel.hotel_logo.url ||
+                          'https://res.cloudinary.com/deyxdpnom/image/upload/v1760012402/demo_hpzblb.png'
+                        }
+                        width="100px"
+                        height="100px"
+                        alt="logo"
+                      />
+                      <Box sx={{ textAlign: 'left', ml: 1.5 }}>
+                        <Typography variant="h5">
+                          {hotel?.hotel_name}
+                        </Typography>
+                        <Typography variant="body1">
+                          Contact: {hotel?.hotel_mobile}
+                          {`, ${hotel?.hotel_alt_mobile} `} | Email:{' '}
+                          {hotel?.hotel_email || 'N/A'}
+                        </Typography>
+                        <Typography variant="body2">
+                          {hotel?.hotel_address_line1},
+                          {hotel?.hotel_address_line2},{hotel?.hotel_state},
+                          {hotel?.hotel_pincode}
+                        </Typography>
+                        <Typography variant="body2">
+                          GSTIN:{hotel?.hotel_gst_no}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'end',
+                        alignItems: 'flex-start',
+                      }}
+                    >
+                      <Typography>Booking Id: {booking.booking_id}</Typography>
+                    </Box>
                   </Box>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
                 <CustomTableCell rowSpan={3} colSpan={2}>
-                  <Typography>
+                  <Typography variant="caption">Bill to</Typography>
+                  <Typography variant="body2">
                     Guest Name: {booking?.customer?.name || 'N/A'}
                   </Typography>
-                  <Typography>
+                  <Typography variant="body2">
                     Phone: {booking?.customer?.name || 'N/A'}
                   </Typography>
-                  <Typography>
+                  <Typography variant="body2">
                     Company Name: {booking?.customer?.company_name || 'N/A'}
                   </Typography>
-                  <Typography>
+                  <Typography variant="body2">
                     Address: {booking?.customer?.address || 'N/A'}
                   </Typography>
-                  <Typography>
+                  <Typography variant="body2">
                     GSTIN: {booking?.customer?.gst_no || 'N/A'}
                   </Typography>
                 </CustomTableCell>
@@ -204,7 +212,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={3}>
+                <CustomTableCell colSpan={2}>
                   <Typography>
                     Room No. (s):{' '}
                     {booking?.rooms?.map((item, index) => (
@@ -264,31 +272,31 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                     align="center"
                   >
-                    {token?.rate}
+                    {parseFloat(token?.rate).toFixed(1) || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.sgst}
+                    {parseFloat(token?.sgst).toFixed(1) || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.cgst}
+                    {parseFloat(token?.cgst).toFixed(1) || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.gst}
+                    {parseFloat(token?.gst).toFixed(1) || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.amount}
+                    {parseFloat(token?.amount).toFixed(1)}
                   </CustomTableCell>
                 </TableRow>
               ))}
