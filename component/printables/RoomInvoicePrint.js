@@ -23,26 +23,7 @@ const CustomTableCell = styled(TableCell)`
     line-height: '0.9em';
   }
 `;
-const toWords = new ToWords({
-  localeCode: 'en-IN',
-  converterOptions: {
-    currency: true,
-    ignoreDecimal: false,
-    ignoreZeroCurrency: false,
-    doNotAddOnly: false,
-    currencyOptions: {
-      // can be used to override defaults for the selected locale
-      name: 'Rupee',
-      plural: 'Rupees',
-      symbol: '₹',
-      fractionalUnit: {
-        name: 'Paisa',
-        plural: 'Paise',
-        symbol: '',
-      },
-    },
-  },
-});
+
 const RoomInvoicePrint = React.forwardRef((props, ref) => {
   const toWords = new ToWords();
   const { data, hotel, booking } = props;
@@ -52,33 +33,33 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
 
   data?.service_tokens?.forEach((service) => {
     service.items?.forEach((it) => {
-      const gstAmount = it.amount - parseFloat(it.rate);
-      const sgst = parseFloat(gstAmount / 2).toFixed(1);
-      const cgst = parseFloat(gstAmount / 2).toFixed(1);
+      const gstAmount = it.amount - parseInt(it.rate);
+      const sgst = parseInt(gstAmount / 2);
+      const cgst = parseInt(gstAmount / 2);
       serviceTokens.push({
         item: it.item,
         hsn: it.hsn || '-',
-        rate: it.rate,
-        gst: gstAmount,
+        rate: parseInt(it.rate),
+        gst: parseInt(gstAmount),
         sgst,
         cgst,
         room: service.room_no,
-        amount: it.amount,
+        amount: parseInt(it.amount),
       });
     });
   });
 
   data?.room_tokens?.forEach((room) => {
-    const finalRate = room?.rate * room.days;
+    const finalRate = parseInt(room?.rate) * parseInt(room.days);
     const gstAmount = (finalRate * room.gst) / 100;
-    const sgst = gstAmount / 2;
-    const cgst = gstAmount / 2;
+    const sgst = parseInt(gstAmount / 2);
+    const cgst = parseInt(gstAmount / 2);
     roomTokens.push({
       item: room.item,
       room: room.room,
       hsn: room.hsn,
-      rate: room.rate,
-      gst: gstAmount,
+      rate: parseInt(room.rate),
+      gst: parseInt(gstAmount),
       sgst,
       cgst,
       amount: room.amount,
@@ -86,17 +67,17 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
   });
 
   data?.food_tokens?.forEach((food) => {
-    const gst = parseFloat(food.total_gst).toFixed(1);
-    const payable = parseFloat(food.total_amount).toFixed(1);
+    const gst = parseInt(food.total_gst);
+    const payable = parseInt(food.total_amount);
 
     foodTokens.push({
       item: 'Food Charges',
       room: food.room_no,
       hsn: '996331',
-      rate: payable - gst,
-      gst: gst,
-      sgst: gst / 2,
-      cgst: gst / 2,
+      rate: parseInt(payable - gst),
+      gst: parseInt(gst),
+      sgst: parseInt(gst / 2),
+      cgst: parseInt(gst / 2),
       amount: payable,
     });
   });
@@ -272,31 +253,31 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                     align="center"
                   >
-                    {parseFloat(token?.rate).toFixed(1) || '-'}
+                    {token?.rate || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {parseFloat(token?.sgst).toFixed(1) || '-'}
+                    {token?.sgst || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {parseFloat(token?.cgst).toFixed(1) || '-'}
+                    {token?.cgst || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {parseFloat(token?.gst).toFixed(1) || '-'}
+                    {token?.gst || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {parseFloat(token?.amount).toFixed(1)}
+                    {token?.amount}
                   </CustomTableCell>
                 </TableRow>
               ))}
@@ -326,27 +307,21 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{data?.total_amount.toFixed(1)}</Typography>
+                  <Typography>{parseInt(data?.total_amount)}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>
-                    {parseFloat(data?.tax / 2).toFixed(1)}
-                  </Typography>
+                  <Typography>{parseInt(data?.tax / 2)}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>
-                    {parseFloat(data?.tax / 2).toFixed(1)}
-                  </Typography>
+                  <Typography>{parseInt(data?.tax / 2)}</Typography>
                 </CustomTableCell>
 
                 <CustomTableCell align="center">
-                  <Typography>{parseFloat(data?.tax).toFixed(1)}</Typography>
+                  <Typography>{parseInt(data?.tax)}</Typography>
                 </CustomTableCell>
 
                 <CustomTableCell align="center">
-                  <Typography>
-                    {parseFloat(data?.payable_amount).toFixed(1)}
-                  </Typography>
+                  <Typography>{parseInt(data?.payable_amount)}</Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>

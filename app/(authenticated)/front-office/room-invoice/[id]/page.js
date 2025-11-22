@@ -218,10 +218,10 @@ export default function Page({ params }) {
                     <span style={{ fontSize: '12px' }}>Room: {token.room}</span>
                   </TableCell>
                   <TableCell>{token.hsn}</TableCell>
-                  <TableCell align="right">{token.rate}</TableCell>
-                  <TableCell align="right">{token?.sgst}</TableCell>
-                  <TableCell align="right">{token?.cgst}</TableCell>
-                  <TableCell align="right">{token?.amount}</TableCell>
+                  <TableCell align="right">{parseInt(token.rate)}</TableCell>
+                  <TableCell align="right">{parseInt(token?.sgst)}</TableCell>
+                  <TableCell align="right">{parseInt(token?.cgst)}</TableCell>
+                  <TableCell align="right">{parseInt(token?.amount)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -233,12 +233,12 @@ export default function Page({ params }) {
         <Box>
           <Typography variant="h6">💰 Summary</Typography>
           <Typography>
-            Subtotal : ₹{invoiceData.total_amount.toFixed(2)}
+            Subtotal : ₹{parseInt(invoiceData.total_amount)}
           </Typography>
-          <Typography>SGST : ₹{(invoiceData.tax / 2).toFixed(2)}</Typography>
-          <Typography>CGST : ₹{(invoiceData.tax / 2).toFixed(2)}</Typography>
+          <Typography>SGST : ₹{parseInt(invoiceData.tax / 2)}</Typography>
+          <Typography>CGST : ₹{parseInt(invoiceData.tax / 2)}</Typography>
           <Typography fontWeight="bold" color="primary">
-            Grand Total : ₹{invoiceData.payable_amount.toFixed(2)}
+            Grand Total : ₹{parseInt(invoiceData.payable_amount)}
           </Typography>
           <Typography mt={1}>
             <strong>Payment Method:</strong> {invoiceData.mop || 'N/A'}

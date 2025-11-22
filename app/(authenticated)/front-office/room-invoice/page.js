@@ -118,10 +118,10 @@ const Page = () => {
                         {GetCustomDate(row.date)}&nbsp;{row.time}
                       </TableCell>
                       <TableCell>{row.customer_name}</TableCell>
-                      <TableCell>{row.total_amount.toFixed(2)}</TableCell>
-                      <TableCell>{row.tax / 2}</TableCell>
-                      <TableCell>{row.tax / 2}</TableCell>
-                      <TableCell>{row.payable_amount.toFixed(2)}</TableCell>
+                      <TableCell>{parseInt(row.total_amount)}</TableCell>
+                      <TableCell>{parseInt(row.tax / 2)}</TableCell>
+                      <TableCell>{parseInt(row.tax / 2)}</TableCell>
+                      <TableCell>{parseInt(row.payable_amount)}</TableCell>
                       <TableCell>{row.mop}</TableCell>
                       <TableCell sx={{ width: '150px' }}>
                         <Tooltip title="View">
