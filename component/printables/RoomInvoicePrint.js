@@ -217,7 +217,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   <Typography fontWeight={600}>HSN/SAC</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center" width="12%">
-                  <Typography fontWeight={600}>Rate.</Typography>
+                  <Typography fontWeight={600}>Rate</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center" width="12%">
                   <Typography fontWeight={600}>SGST</Typography>
