@@ -107,7 +107,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     <Box sx={{ display: 'flex' }}>
                       <img
                         src={
-                          hotel.hotel_logo.url ||
+                          hotel?.hotel_logo?.url ||
                           'https://res.cloudinary.com/deyxdpnom/image/upload/v1760012402/demo_hpzblb.png'
                         }
                         width="100px"
