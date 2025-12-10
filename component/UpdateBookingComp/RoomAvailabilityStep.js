@@ -88,7 +88,6 @@ const RoomAvailabilityStep = ({
   const categories = GetDataList({ auth, endPoint: 'room-categories' });
   const rooms = GetDataList({ auth, endPoint: 'rooms' });
 
-  // Check if a room is available for given bookingDetails
   const isRoomAvailable = (room, bookingDetails) => {
     const { checkin_date, checkout_date } = bookingDetails; // include id of current booking
 
@@ -97,7 +96,7 @@ const RoomAvailabilityStep = ({
     return !room.room_bookings.some((booking) => {
       // Skip the booking currently being updated
       if (booking.documentId === bookingData.documentId) return false;
-
+      if (booking.booking_status === 'Cancelled') return false; // ✅ NEW
       return (
         (checkin_date >= booking.checkin_date &&
           checkin_date < booking.checkout_date) ||

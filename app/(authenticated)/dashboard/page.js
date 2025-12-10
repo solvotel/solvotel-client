@@ -46,7 +46,8 @@ const Page = () => {
     return (
       bk.checked_in !== true &&
       bk.checked_out !== true &&
-      checkIn.toDateString() === selectedDate.toDateString()
+      checkIn.toDateString() === selectedDate.toDateString() &&
+      bk.booking_status === 'Confirmed'
     );
   });
 
@@ -55,53 +56,10 @@ const Page = () => {
     return (
       bk.checked_in === true &&
       bk.checked_out !== true &&
-      checkOut.toDateString() === selectedDate.toDateString()
+      checkOut.toDateString() === selectedDate.toDateString() &&
+      bk.booking_status === 'Confirmed'
     );
   });
-
-  const confirmedRooms = bookings?.filter((bk) => {
-    const checkIn = new Date(bk.checkin_date);
-    const checkOut = new Date(bk.checkout_date);
-    return (
-      bk.booking_status === 'Confirmed' && today >= checkIn && today <= checkOut
-    );
-  });
-  const blockedRooms = bookings?.filter((bk) => {
-    const checkIn = new Date(bk.checkin_date);
-    const checkOut = new Date(bk.checkout_date);
-    return (
-      bk.booking_status === 'Blocked' && today >= checkIn && today <= checkOut
-    );
-  });
-
-  const activeBookings = bookings?.filter((bk) => {
-    const checkIn = new Date(bk.checkin_date);
-    const checkOut = new Date(bk.checkout_date);
-
-    return (
-      bk.checked_in === true &&
-      bk.checked_out !== true &&
-      today >= checkIn &&
-      today <= checkOut
-    );
-  });
-
-  // Step 2: Flatten all rooms from those active bookings
-  const activeRooms = activeBookings?.flatMap(
-    (bk) =>
-      bk.rooms?.map((room) => ({
-        booking_id: bk.documentId,
-        room_no: room.room_no,
-      })) || []
-  );
-
-  // Step 3: Create a Set of occupied room numbers for quick lookup
-  const occupiedRoomNos = new Set(activeRooms?.map((r) => r.room_no));
-
-  // Step 4: Filter all rooms to find available ones
-  const availableRooms = rooms?.filter(
-    (room) => !occupiedRoomNos.has(room.room_no)
-  );
 
   if (!bookings || !rooms) {
     return <Loader />;
@@ -109,14 +67,7 @@ const Page = () => {
 
   return (
     <>
-      <OverviewStats
-        availableRooms={availableRooms}
-        expectedCheckin={expectedCheckin}
-        expectedCheckout={expectedCheckout}
-        currentlyStaying={currentlyStaying}
-        confirmedRooms={confirmedRooms}
-        blockedRooms={blockedRooms}
-      />
+      <OverviewStats bookings={bookings} rooms={rooms} />
       <RoomGridLayout bookings={bookings} rooms={rooms} />
       <BookingList
         expectedCheckin={expectedCheckin}
