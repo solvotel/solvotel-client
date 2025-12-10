@@ -96,7 +96,11 @@ export default function Page({ params }) {
           Date: {invoiceData.date} | Time: {invoiceData.time}
         </Typography>
         <Typography variant="subtitle1">
-          Customer: {invoiceData.customer_name} ({invoiceData.customer_phone})
+          Customer: {invoiceData.customer_name || 'N/A'}
+        </Typography>
+        <Typography variant="subtitle1">
+          Phone:
+          {invoiceData.customer_phone || 'N/A'}
         </Typography>
         <Typography variant="subtitle1">
           GST: {invoiceData.customer_gst}

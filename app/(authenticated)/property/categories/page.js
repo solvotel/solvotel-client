@@ -136,9 +136,30 @@ const Page = () => {
     return true;
   };
 
+  const isDuplicateName = (name, id = null) => {
+    if (!data) return false;
+
+    return data.some(
+      (item) =>
+        item.name?.trim().toLowerCase() === name.trim().toLowerCase() &&
+        item.documentId !== id
+    );
+  };
+
   const handleSave = async () => {
     if (!validateForm(formData)) {
       ErrorToast('Enter Required fields');
+      return;
+    }
+
+    // 🔍 NEW: Check duplicate category name before save
+    const duplicate = isDuplicateName(
+      formData.name,
+      editing ? formData.documentId : null
+    );
+
+    if (duplicate) {
+      ErrorToast('Category already exists');
       return;
     }
     if (editing) {

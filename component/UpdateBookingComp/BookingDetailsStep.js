@@ -6,6 +6,7 @@ export default function BookingDetailsStep({
   bookingDetails,
   setBookingDetails,
   setSelectedRooms,
+  setRoomTokens,
 }) {
   const handleChange = (field, value) => {
     // Only reset rooms if date **actually changed**
@@ -14,6 +15,7 @@ export default function BookingDetailsStep({
       (field === 'checkout_date' && bookingDetails.checkout_date !== value)
     ) {
       setSelectedRooms([]);
+      setRoomTokens([]);
     }
     setBookingDetails({ ...bookingDetails, [field]: value });
   };

@@ -57,12 +57,17 @@ export const CreateNewData = async ({ auth, endPoint, payload }) => {
 
 // create update data
 export const UpdateData = async ({ auth, endPoint, id, payload }) => {
-  const res = await axios.put(`${BASEURL}/${endPoint}/${id}`, payload, {
-    headers: {
-      Authorization: `Bearer ${auth.token}`,
-    },
-  });
-  return res;
+  try {
+    const res = await axios.put(`${BASEURL}/${endPoint}/${id}`, payload, {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    });
+    return res;
+  } catch (err) {
+    console.error('UpdateData API Error:', err?.response?.data || err);
+    throw err; // important → pass the real error back
+  }
 };
 
 // delete data

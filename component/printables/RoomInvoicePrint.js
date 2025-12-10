@@ -24,6 +24,8 @@ const CustomTableCell = styled(TableCell)`
   }
 `;
 
+const toInt = (n) => Math.round(Number(n) || 0);
+
 const RoomInvoicePrint = React.forwardRef((props, ref) => {
   const toWords = new ToWords();
   const { data, hotel, booking } = props;
@@ -33,58 +35,74 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
 
   data?.service_tokens?.forEach((service) => {
     service.items?.forEach((it) => {
-      const gstAmount = it.amount - parseInt(it.rate);
-      const sgst = parseInt(gstAmount / 2);
-      const cgst = parseInt(gstAmount / 2);
+      const gstAmount = it.amount - toInt(it.rate);
+      const sgst = gstAmount / 2;
+      const cgst = gstAmount / 2;
       serviceTokens.push({
         item: it.item,
         hsn: it.hsn || '-',
-        rate: parseInt(it.rate),
-        gst: parseInt(gstAmount),
-        sgst,
+        rate: toInt(it.rate),
+        gst: toInt(gstAmount),
+        sgst: toInt(sgst),
         cgst,
         room: service.room_no,
-        amount: parseInt(it.amount),
+        amount: toInt(it.amount),
       });
     });
   });
 
   data?.room_tokens?.forEach((room) => {
-    const finalRate = parseInt(room?.rate) * parseInt(room.days);
+    const finalRate = toInt(room?.rate) * toInt(room.days);
     const gstAmount = (finalRate * room.gst) / 100;
-    const sgst = parseInt(gstAmount / 2);
-    const cgst = parseInt(gstAmount / 2);
+    const sgst = gstAmount / 2;
+    const cgst = gstAmount / 2;
     roomTokens.push({
       item: room.item,
       room: room.room,
       hsn: room.hsn,
-      rate: parseInt(room.rate),
-      gst: parseInt(gstAmount),
-      sgst,
-      cgst,
+      rate: toInt(room.rate),
+      gst: toInt(gstAmount),
+      sgst: toInt(sgst),
+      cgst: toInt(cgst),
       amount: room.amount,
     });
   });
 
   data?.food_tokens?.forEach((food) => {
-    const gst = parseInt(food.total_gst);
-    const payable = parseInt(food.total_amount);
-
+    const gst = toInt(food.total_gst);
+    const payable = toInt(food.total_amount);
+    const sgst = gst / 2;
+    const cgst = gst / 2;
     foodTokens.push({
       item: 'Food Charges',
       room: food.room_no,
       hsn: '996331',
-      rate: parseInt(payable - gst),
-      gst: parseInt(gst),
-      sgst: parseInt(gst / 2),
-      cgst: parseInt(gst / 2),
+      rate: toInt(payable - gst),
+      gst: toInt(gst),
+      sgst: toInt(sgst),
+      cgst: toInt(cgst),
       amount: payable,
     });
   });
 
   const allTokens = [...roomTokens, ...serviceTokens, ...foodTokens];
 
-  let totalInWords = toWords?.convert(data?.payable_amount || 0);
+  const totalRate = allTokens.reduce(
+    (acc, token) => acc + (token?.rate || 0),
+    0
+  );
+  const totalCGST = allTokens.reduce(
+    (acc, token) => acc + (token?.cgst || 0),
+    0
+  );
+  const totalSGST = allTokens.reduce(
+    (acc, token) => acc + (toInt(token?.sgst) || 0),
+    0
+  );
+  const totalGST = totalCGST + totalSGST;
+  const totalAmount = totalRate + totalGST;
+
+  let totalInWords = toWords?.convert(totalAmount || 0);
 
   return (
     <div ref={ref}>
@@ -141,7 +159,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                         alignItems: 'flex-start',
                       }}
                     >
-                      <Typography>Booking Id: {booking.booking_id}</Typography>
+                      <Typography>Booking Id: {booking?.booking_id}</Typography>
                     </Box>
                   </Box>
                 </CustomTableCell>
@@ -259,25 +277,25 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.sgst || '-'}
+                    {toInt(token?.sgst) || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.cgst || '-'}
+                    {toInt(token?.cgst) || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.gst || '-'}
+                    {toInt(token?.gst) || '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {token?.amount}
+                    {toInt(token?.amount) || '-'}
                   </CustomTableCell>
                 </TableRow>
               ))}
@@ -307,21 +325,21 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   <Typography></Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{parseInt(data?.total_amount)}</Typography>
+                  <Typography>{toInt(totalRate)}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{parseInt(data?.tax / 2)}</Typography>
+                  <Typography>{toInt(totalSGST)}</Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center">
-                  <Typography>{parseInt(data?.tax / 2)}</Typography>
-                </CustomTableCell>
-
-                <CustomTableCell align="center">
-                  <Typography>{parseInt(data?.tax)}</Typography>
+                  <Typography>{toInt(totalCGST)}</Typography>
                 </CustomTableCell>
 
                 <CustomTableCell align="center">
-                  <Typography>{parseInt(data?.payable_amount)}</Typography>
+                  <Typography>{toInt(totalGST)}</Typography>
+                </CustomTableCell>
+
+                <CustomTableCell align="center">
+                  <Typography>{toInt(totalAmount)}</Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>

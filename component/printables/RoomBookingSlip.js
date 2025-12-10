@@ -102,7 +102,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
               Phone: +91‑{hotel?.hotel_mobile || 'N/A'}
             </Typography>
             <Typography variant="body2">
-              GST #: {hotel?.hotel_gst_no || 'N/A'}
+              GSTIN: {hotel?.hotel_gst_no || 'N/A'}
             </Typography>
           </Grid>
           <Grid size={5} textAlign="right">
@@ -136,7 +136,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
             <b>Company:</b> {booking?.customer?.company_name || 'N/A'}
           </Typography>
           <Typography>
-            <b>GST #:</b> {booking?.customer?.gst_no || 'N/A'}
+            <b>GSTIN:</b> {booking?.customer?.gst_no || 'N/A'}
           </Typography>
           <Typography>
             <b>Address:</b> {booking?.customer?.address || 'N/A'}
@@ -167,10 +167,11 @@ const BookingSlip = React.forwardRef((props, ref) => {
             })}
           </Typography>
           <Typography>
-            <b>No. of Guest:</b> {booking?.adult + booking?.children}
+            <b>No. of Guest:</b> {booking?.adult || '-'} Adults,{' '}
+            {booking?.child || '-'} Child
           </Typography>
           <Typography>
-            <b>Meal Plan:</b> {booking?.meal_plan}
+            <b>Meal Plan:</b> {booking?.meal_plan || '-'}
           </Typography>
         </Box>
       </Box>

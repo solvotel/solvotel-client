@@ -237,7 +237,7 @@ const FinalPreviewStep = ({
           </TableHead>
           <TableBody>
             {roomTokens.map((room, index) => (
-              <TableRow key={room.room_no}>
+              <TableRow key={index}>
                 <TableCell>{room.room}</TableCell>
                 <TableCell>{room.item}</TableCell>
 
@@ -291,18 +291,7 @@ const FinalPreviewStep = ({
             Advance Payment
           </Typography>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 3 }}>
-              <TextField
-                label="Date"
-                type="date"
-                size="small"
-                fullWidth
-                value={paymentDetails.date}
-                onChange={(e) => handleAdvanceChange('date', e.target.value)}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 3 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 select
                 label="Mode"
@@ -319,7 +308,7 @@ const FinalPreviewStep = ({
                 ))}
               </TextField>
             </Grid>
-            <Grid size={{ xs: 12, sm: 3 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 label="Amount"
                 type="number"
@@ -329,7 +318,7 @@ const FinalPreviewStep = ({
                 onChange={(e) => handleAdvanceChange('amount', e.target.value)}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 3 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 label="Remark"
                 size="small"

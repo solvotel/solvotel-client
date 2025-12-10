@@ -150,12 +150,18 @@ export default function BookingForm() {
       return newStep;
     });
   };
+  const totalAmount = roomTokens.reduce((sum, r) => sum + (r.amount || 0), 0);
 
   const handleSubmitBooking = async () => {
     if (!validateStep()) return;
     const rooms = selectedRooms.map((r) => {
       return r.documentId;
     });
+
+    if (paymentDetails.amount > totalAmount) {
+      setError('Advance payment cannot be more than total amount.');
+      return;
+    }
     try {
       setLoading(true);
       const newBookingId = generateNextBookingId(bookings);

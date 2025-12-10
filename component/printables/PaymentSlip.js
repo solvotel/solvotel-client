@@ -89,7 +89,7 @@ const PaymentSlip = React.forwardRef((props, ref) => {
               Phone: +91‑{hotel?.hotel_mobile || 'N/A'}
             </Typography>
             <Typography variant="body2">
-              GST #: {hotel?.hotel_gst_no || 'N/A'}
+              GSTIN: {hotel?.hotel_gst_no || 'N/A'}
             </Typography>
           </Grid>
           <Grid size={5} textAlign="right">
@@ -112,7 +112,7 @@ const PaymentSlip = React.forwardRef((props, ref) => {
           flexDirection: { xs: 'column', sm: 'row' },
         }}
       >
-        <Box sx={{ flex: 2, border: '1px solid #747474ff', p: 2 }}>
+        <Box sx={{ flex: 1, border: '1px solid #747474ff', p: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
             Guest Information
           </Typography>
@@ -123,7 +123,7 @@ const PaymentSlip = React.forwardRef((props, ref) => {
             <b>Company:</b> {booking?.customer?.company_name || 'N/A'}
           </Typography>
           <Typography>
-            <b>GST #:</b> {booking?.customer?.gst_no || 'N/A'}
+            <b>GSTIN:</b> {booking?.customer?.gst_no || 'N/A'}
           </Typography>
           <Typography>
             <b>Address:</b> {booking?.customer?.address || 'N/A'}
@@ -142,9 +142,6 @@ const PaymentSlip = React.forwardRef((props, ref) => {
           <Typography>
             <b>Check‑Out:</b> {GetCustomDate(booking?.checkout_date)}
           </Typography>
-          <Typography>
-            <b>Type:</b> {booking?.booking_type}
-          </Typography>
 
           <Typography>
             <b>No. of Nights:</b>{' '}
@@ -152,6 +149,19 @@ const PaymentSlip = React.forwardRef((props, ref) => {
               checkin: booking?.checkin_date,
               checkout: booking?.checkout_date,
             })}
+          </Typography>
+          <Typography>
+            <b>No. of Guest:</b> {booking?.adult} Adults, {booking?.child} Child
+          </Typography>
+          <Typography
+            sx={{
+              whiteSpace: 'normal',
+              wordBreak: 'break-word',
+              maxWidth: '100%',
+            }}
+          >
+            <b>Rooms:</b>{' '}
+            {booking?.rooms?.map((room) => room.room_no).join(', ')}
           </Typography>
         </Box>
       </Box>

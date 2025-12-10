@@ -70,7 +70,7 @@ const UpdateBookingForm = ({
     checkout_time: bookingData.checkout_time,
     booking_referance: bookingData?.booking_referance,
     reference_no: bookingData?.reference_no,
-    meal_plan: bookingData?.meal_plan || '',
+    meal_plan: bookingData?.meal_plan || null,
     remarks: bookingData?.remarks || '',
     adult: bookingData?.adult || 1,
     children: bookingData?.children || 0,
@@ -80,7 +80,7 @@ const UpdateBookingForm = ({
   const cleanedTokens = bookingData.room_tokens.map(({ id, ...rest }) => rest);
   const [roomTokens, setRoomTokens] = useState([...cleanedTokens]);
   const [paymentDetails, setPaymentDetails] = useState({
-    date: bookingData?.advance_payment?.date || formatDate(todaysdate),
+    date: bookingData?.advance_payment?.date,
     mode: bookingData?.advance_payment?.mode || '',
     amount: bookingData?.advance_payment?.amount || 0,
     remark: bookingData?.advance_payment?.remark || '',
@@ -214,6 +214,7 @@ const UpdateBookingForm = ({
                 setBookingDetails={setBookingDetails}
                 hotelData={hotelData}
                 setSelectedRooms={setSelectedRooms}
+                setRoomTokens={setRoomTokens}
               />
             )}
             {activeStep === 2 && (

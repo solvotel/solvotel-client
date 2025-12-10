@@ -19,6 +19,7 @@ import {
   Paper,
   Button,
   Grid,
+  MenuItem,
 } from '@mui/material';
 
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -48,13 +49,13 @@ const Page = () => {
 
   const dobList = useMemo(() => {
     if (!data || !selectedMonth) return [];
-    const month = parseInt(selectedMonth.split('-')[1], 10) - 1; // 0-based
+    const month = parseInt(selectedMonth, 10) - 1; // 0-based
     return data.filter((c) => getMonth(c.dob) === month);
   }, [data, selectedMonth]);
 
   const doaList = useMemo(() => {
     if (!data || !selectedMonth) return [];
-    const month = parseInt(selectedMonth.split('-')[1], 10) - 1; // 0-based
+    const month = parseInt(selectedMonth, 10) - 1; // 0-based
     return data.filter((c) => getMonth(c.doa) === month);
   }, [data, selectedMonth]);
 
@@ -88,12 +89,31 @@ const Page = () => {
             {/* Month Selector */}
             <Box display="flex" justifyContent="flex-start" mb={3}>
               <TextField
+                select
                 label="Select Month"
-                type="month"
-                InputLabelProps={{ shrink: true }}
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-              />
+                sx={{ width: 220 }}
+              >
+                {[
+                  { id: 1, name: 'January' },
+                  { id: 2, name: 'February' },
+                  { id: 3, name: 'March' },
+                  { id: 4, name: 'April' },
+                  { id: 5, name: 'May' },
+                  { id: 6, name: 'June' },
+                  { id: 7, name: 'July' },
+                  { id: 8, name: 'August' },
+                  { id: 9, name: 'September' },
+                  { id: 10, name: 'October' },
+                  { id: 11, name: 'November' },
+                  { id: 12, name: 'December' },
+                ].map((m) => (
+                  <MenuItem key={m.id} value={m.id.toString()}>
+                    {m.name}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Box>
 
             <Grid container spacing={2}>

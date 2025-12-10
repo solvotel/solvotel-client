@@ -33,6 +33,10 @@ import {
   Paper,
   Grid,
   TablePagination,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -374,24 +378,26 @@ const Page = () => {
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    select
-                    margin="dense"
-                    label="Mode Of Payment"
-                    fullWidth
-                    value={formData.mop || ''}
-                    onChange={(e) =>
-                      setFormData({ ...formData, mop: e.target.value })
-                    }
-                    SelectProps={{ native: true }}
-                  >
-                    <option value="">-- Select --</option>
-                    {paymentMethods?.map((cat) => (
-                      <option key={cat.documentId} value={cat.name}>
-                        {cat?.name}
-                      </option>
-                    ))}
-                  </TextField>
+                  <FormControl fullWidth margin="dense">
+                    <InputLabel shrink>Mode Of Payment</InputLabel>
+
+                    <Select
+                      value={formData.mop || ''}
+                      onChange={(e) =>
+                        setFormData({ ...formData, mop: e.target.value })
+                      }
+                      label="Mode Of Payment"
+                      displayEmpty
+                    >
+                      <MenuItem value="">-- Select --</MenuItem>
+
+                      {paymentMethods?.map((cat) => (
+                        <MenuItem key={cat.documentId} value={cat.name}>
+                          {cat?.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
               </Grid>
             </DialogContent>

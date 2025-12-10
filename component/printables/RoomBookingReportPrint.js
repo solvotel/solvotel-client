@@ -60,7 +60,7 @@ const RoomBookingReportPrint = React.forwardRef((props, ref) => {
               {[
                 'Booking ID',
                 'Guest',
-                'Booking Type',
+                'Meal Plan',
                 'Room No',
                 'Room Tokens',
                 'Services',
@@ -103,8 +103,8 @@ const RoomBookingReportPrint = React.forwardRef((props, ref) => {
               return (
                 <TableRow key={index}>
                   <BodyCell>{row.booking_id}</BodyCell>
-                  <BodyCell>{row.customer.company_name}</BodyCell>
-                  <BodyCell>{row.booking_type}</BodyCell>
+                  <BodyCell>{row.customer.name || 'N/A'}</BodyCell>
+                  <BodyCell>{row.meal_plan || 'N/A'}</BodyCell>
                   <BodyCell>
                     {row.rooms.map((r) => r.room_no).join(', ')}
                   </BodyCell>

@@ -34,8 +34,8 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       <p>
         Date: {GetCustomDate(invoice.date)} | Time: {invoice.time}
       </p>
-      <p>Customer: {invoice.customer_name}</p>
-      <p>Phone: {invoice.customer_phone}</p>
+      <p>Customer: {invoice.customer_name || 'N/A'}</p>
+      <p>Phone: {invoice.customer_phone || 'N/A'}</p>
       <p style={{ margin: '5px 0' }}>-------------------------------</p>
 
       <table style={{ width: '100%' }}>

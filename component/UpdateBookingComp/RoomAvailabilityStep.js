@@ -15,7 +15,7 @@ import {
   Chip,
 } from '@mui/material';
 import { useAuth } from '@/context';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, wrap } from 'framer-motion';
 import {
   Bed,
   Hotel,
@@ -324,6 +324,7 @@ const RoomAvailabilityStep = ({
       {/* Footer */}
       <Box
         sx={{
+          mt: 4,
           p: 3,
           bgcolor: 'grey.50',
           borderTop: 1,
@@ -340,7 +341,7 @@ const RoomAvailabilityStep = ({
               {selectedRooms.length} rooms selected
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', gap: 1, mt: 1, ml: 3 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1, ml: 3 }}>
             {selectedRooms.map((room) => (
               <Chip
                 key={room?.documentId}

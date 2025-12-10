@@ -70,7 +70,7 @@ const Page = () => {
       return {
         'Booking ID': row.booking_id,
         Guest: row.customer.company_name,
-        'Booking Type': row.booking_type,
+        'Meal Plan': row.meal_plan,
         'Room No': row.rooms.map((r) => r.room_no).join(', '),
         'Room Tokens': row.room_tokens
           .reduce(
@@ -228,7 +228,7 @@ const Page = () => {
                     {[
                       'Booking ID',
                       'Guest',
-                      'Booking Type',
+                      'Meal Plan',
                       'Room No',
                       'Room Tokens',
                       'Services',
@@ -273,9 +273,16 @@ const Page = () => {
                     const dueAmount = grandTotal - amountPayed;
                     return (
                       <TableRow key={row.documentId}>
-                        <TableCell>{row.booking_id}</TableCell>
-                        <TableCell>{row.customer.company_name}</TableCell>
-                        <TableCell>{row.booking_type}</TableCell>
+                        <TableCell>
+                          <Link
+                            href={`/front-office/room-booking/${row.documentId}`}
+                            underline="hover"
+                          >
+                            {row.booking_id}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{row.customer.name || 'N/A'}</TableCell>
+                        <TableCell>{row.meal_plan || 'N/A'}</TableCell>
                         <TableCell>
                           {row.rooms.map((r) => r.room_no).join(', ')}
                         </TableCell>

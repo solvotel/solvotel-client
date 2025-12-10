@@ -203,7 +203,10 @@ export default function BookingServiceActionsCard({
                 color="success"
                 startIcon={<LoginIcon />}
                 sx={{ textTransform: 'none' }}
-                disabled={booking.booking_status === 'Cancelled'}
+                disabled={
+                  booking.booking_status === 'Cancelled' ||
+                  booking.booking_status === 'Blocked'
+                }
                 onClick={() => setCheckinDialogOpen(true)}
               >
                 Mark Check-In

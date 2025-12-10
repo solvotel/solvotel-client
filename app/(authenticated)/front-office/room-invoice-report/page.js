@@ -19,6 +19,8 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Tooltip,
+  IconButton,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
@@ -26,10 +28,9 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
-import { RestaurantInvoiceReportPrint } from '@/component/printables/RestaurantInvoiceReportPrint';
 import { RoomInvoiceReportPrint } from '@/component/printables/RoomInvoiceReportPrint';
 import { exportToExcel } from '@/utils/exportToExcel';
-
+import VisibilityIcon from '@mui/icons-material/Visibility';
 const Page = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
@@ -180,6 +181,7 @@ const Page = () => {
                       'CGST',
                       'Payable Amount',
                       'Payment Method',
+                      'Action',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
                         {item}
@@ -202,6 +204,17 @@ const Page = () => {
                         <TableCell>{row.tax / 2}</TableCell>
                         <TableCell>{row.payable_amount.toFixed(2)}</TableCell>
                         <TableCell>{row?.mop}</TableCell>
+                        <TableCell sx={{ width: '150px' }}>
+                          <Tooltip title="View">
+                            <IconButton
+                              color="secondary"
+                              href={`/front-office/room-invoice/${row.documentId}`}
+                              size="small"
+                            >
+                              <VisibilityIcon fontSize="inherit" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
                       </TableRow>
                     );
                   })}

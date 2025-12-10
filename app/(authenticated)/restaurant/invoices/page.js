@@ -159,19 +159,6 @@ const Page = () => {
   const validateForm = (formData) => {
     const errors = {};
 
-    if (!formData.customer_name?.trim()) {
-      errors.customer_name = 'Customer name is required';
-    }
-
-    if (!formData.customer_phone?.trim()) {
-      errors.customer_phone = 'Customer phone is required';
-    } else {
-      const phoneRegex = /^[0-9]{10}$/;
-      if (!phoneRegex.test(formData.customer_phone)) {
-        errors.customer_phone = 'Please enter a valid 10-digit phone number';
-      }
-    }
-
     if (!formData.menu_items || formData.menu_items.length === 0) {
       errors.menu_items = 'Please add at least one menu item';
     }
@@ -337,7 +324,7 @@ const Page = () => {
                     <TableCell>
                       {row.date}:{row.time}
                     </TableCell>
-                    <TableCell>{row.customer_name}</TableCell>
+                    <TableCell>{row.customer_name || 'N/A'}</TableCell>
                     <TableCell>{row.total_amount}</TableCell>
                     <TableCell>{row.tax / 2}</TableCell>
                     <TableCell>{row.tax / 2}</TableCell>
@@ -461,8 +448,6 @@ const Page = () => {
                         customer_name: e.target.value,
                       })
                     }
-                    error={!!formErrors.customer_name}
-                    helperText={formErrors.customer_name}
                   />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 6 }}>
@@ -478,8 +463,6 @@ const Page = () => {
                         customer_phone: e.target.value,
                       })
                     }
-                    error={!!formErrors.customer_phone}
-                    helperText={formErrors.customer_phone}
                   />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 6 }}>

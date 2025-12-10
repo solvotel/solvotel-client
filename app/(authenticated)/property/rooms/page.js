@@ -87,10 +87,31 @@ const Page = () => {
     return true;
   };
 
+  const isDuplicateName = (room_no, id = null) => {
+    if (!data) return false;
+
+    return data.some(
+      (item) =>
+        item.room_no?.trim().toLowerCase() === room_no.trim().toLowerCase() &&
+        item.documentId !== id
+    );
+  };
+
   // ✅ Save handler
   const handleSave = async () => {
     if (!validateForm(formData)) {
       ErrorToast('Enter required fields');
+      return;
+    }
+
+    // 🔍 NEW: Check duplicate category name before save
+    const duplicate = isDuplicateName(
+      formData.room_no,
+      editing ? formData.documentId : null
+    );
+
+    if (duplicate) {
+      ErrorToast('Room already exists');
       return;
     }
 

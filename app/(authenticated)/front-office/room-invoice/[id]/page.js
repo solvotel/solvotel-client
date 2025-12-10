@@ -25,6 +25,8 @@ import { Loader } from '@/component/common';
 import { RoomInvoicePrint } from '@/component/printables/RoomInvoicePrint';
 import { GetCustomDate } from '@/utils/DateFetcher';
 
+const toInt = (n) => Math.round(Number(n) || 0);
+
 export default function Page({ params }) {
   const { auth } = useAuth();
   const { id } = use(params);
@@ -68,7 +70,7 @@ export default function Page({ params }) {
 
   invoiceData?.service_tokens?.forEach((service) => {
     service.items?.forEach((it) => {
-      const gstAmount = it.amount - parseFloat(it.rate);
+      const gstAmount = it.amount - toInt(it.rate);
       const sgst = parseFloat(gstAmount / 2).toFixed(1);
       const cgst = parseFloat(gstAmount / 2).toFixed(1);
       serviceTokens.push({
@@ -218,10 +220,10 @@ export default function Page({ params }) {
                     <span style={{ fontSize: '12px' }}>Room: {token.room}</span>
                   </TableCell>
                   <TableCell>{token.hsn}</TableCell>
-                  <TableCell align="right">{parseInt(token.rate)}</TableCell>
-                  <TableCell align="right">{parseInt(token?.sgst)}</TableCell>
-                  <TableCell align="right">{parseInt(token?.cgst)}</TableCell>
-                  <TableCell align="right">{parseInt(token?.amount)}</TableCell>
+                  <TableCell align="right">{toInt(token.rate)}</TableCell>
+                  <TableCell align="right">{toInt(token?.sgst)}</TableCell>
+                  <TableCell align="right">{toInt(token?.cgst)}</TableCell>
+                  <TableCell align="right">{toInt(token?.amount)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -232,13 +234,11 @@ export default function Page({ params }) {
         <Divider sx={{ my: 2 }} />
         <Box>
           <Typography variant="h6">💰 Summary</Typography>
-          <Typography>
-            Subtotal : ₹{parseInt(invoiceData.total_amount)}
-          </Typography>
-          <Typography>SGST : ₹{parseInt(invoiceData.tax / 2)}</Typography>
-          <Typography>CGST : ₹{parseInt(invoiceData.tax / 2)}</Typography>
+          <Typography>Subtotal : ₹{toInt(invoiceData.total_amount)}</Typography>
+          <Typography>SGST : ₹{toInt(invoiceData.tax / 2)}</Typography>
+          <Typography>CGST : ₹{toInt(invoiceData.tax / 2)}</Typography>
           <Typography fontWeight="bold" color="primary">
-            Grand Total : ₹{parseInt(invoiceData.payable_amount)}
+            Grand Total : ₹{toInt(invoiceData.payable_amount)}
           </Typography>
           <Typography mt={1}>
             <strong>Payment Method:</strong> {invoiceData.mop || 'N/A'}
