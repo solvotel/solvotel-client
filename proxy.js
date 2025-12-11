@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { jwtDecode } from 'jwt-decode';
 
-export function middleware(req) {
+export function proxy(req) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get('token')?.value;
 
@@ -24,11 +23,6 @@ export function middleware(req) {
   if (pathname === '/') {
     if (token) {
       try {
-        const decoded = jwtDecode(token);
-        const now = Date.now() / 1000;
-        if (!decoded.exp || decoded.exp > now) {
-          return NextResponse.redirect(new URL('/dashboard', req.url));
-        }
       } catch (err) {
         // invalid token — just clear cookies and allow them to see "/"
         const res = NextResponse.next();
@@ -51,16 +45,6 @@ export function middleware(req) {
   }
 
   try {
-    const decoded = jwtDecode(token);
-    const now = Date.now() / 1000;
-
-    if (decoded.exp && decoded.exp < now) {
-      const res = NextResponse.redirect(new URL('/login', req.url));
-      res.cookies.set('token', '', { maxAge: -1, path: '/' });
-      res.cookies.set('user', '', { maxAge: -1, path: '/' });
-      return res;
-    }
-
     return NextResponse.next();
   } catch (err) {
     const res = NextResponse.redirect(new URL('/login', req.url));
