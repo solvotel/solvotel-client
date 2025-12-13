@@ -342,29 +342,36 @@ export default function CreateInvoiceModal({
                   </TableCell>
                   <TableCell>Room No</TableCell>
                   <TableCell>Items</TableCell>
-                  <TableCell align="right">SGST (%)</TableCell>
-                  <TableCell align="right">CGST (%)</TableCell>
+                  <TableCell align="right">SGST (₹)</TableCell>
+                  <TableCell align="right">CGST (₹)</TableCell>
                   <TableCell align="right">Amount (₹)</TableCell>
                 </TableRow>
               </TableHead>
 
               <TableBody>
                 {roomTokens.length ? (
-                  roomTokens.map((row, i) => (
-                    <TableRow key={i} hover>
-                      <TableCell>
-                        <Checkbox
-                          checked={row.invoice || false}
-                          onChange={() => handleRoomToggle(i)}
-                        />
-                      </TableCell>
-                      <TableCell>{row.room}</TableCell>
-                      <TableCell>{row.item}</TableCell>
-                      <TableCell align="right">{row.gst / 2}</TableCell>
-                      <TableCell align="right">{row.gst / 2}</TableCell>
-                      <TableCell align="right">{row.amount}</TableCell>
-                    </TableRow>
-                  ))
+                  roomTokens.map((row, i) => {
+                    const rate = row.rate * row.days;
+                    return (
+                      <TableRow key={i} hover>
+                        <TableCell>
+                          <Checkbox
+                            checked={row.invoice || false}
+                            onChange={() => handleRoomToggle(i)}
+                          />
+                        </TableCell>
+                        <TableCell>{row.room}</TableCell>
+                        <TableCell>{row.item}</TableCell>
+                        <TableCell align="right">
+                          {(row.amount - rate) / 2}
+                        </TableCell>
+                        <TableCell align="right">
+                          {(row.amount - rate) / 2}
+                        </TableCell>
+                        <TableCell align="right">{row.amount}</TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} align="center">

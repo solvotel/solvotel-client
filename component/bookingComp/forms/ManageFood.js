@@ -120,6 +120,7 @@ export default function ManageFood({
       id: new Date().getTime().toString(36),
       room_no: room,
       type: 'Room Service',
+      orderId: null,
       total_gst: total_gst.toFixed(2),
       total_amount: total_amount.toFixed(2),
       invoice: false,

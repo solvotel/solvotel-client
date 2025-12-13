@@ -60,7 +60,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
       item: room.item,
       room: room.room,
       hsn: room.hsn,
-      rate: toInt(room.rate),
+      rate: toInt(room.rate * room.days),
       gst: toInt(gstAmount),
       sgst: toInt(sgst),
       cgst: toInt(cgst),

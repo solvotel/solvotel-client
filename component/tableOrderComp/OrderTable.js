@@ -98,9 +98,9 @@ const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
                     />
                   </TableCell>
                   <TableCell>
-                    {order.closing_method || '-'}&nbsp;
                     {order.token_status === 'Closed' && (
                       <>
+                        {order.closing_method || '-'}&nbsp;
                         {(order?.room_booking?.booking_id ||
                           order?.restaurant_invoice?.invoice_no) && (
                           <Link

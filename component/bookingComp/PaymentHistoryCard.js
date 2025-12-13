@@ -153,7 +153,7 @@ export default function PaymentHistoryCard({ booking, hotel, auth }) {
                       fontWeight="bold"
                       color="primary.main"
                     >
-                      {grandTotal}
+                      {parseFloat(grandTotal).toFixed(2)}
                     </Typography>
                   </Box>
                 </Box>
@@ -170,7 +170,7 @@ export default function PaymentHistoryCard({ booking, hotel, auth }) {
                       fontWeight="bold"
                       color="success.main"
                     >
-                      {amountPayed}
+                      {parseFloat(amountPayed).toFixed(2)}
                     </Typography>
                   </Box>
                 </Box>
@@ -187,7 +187,7 @@ export default function PaymentHistoryCard({ booking, hotel, auth }) {
                       fontWeight="bold"
                       color="error.main"
                     >
-                      {dueAmount.toFixed(2) || '—'}
+                      {parseFloat(dueAmount).toFixed(2) || '—'}
                     </Typography>
                   </Box>
                 </Box>

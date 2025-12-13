@@ -111,7 +111,7 @@ export default function ManageServices({
       room_no: room,
       total_gst: total_gst || 0,
       total_amount: total_amount || 0,
-      billed: false,
+      invoice: false,
       items: services,
     };
 

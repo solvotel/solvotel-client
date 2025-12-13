@@ -13,12 +13,18 @@ import {
   TableCell,
   TableBody,
   Paper,
+  IconButton,
 } from '@mui/material';
 import RoomIcon from '@mui/icons-material/MeetingRoom';
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
+import { Delete } from '@mui/icons-material';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
+import { UpdateData } from '@/utils/ApiFunctions';
+import { useAuth } from '@/context';
 
 export default function BillingSummaryCard({ booking }) {
+  const { auth } = useAuth();
   const roomTokens = booking?.room_tokens || [];
   const services = booking?.service_tokens || [];
   const foodItems = booking?.food_tokens || [];
@@ -38,6 +44,51 @@ export default function BillingSummaryCard({ booking }) {
   );
   const grandTotal = totalRoomAmount + totalServiceAmount + totalFoodAmount;
 
+  const deleteServices = async (id) => {
+    const filteredServices = services.filter((_, index) => index !== id);
+    try {
+      const res = await UpdateData({
+        endPoint: 'room-bookings',
+        auth,
+        id: booking?.documentId,
+        payload: { data: { service_tokens: filteredServices } },
+      });
+      SuccessToast('Service deleted successfully');
+    } catch (err) {
+      console.log(err);
+      ErrorToast('Failed to delete service');
+    }
+  };
+
+  const deleteFoodItems = async ({ id, orderId }) => {
+    const filteredFoodItems = foodItems.filter((_, index) => index !== id);
+    try {
+      await UpdateData({
+        auth,
+        endPoint: 'table-orders',
+        id: orderId,
+        payload: {
+          data: {
+            closing_method: 'Room Transfer',
+            token_status: 'Open',
+            room_no: '',
+            room_booking: null,
+          },
+        },
+      });
+      await UpdateData({
+        endPoint: 'room-bookings',
+        auth,
+        id: booking?.documentId,
+        payload: { data: { food_tokens: filteredFoodItems } },
+      });
+
+      SuccessToast('Food item deleted successfully');
+    } catch (err) {
+      console.log(err);
+      ErrorToast('Failed to delete food item');
+    }
+  };
   return (
     <Card sx={{ borderRadius: 4, p: 2 }}>
       {/* ---- Header Summary ---- */}
@@ -121,10 +172,10 @@ export default function BillingSummaryCard({ booking }) {
                     <b>Items</b>
                   </TableCell>
                   <TableCell align="right">
-                    <b>SGST (%)</b>
+                    <b>SGST (₹)</b>
                   </TableCell>
                   <TableCell align="right">
-                    <b>CGST (%)</b>
+                    <b>CGST (₹)</b>
                   </TableCell>
                   <TableCell align="right">
                     <b>Total (₹)</b>
@@ -133,15 +184,16 @@ export default function BillingSummaryCard({ booking }) {
               </TableHead>
               <TableBody>
                 {roomTokens.map((room, index) => {
+                  const rate = room.rate * room.days;
                   return (
                     <TableRow key={index}>
                       <TableCell>{room.room || room.room_no}</TableCell>
                       <TableCell>{room.item}</TableCell>
                       <TableCell align="right">
-                        {parseFloat(room.gst / 2 || 0).toFixed(2)}
+                        {parseFloat((room.amount - rate) / 2 || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
-                        {parseFloat(room.gst / 2 || 0).toFixed(2)}
+                        {parseFloat((room.amount - rate) / 2 || 0).toFixed(2)}
                       </TableCell>
                       <TableCell align="right">
                         {parseFloat(room.amount || 0).toFixed(2)}
@@ -189,6 +241,7 @@ export default function BillingSummaryCard({ booking }) {
                   <TableCell align="right">
                     <b>Total (₹)</b>
                   </TableCell>
+                  <TableCell align="right"></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -207,6 +260,16 @@ export default function BillingSummaryCard({ booking }) {
                       </TableCell>
                       <TableCell align="right">
                         {parseFloat(service.total_amount || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton
+                          disabled={service?.invoice}
+                          size="small"
+                          color="error"
+                          onClick={() => deleteServices(index)}
+                        >
+                          <Delete />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   );
@@ -254,6 +317,7 @@ export default function BillingSummaryCard({ booking }) {
                   <TableCell align="right">
                     <b>Total (₹)</b>
                   </TableCell>
+                  <TableCell align="right"></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -273,6 +337,21 @@ export default function BillingSummaryCard({ booking }) {
                       </TableCell>
                       <TableCell align="right">
                         {parseFloat(food.total_amount || 0).toFixed(2)}
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton
+                          disabled={food?.invoice}
+                          size="small"
+                          color="error"
+                          onClick={() =>
+                            deleteFoodItems({
+                              id: index,
+                              orderId: food.orderId,
+                            })
+                          }
+                        >
+                          <Delete />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   );

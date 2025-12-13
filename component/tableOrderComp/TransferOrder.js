@@ -43,16 +43,20 @@ const TransferOrder = ({
           },
         },
       });
+
+      const total_rate = selectedRow.food_items.reduce(
+        (acc, item) => acc + item.rate * item.qty,
+        0
+      );
+
       // recalc before save
-      const total_gst = selectedRow.food_items.reduce((acc, item) => {
-        const gstAmount = (item.amount * (item.gst || 0)) / 100;
-        return acc + gstAmount;
-      }, 0);
 
       const total_amount = selectedRow.food_items.reduce(
         (acc, item) => acc + item.amount,
         0
       );
+
+      const total_gst = total_amount - total_rate;
 
       // ✅ Clean menu_items (remove id/documentId/etc.)
       const cleanedMenuItems = selectedRow.food_items.map(
@@ -71,6 +75,7 @@ const TransferOrder = ({
                 id: new Date().getTime().toString(36),
                 room_no: selectedRoom,
                 type: 'Room Transfer',
+                orderId: selectedRow.documentId,
                 total_gst: parseFloat(total_gst).toFixed(2) || 0,
                 total_amount: parseFloat(total_amount).toFixed(2) || 0,
                 invoice: false,
