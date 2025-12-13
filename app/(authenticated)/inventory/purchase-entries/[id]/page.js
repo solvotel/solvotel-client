@@ -42,7 +42,7 @@ export default function Page({ params }) {
           separator={<NavigateNextIcon fontSize="small" />}
           aria-label="breadcrumb"
         >
-          <Link underline="hover" color="inherit" href="/">
+          <Link underline="hover" color="inherit" href="/dashboard">
             Dashboard
           </Link>
           <Link

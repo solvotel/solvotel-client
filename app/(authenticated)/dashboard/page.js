@@ -30,14 +30,14 @@ const Page = () => {
   });
 
   // 🔹 Filter Logic
-  const currentlyStaying = bookings?.filter((bk) => {
+  const stayOver = bookings?.filter((bk) => {
     const checkIn = new Date(bk.checkin_date);
     const checkOut = new Date(bk.checkout_date);
     return (
       bk.checked_in === true &&
       bk.checked_out !== true &&
-      selectedDate >= checkIn &&
-      selectedDate <= checkOut
+      selectedDate > checkIn &&
+      selectedDate < checkOut
     );
   });
 
@@ -72,7 +72,7 @@ const Page = () => {
       <BookingList
         expectedCheckin={expectedCheckin}
         expectedCheckout={expectedCheckout}
-        currentlyStaying={currentlyStaying}
+        stayOver={stayOver}
         selectedDate={selectedDate}
       />
     </>

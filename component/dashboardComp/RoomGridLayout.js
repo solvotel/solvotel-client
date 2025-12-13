@@ -76,7 +76,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
         bk.checked_in === true &&
         bk.checked_out !== true &&
         selectedDate >= checkIn &&
-        selectedDate <= checkOut
+        selectedDate < checkOut
       ) {
         bk.rooms?.forEach((room) => {
           const roomInfo = rooms.find((r) => r.room_no === room.room_no);
@@ -94,7 +94,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
         bk.booking_status === 'Confirmed' &&
         bk.checked_in !== true &&
         selectedDate >= checkIn &&
-        selectedDate <= checkOut
+        selectedDate < checkOut
       ) {
         bk.rooms?.forEach((room) => {
           const roomInfo = rooms.find((r) => r.room_no === room.room_no);
@@ -111,7 +111,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
         bk.booking_status === 'Blocked' &&
         bk.checked_in !== true &&
         selectedDate >= checkIn &&
-        selectedDate <= checkOut
+        selectedDate < checkOut
       ) {
         bk.rooms?.forEach((room) => {
           const roomInfo = rooms.find((r) => r.room_no === room.room_no);

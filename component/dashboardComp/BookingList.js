@@ -14,11 +14,7 @@ import { Hotel, LogIn, LogOut } from 'lucide-react';
 
 const MotionBox = motion(Box);
 
-const BookingList = ({
-  currentlyStaying,
-  expectedCheckin,
-  expectedCheckout,
-}) => {
+const BookingList = ({ stayOver, expectedCheckin, expectedCheckout }) => {
   // Small card for each booking
   const renderBookingMiniCard = (bk) => (
     <MotionBox
@@ -141,13 +137,13 @@ const BookingList = ({
                 <Box display="flex" alignItems="center" gap={1.2} mb={2}>
                   <Hotel size={22} color="#01579b" />
                   <Typography variant="h6" fontWeight="bold" color="#01579b">
-                    Stay Over ({currentlyStaying?.length || 0})
+                    Stay Over ({stayOver?.length || 0})
                   </Typography>
                 </Box>
 
                 <Box>
-                  {currentlyStaying?.length > 0 ? (
-                    currentlyStaying.map((bk) => renderBookingMiniCard(bk))
+                  {stayOver?.length > 0 ? (
+                    stayOver.map((bk) => renderBookingMiniCard(bk))
                   ) : (
                     <Typography variant="body2" color="text.secondary">
                       No guests currently staying.

@@ -184,7 +184,7 @@ const Page = () => {
     <>
       <Box sx={{ px: 3, py: 2, backgroundColor: '#f4f6f8' }}>
         <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
-          <Link underline="hover" color="inherit" href="/">
+          <Link underline="hover" color="inherit" href="/dashboard">
             Dashboard
           </Link>
           <Typography color="text.primary">Restaurant Bookings</Typography>

@@ -193,7 +193,7 @@ export default function BookingForm() {
     <>
       <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
         <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
-          <Link underline="hover" color="inherit" href="/">
+          <Link underline="hover" color="inherit" href="/dashboard">
             Dashboard
           </Link>
           <Typography color="text.primary">New Revervation</Typography>

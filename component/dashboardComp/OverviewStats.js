@@ -56,7 +56,7 @@ const OverviewStats = ({ bookings, rooms }) => {
         bk.checked_in === true &&
         bk.checked_out !== true &&
         today >= checkIn &&
-        today <= checkOut
+        today < checkOut
       ) {
         checkedIn += bk.rooms?.length || 0;
         bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
@@ -69,7 +69,7 @@ const OverviewStats = ({ bookings, rooms }) => {
         bk.booking_status === 'Confirmed' &&
         bk.checked_in !== true &&
         today >= checkIn &&
-        today <= checkOut
+        today < checkOut
       ) {
         confirmed += bk.rooms?.length || 0;
         bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
@@ -82,7 +82,7 @@ const OverviewStats = ({ bookings, rooms }) => {
         bk.booking_status === 'Blocked' &&
         bk.checked_in !== true &&
         today >= checkIn &&
-        today <= checkOut
+        today < checkOut
       ) {
         blocked += bk.rooms?.length || 0;
         bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));

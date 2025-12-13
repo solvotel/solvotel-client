@@ -65,7 +65,7 @@ const Page = () => {
       {/* Breadcrumb */}
       <Box sx={{ px: 3, py: 2, backgroundColor: '#f5f5f5' }}>
         <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
-          <Link underline="hover" color="inherit" href="/">
+          <Link underline="hover" color="inherit" href="/dashboard">
             Dashboard
           </Link>
           <Typography color="text.primary">Housekeeping</Typography>
