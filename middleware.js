@@ -18,15 +18,9 @@ export function middleware(req) {
     (route) => pathname === route || pathname.startsWith(route + '/')
   );
 
-  // If user is logged in and hits "/", clear session
-  if (pathname === '/') {
-    if (token) {
-      const res = NextResponse.next();
-      res.cookies.set('token', '', { maxAge: -1, path: '/' });
-      res.cookies.set('user', '', { maxAge: -1, path: '/' });
-      return res;
-    }
-    return NextResponse.next();
+  // If logged-in user tries to access login page → redirect to dashboard
+  if (pathname === '/login' && token) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
   // Allow public routes
