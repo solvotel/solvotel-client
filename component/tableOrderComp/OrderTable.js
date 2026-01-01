@@ -70,7 +70,7 @@ const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
                 (sum, item) => sum + item.amount,
                 0
               );
-              console.log(order);
+
               return (
                 <TableRow
                   key={order.id}

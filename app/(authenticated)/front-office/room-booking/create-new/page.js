@@ -84,6 +84,7 @@ export default function BookingForm() {
   // Shared state
   const [selectedGuest, setSelectedGuest] = useState(null);
   const [bookingDetails, setBookingDetails] = useState({
+    booking_type: 'FIT',
     booking_status: 'Confirmed',
     checkin_date: formatDate(todaysdate),
     checkout_date: formatDate(tomorrow),

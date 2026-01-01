@@ -167,8 +167,8 @@ const BookingSlip = React.forwardRef((props, ref) => {
             })}
           </Typography>
           <Typography>
-            <b>No. of Guest:</b> {booking?.adult || '-'} Adults,{' '}
-            {booking?.child || '-'} Child
+            <b>No. of Guest:</b> {booking?.adult || '0'} Adults,{' '}
+            {booking?.child || '0'} Child
           </Typography>
           <Typography>
             <b>Meal Plan:</b> {booking?.meal_plan || '-'}

@@ -367,6 +367,9 @@ const Page = () => {
                     }}
                     error={!!formErrors.category}
                     helperText={formErrors.category}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
                   >
                     <option value="">-- Select Category --</option>
                     {categoryList?.map((cat) => (
@@ -387,13 +390,15 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, group: e.target.value })
                     }
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
                   />
                 </Grid>
 
                 {/* Unit */}
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
-                    select
                     margin="dense"
                     label="Unit"
                     fullWidth
@@ -401,19 +406,9 @@ const Page = () => {
                     onChange={(e) => {
                       setFormData({ ...formData, unit: e.target.value });
                     }}
-                    SelectProps={{
-                      native: true,
-                    }}
                     error={!!formErrors.unit}
                     helperText={formErrors.unit}
-                  >
-                    <option value="">-- Select Unit --</option>
-                    {['Pcs', 'Kg', 'Gm']?.map((item, index) => (
-                      <option key={index} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </TextField>
+                  ></TextField>
                 </Grid>
 
                 {/* Tax */}

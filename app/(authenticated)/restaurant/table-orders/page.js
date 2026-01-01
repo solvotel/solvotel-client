@@ -38,7 +38,6 @@ const generateNextOrderNo = (orders) => {
 };
 
 const Page = () => {
-  const today = new Date();
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
   const tables = GetDataList({ auth, endPoint: 'tables' });
@@ -63,6 +62,7 @@ const Page = () => {
   const activeBookings = bookings?.filter((bk) => {
     const checkIn = new Date(bk.checkin_date);
     const checkOut = new Date(bk.checkout_date);
+    const today = new Date(todaysDate);
 
     return (
       bk.checked_in === true &&
@@ -71,6 +71,7 @@ const Page = () => {
       today <= checkOut
     );
   });
+
   // Step 2: Flatten all rooms from those active bookings
   const activeRooms = activeBookings?.flatMap(
     (bk) =>

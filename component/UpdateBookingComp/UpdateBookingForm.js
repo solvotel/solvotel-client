@@ -63,6 +63,7 @@ const UpdateBookingForm = ({
   // Shared state
   const [selectedGuest, setSelectedGuest] = useState(bookingData?.customer);
   const [bookingDetails, setBookingDetails] = useState({
+    booking_type: bookingData?.booking_type || 'FIT',
     booking_status: bookingData?.booking_status || 'Confirmed',
     checkin_date: bookingData?.checkin_date || formatDate(todaysdate),
     checkout_date: bookingData?.checkout_date || formatDate(tomorrow),

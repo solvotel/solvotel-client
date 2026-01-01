@@ -72,7 +72,7 @@ export default function Navbar() {
       >
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
           {/* Logo */}
-          <Link href="/" passHref>
+          <Link href="/dashboard" passHref>
             <Box
               sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
             >

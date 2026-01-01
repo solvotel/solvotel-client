@@ -23,7 +23,7 @@ export default function BookingDetailsStep({
 
   return (
     <Grid container spacing={2}>
-      <Grid size={{ xs: 12, sm: 6 }}>
+      <Grid size={{ xs: 12, sm: 4 }}>
         <TextField
           label="Booking Reference"
           fullWidth
@@ -31,13 +31,29 @@ export default function BookingDetailsStep({
           onChange={(e) => handleChange('booking_referance', e.target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 12, sm: 6 }}>
+      <Grid size={{ xs: 12, sm: 4 }}>
         <TextField
           label="Reference No"
           fullWidth
           value={bookingDetails.reference_no || ''}
           onChange={(e) => handleChange('reference_no', e.target.value)}
         />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <TextField
+          select
+          label="Booking Type"
+          fullWidth
+          value={bookingDetails.booking_type || ''}
+          onChange={(e) => handleChange('booking_type', e.target.value)}
+        >
+          <MenuItem value="FIT">FIT</MenuItem>
+          <MenuItem value="Group">Group</MenuItem>
+          <MenuItem value="Corporate">Corporate</MenuItem>
+          <MenuItem value="Corporate Group">Corporate Group</MenuItem>
+          <MenuItem value="Social Event">Social Event</MenuItem>
+          <MenuItem value="Other">Other</MenuItem>
+        </TextField>
       </Grid>
       <Grid size={{ xs: 12, sm: 4 }}>
         <TextField

@@ -10,6 +10,8 @@ import {
   CheckCircle as CheckCircleIcon,
   Block as BlockIcon,
   Cancel as CancelIcon,
+  Email,
+  SupervisedUserCircle,
 } from '@mui/icons-material';
 import { GetCustomDate } from '@/utils/DateFetcher';
 
@@ -122,15 +124,35 @@ export default function BookingDetailsCard({ booking }) {
             <Typography variant="body2">
               <strong>Ref No:</strong> {booking?.reference_no || 'N/A'}
             </Typography>
-            <Typography variant="body2">
-              <strong>Booked On:</strong> {GetCustomDate(booking?.createdAt)}
-            </Typography>
+
             <Typography variant="body2">
               <strong>Meal Plan:</strong> {booking?.meal_plan}
             </Typography>
           </Stack>
 
           {/* Guests */}
+          <Stack spacing={3} direction="row">
+            <Stack direction="row" spacing={1} alignItems="center">
+              <SupervisedUserCircle color="warning" />
+              <Typography variant="body2">
+                <strong>Name:</strong> {booking?.customer?.name}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Phone color="primary" />
+              <Typography variant="body2">
+                <strong>Phone:</strong> {booking?.customer?.mobile}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Email color="success" />
+              <Typography variant="body2">
+                <strong>Email:</strong> {booking?.customer?.email || 'N/A'}
+              </Typography>
+            </Stack>
+          </Stack>
+
+          {/* Notes */}
           <Stack spacing={3} direction="row">
             <Stack direction="row" spacing={1} alignItems="center">
               <People color="primary" />
@@ -140,19 +162,11 @@ export default function BookingDetailsCard({ booking }) {
               </Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Phone color="success" />
+              <Notes color="secondary" />
               <Typography variant="body2">
-                <strong>Phone:</strong> {booking?.customer?.mobile}
+                <strong>Notes:</strong> {booking?.remarks || '—'}
               </Typography>
             </Stack>
-          </Stack>
-
-          {/* Notes */}
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Notes color="secondary" />
-            <Typography variant="body2">
-              <strong>Notes:</strong> {booking?.remarks || '—'}
-            </Typography>
           </Stack>
 
           {/* Rooms */}

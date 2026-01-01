@@ -1,12 +1,13 @@
 export const CalculateDays = ({ checkin, checkout }) => {
-  const checkinDate = new Date(checkin); // example check-in date
-  const checkoutDate = new Date(checkout); // example check-out date
+  const checkinDate = new Date(checkin);
+  const checkoutDate = new Date(checkout);
 
-  // Calculate the difference in milliseconds
-  const diffTime = checkoutDate - checkinDate;
+  // Difference in milliseconds
+  const diffTime = checkoutDate.getTime() - checkinDate.getTime();
 
-  // Convert milliseconds to days
+  // Convert to days
   const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
-  return diffDays; // 3
+  // If same day or invalid diff, return 1
+  return diffDays <= 0 ? 1 : Math.ceil(diffDays);
 };

@@ -192,7 +192,7 @@ export default function EditRoomInvoiceDialog({
     <Dialog
       open={editOpen}
       onClose={() => setEditOpen(false)}
-      maxWidth="md"
+      maxWidth="lg"
       fullWidth
     >
       <DialogTitle>Edit Invoice</DialogTitle>
@@ -280,9 +280,9 @@ export default function EditRoomInvoiceDialog({
               <TableRow>
                 <TableCell>Item</TableCell>
                 <TableCell>HSN</TableCell>
-                <TableCell align="right">Rate</TableCell>
-                <TableCell align="right">GST %</TableCell>
-                <TableCell align="right">Amount</TableCell>
+                <TableCell width={200}>Rate</TableCell>
+                <TableCell width={100}>GST %</TableCell>
+                <TableCell width={200}>Amount</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -290,18 +290,18 @@ export default function EditRoomInvoiceDialog({
                 <TableRow key={i}>
                   <TableCell>{row.item}</TableCell>
                   <TableCell>{row.hsn}</TableCell>
-                  <TableCell align="right">
+                  <TableCell>
                     <TextField
+                      fullWidth
                       size="small"
                       type="number"
                       value={row.rate}
                       onChange={(e) =>
                         handleRoomChange(i, 'rate', e.target.value)
                       }
-                      sx={{ width: 80 }}
                     />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell>
                     <TextField
                       size="small"
                       type="number"
@@ -309,10 +309,9 @@ export default function EditRoomInvoiceDialog({
                       onChange={(e) =>
                         handleRoomChange(i, 'gst', e.target.value)
                       }
-                      sx={{ width: 60 }}
                     />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell>
                     <TextField
                       size="small"
                       type="number"
@@ -320,7 +319,6 @@ export default function EditRoomInvoiceDialog({
                       onChange={(e) =>
                         handleRoomChange(i, 'amount', e.target.value)
                       }
-                      sx={{ width: 80 }}
                     />
                   </TableCell>
                 </TableRow>

@@ -72,10 +72,10 @@ const Page = () => {
       order_id: '',
       invoice_no: '',
       inventory_item: '',
-      rate: 0,
-      tax: 0,
-      qty: 0,
-      total_price: 0,
+      rate: null,
+      tax: null,
+      qty: null,
+      total_price: null,
       hotel_id: auth?.user?.hotel_id || '',
     };
   }
@@ -100,7 +100,7 @@ const Page = () => {
 
     setFormData((prev) => ({
       ...prev,
-      total_price: Number(total.toFixed(2)),
+      total_price: Number(total),
     }));
   }, [formData.qty, formData.rate, formData.tax]);
 
@@ -505,14 +505,14 @@ const Page = () => {
                     }}
                   >
                     <Typography variant="body2">
-                      Base Amount: ₹{baseAmount.toFixed(2)}
+                      Base Amount: ₹{baseAmount}
                     </Typography>
                     <Typography variant="body2">
-                      GST Amount: ₹{gstAmount.toFixed(2)}
+                      GST Amount: ₹{gstAmount}
                     </Typography>
                     <Divider sx={{ my: 1 }} />
                     <Typography variant="subtitle1" fontWeight="bold">
-                      Total: ₹{formData.total_price.toFixed(2)}
+                      Total: ₹{formData.total_price}
                     </Typography>
                   </Box>
                 </Grid>
