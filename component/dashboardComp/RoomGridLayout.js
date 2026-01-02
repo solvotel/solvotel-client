@@ -60,6 +60,8 @@ const RoomGridLayout = ({ bookings, rooms }) => {
     setStartDate(next.toISOString().split('T')[0]);
   };
 
+  const isSameDay = (d1, d2) => d1.toDateString() === d2.toDateString();
+
   // 🔹 For each date, compute filtered data
   const getDayWiseData = (selectedDate) => {
     const checkedInRooms = [];
@@ -71,75 +73,91 @@ const RoomGridLayout = ({ bookings, rooms }) => {
       const checkIn = new Date(bk.checkin_date);
       const checkOut = new Date(bk.checkout_date);
 
-      // 🔹 Checked-in rooms
-      if (
-        bk.checked_in === true &&
-        bk.checked_out !== true &&
-        selectedDate >= checkIn &&
-        selectedDate < checkOut
-      ) {
+      const sameDayBooking = isSameDay(checkIn, checkOut);
+      const isInRange = selectedDate >= checkIn && selectedDate < checkOut;
+
+      // 🔹 SAME DAY BOOKINGS (override date logic)
+      if (sameDayBooking && isSameDay(selectedDate, checkIn)) {
         bk.rooms?.forEach((room) => {
           const roomInfo = rooms.find((r) => r.room_no === room.room_no);
-          checkedInRooms.push({
-            ...room,
-            category: roomInfo?.category?.name || 'Uncategorized',
-            bookingId: bk.documentId, // ✅ Added
-          });
-          occupiedRoomNos.add(room.room_no);
+
+          // 🟢 Checked-in
+          if (bk.checked_in === true && bk.checked_out !== true) {
+            checkedInRooms.push({
+              ...room,
+              category: roomInfo?.category?.name || 'Uncategorized',
+              bookingId: bk.documentId,
+            });
+            occupiedRoomNos.add(room.room_no);
+          }
+
+          // 🟡 Confirmed (not checked-in yet)
+          else if (bk.checked_in !== true && bk.checked_out !== true) {
+            confirmedRooms.push({
+              ...room,
+              category: roomInfo?.category?.name || 'Uncategorized',
+              bookingId: bk.documentId,
+            });
+            occupiedRoomNos.add(room.room_no);
+          }
+
+          // 🔵 Checked-out → AVAILABLE (do nothing)
         });
+
+        return; // ⛔ skip normal logic
       }
 
-      // 🔹 Confirmed rooms (not yet checked-in)
-      if (
-        bk.booking_status === 'Confirmed' &&
-        bk.checked_in !== true &&
-        selectedDate >= checkIn &&
-        selectedDate < checkOut
-      ) {
-        bk.rooms?.forEach((room) => {
-          const roomInfo = rooms.find((r) => r.room_no === room.room_no);
-          confirmedRooms.push({
-            ...room,
-            category: roomInfo?.category?.name || 'Uncategorized',
-            bookingId: bk.documentId, // ✅ Added
+      // 🔹 NORMAL MULTI-DAY LOGIC
+      if (isInRange) {
+        // Checked-in
+        if (bk.checked_in === true && bk.checked_out !== true) {
+          bk.rooms?.forEach((room) => {
+            const roomInfo = rooms.find((r) => r.room_no === room.room_no);
+            checkedInRooms.push({
+              ...room,
+              category: roomInfo?.category?.name || 'Uncategorized',
+              bookingId: bk.documentId,
+            });
+            occupiedRoomNos.add(room.room_no);
           });
-        });
-      }
+        }
 
-      // 🔹 Blocked rooms
-      if (
-        bk.booking_status === 'Blocked' &&
-        bk.checked_in !== true &&
-        selectedDate >= checkIn &&
-        selectedDate < checkOut
-      ) {
-        bk.rooms?.forEach((room) => {
-          const roomInfo = rooms.find((r) => r.room_no === room.room_no);
-          blockedRooms.push({
-            ...room,
-            category: roomInfo?.category?.name || 'Uncategorized',
-            bookingId: bk.documentId, // ✅ Added
+        // Confirmed
+        if (bk.booking_status === 'Confirmed' && bk.checked_in !== true) {
+          bk.rooms?.forEach((room) => {
+            const roomInfo = rooms.find((r) => r.room_no === room.room_no);
+            confirmedRooms.push({
+              ...room,
+              category: roomInfo?.category?.name || 'Uncategorized',
+              bookingId: bk.documentId,
+            });
+            occupiedRoomNos.add(room.room_no);
           });
-        });
+        }
+
+        // Blocked
+        if (bk.booking_status === 'Blocked' && bk.checked_in !== true) {
+          bk.rooms?.forEach((room) => {
+            const roomInfo = rooms.find((r) => r.room_no === room.room_no);
+            blockedRooms.push({
+              ...room,
+              category: roomInfo?.category?.name || 'Uncategorized',
+              bookingId: bk.documentId,
+            });
+            occupiedRoomNos.add(room.room_no);
+          });
+        }
       }
     });
 
-    // 🔹 Combine occupied room numbers (checked-in + confirmed + blocked)
-    const occupiedNos = new Set([
-      ...occupiedRoomNos,
-      ...confirmedRooms.map((r) => r.room_no),
-      ...blockedRooms.map((r) => r.room_no),
-    ]);
-
-    // 🔹 Available rooms = not in occupiedNos
+    // 🔹 Available rooms
     const availableRooms = rooms
-      ?.filter((room) => !occupiedNos.has(room.room_no))
+      ?.filter((room) => !occupiedRoomNos.has(room.room_no))
       .map((room) => ({
         ...room,
         category: room.category?.name || 'Uncategorized',
       }));
 
-    // 🔹 Helper: group rooms by category
     const groupByCategory = (roomArray) => {
       const grouped = {};
       roomArray?.forEach((room) => {

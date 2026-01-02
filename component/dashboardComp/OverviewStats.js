@@ -18,79 +18,91 @@ const OverviewStats = ({ bookings, rooms }) => {
   const todaysDate = GetTodaysDate().dateString;
   const GetStats = () => {
     const today = new Date(todaysDate);
-    const todayStr = today.toISOString().split('T')[0];
 
     let checkedIn = 0;
     let confirmed = 0;
     let blocked = 0;
+    let expectedCheckins = 0;
+    let expectedCheckouts = 0;
 
     const occupiedNos = new Set();
 
-    let expectedCheckins = 0;
-    let expectedCheckouts = 0;
+    const isSameDay = (d1, d2) => d1.toDateString() === d2.toDateString();
 
     bookings?.forEach((bk) => {
       const checkIn = new Date(bk.checkin_date);
       const checkOut = new Date(bk.checkout_date);
 
-      // 📌 Expected Check-ins / Check-outs
-      if (
-        bk.checked_in !== true &&
-        bk.checked_out !== true &&
-        checkIn.toDateString() === today.toDateString() &&
-        bk.booking_status === 'Confirmed'
-      )
-        expectedCheckins++;
-      if (
-        bk.checked_in === true &&
-        bk.checked_out !== true &&
-        checkOut.toDateString() === today.toDateString() &&
-        bk.booking_status === 'Confirmed'
-      )
-        expectedCheckouts++;
+      const roomCount = bk.rooms?.length || 0;
+      const sameDayBooking = isSameDay(checkIn, checkOut);
+      const activeStay = today >= checkIn && today < checkOut;
 
-      // -------------------------------
-      // 📌 Checked-in rooms
-      // -------------------------------
-      if (
-        bk.checked_in === true &&
-        bk.checked_out !== true &&
-        today >= checkIn &&
-        today < checkOut
-      ) {
-        checkedIn += bk.rooms?.length || 0;
-        bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
-      }
-
-      // -------------------------------
-      // 📌 Confirmed (future check-ins)
-      // -------------------------------
+      // -------------------------------------------------
+      // 📌 Expected Check-ins (ROOM BASED)
+      // -------------------------------------------------
       if (
         bk.booking_status === 'Confirmed' &&
         bk.checked_in !== true &&
-        today >= checkIn &&
-        today < checkOut
+        bk.checked_out !== true &&
+        isSameDay(checkIn, today)
       ) {
-        confirmed += bk.rooms?.length || 0;
-        bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
+        expectedCheckins += roomCount;
       }
 
-      // -------------------------------
-      // 📌 Blocked rooms
-      // -------------------------------
+      // -------------------------------------------------
+      // 📌 Expected Check-outs (ROOM BASED)
+      // -------------------------------------------------
       if (
-        bk.booking_status === 'Blocked' &&
-        bk.checked_in !== true &&
-        today >= checkIn &&
-        today < checkOut
+        bk.booking_status === 'Confirmed' &&
+        bk.checked_in === true &&
+        bk.checked_out !== true &&
+        isSameDay(checkOut, today)
       ) {
-        blocked += bk.rooms?.length || 0;
+        expectedCheckouts += roomCount;
+      }
+
+      // ⛔ Fully checked-out bookings do not affect stats
+      if (bk.checked_out === true) return;
+
+      // -------------------------------------------------
+      // 📌 SAME-DAY BOOKINGS (checkin === checkout)
+      // -------------------------------------------------
+      if (sameDayBooking && isSameDay(today, checkIn)) {
+        if (bk.checked_in === true) {
+          checkedIn += roomCount;
+          bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
+        } else if (bk.booking_status === 'Confirmed') {
+          confirmed += roomCount;
+          bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
+        } else if (bk.booking_status === 'Blocked') {
+          blocked += roomCount;
+          bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
+        }
+        return; // ⛔ skip normal date logic
+      }
+
+      // -------------------------------------------------
+      // 📌 MULTI-DAY BOOKINGS
+      // -------------------------------------------------
+      if (!activeStay) return;
+
+      if (bk.checked_in === true) {
+        checkedIn += roomCount;
+        bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
+      } else if (bk.booking_status === 'Confirmed') {
+        confirmed += roomCount;
+        bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
+      } else if (bk.booking_status === 'Blocked') {
+        blocked += roomCount;
         bk.rooms?.forEach((r) => occupiedNos.add(r.room_no));
       }
     });
 
+    // -------------------------------------------------
     // 📌 Available rooms
-    const available = rooms?.filter((r) => !occupiedNos.has(r.room_no)).length;
+    // -------------------------------------------------
+    const available =
+      rooms?.filter((r) => !occupiedNos.has(r.room_no)).length || 0;
 
     return {
       available,
@@ -101,9 +113,8 @@ const OverviewStats = ({ bookings, rooms }) => {
       expectedCheckouts,
     };
   };
-  const statsData = GetStats();
 
-  console.log('Available Rooms in OverviewStats:', statsData);
+  const statsData = GetStats();
 
   const stats = [
     {
