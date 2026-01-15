@@ -43,10 +43,11 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
 import { Loader } from '@/component/common';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const Page = () => {
   const { auth } = useAuth();
-
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const data = GetDataList({
     auth,
     endPoint: 'payment-methods',
@@ -121,7 +122,7 @@ const Page = () => {
         endPoint: 'payment-methods',
         id: formData.documentId,
         payload: {
-          data: updateBody,
+          data: { ...updateBody, user_updated: auth?.user?.username },
         },
       });
       SuccessToast('Room updated successfully');
@@ -130,7 +131,7 @@ const Page = () => {
         auth,
         endPoint: 'payment-methods',
         payload: {
-          data: formData,
+          data: { ...formData, user_created: auth?.user?.username },
         },
       });
       SuccessToast('Room created successfully');
@@ -196,6 +197,7 @@ const Page = () => {
               startIcon={<AddIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
               onClick={handleCreate}
+              disabled={!permissions.canCreate}
             >
               Create New
             </Button>
@@ -206,24 +208,28 @@ const Page = () => {
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                  {['Name', 'Actions'].map((item, index) => (
-                    <TableCell key={index} sx={{ fontWeight: 'bold' }}>
-                      {item}
-                    </TableCell>
-                  ))}
+                  {['Name', 'Created By', 'Updated By', 'Actions'].map(
+                    (item, index) => (
+                      <TableCell key={index} sx={{ fontWeight: 'bold' }}>
+                        {item}
+                      </TableCell>
+                    )
+                  )}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredData?.map((row) => (
                   <TableRow key={row.documentId}>
                     <TableCell>{row.name}</TableCell>
-
+                    <TableCell>{row.user_created}</TableCell>
+                    <TableCell>{row.user_updated}</TableCell>
                     <TableCell sx={{ width: '100px' }}>
                       <Tooltip title="Edit">
                         <IconButton
                           color="primary"
                           onClick={() => handleEdit(row)}
                           size="small"
+                          disabled={!permissions.canUpdate}
                         >
                           <EditIcon fontSize="inherit" />
                         </IconButton>
@@ -233,6 +239,7 @@ const Page = () => {
                           color="error"
                           onClick={() => handleDeleteClick(row)}
                           size="small"
+                          disabled={!permissions.canDelete}
                         >
                           <DeleteIcon fontSize="inherit" />
                         </IconButton>

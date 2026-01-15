@@ -40,10 +40,11 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useState, useMemo } from 'react';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const Page = () => {
   const { auth } = useAuth();
-
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const data = GetDataList({
     auth,
     endPoint: 'customers',
@@ -145,14 +146,16 @@ const Page = () => {
         auth,
         endPoint: 'customers',
         id: formData.documentId,
-        payload: { data: body },
+        payload: {
+          data: { ...body, user_updated: auth?.user?.username },
+        },
       });
       SuccessToast('Guest updated successfully');
     } else {
       await CreateNewData({
         auth,
         endPoint: 'customers',
-        payload: { data: formData },
+        payload: { data: { ...formData, user_created: auth?.user?.username } },
       });
       SuccessToast('Guest created successfully');
     }
@@ -204,6 +207,7 @@ const Page = () => {
               startIcon={<AddIcon />}
               onClick={handleCreate}
               sx={{ borderRadius: 2 }}
+              disabled={!permissions.canCreate}
             >
               Create New
             </Button>
@@ -221,6 +225,8 @@ const Page = () => {
                     'DOB',
                     'DOA',
                     'Company',
+                    'Created By',
+                    'Updated By',
                     'Actions',
                   ].map((h) => (
                     <TableCell key={h} sx={{ fontWeight: 'bold' }}>
@@ -238,12 +244,15 @@ const Page = () => {
                     <TableCell>{row.dob}</TableCell>
                     <TableCell>{row.doa}</TableCell>
                     <TableCell>{row.company_name}</TableCell>
+                    <TableCell>{row.user_created}</TableCell>
+                    <TableCell>{row.user_updated}</TableCell>
                     <TableCell>
                       <Tooltip title="Edit">
                         <IconButton
                           color="primary"
                           onClick={() => handleEdit(row)}
                           size="small"
+                          disabled={!permissions.canUpdate}
                         >
                           <EditIcon fontSize="inherit" />
                         </IconButton>
@@ -253,6 +262,7 @@ const Page = () => {
                           color="error"
                           onClick={() => handleDeleteClick(row)}
                           size="small"
+                          disabled={!permissions.canDelete}
                         >
                           <DeleteIcon fontSize="inherit" />
                         </IconButton>

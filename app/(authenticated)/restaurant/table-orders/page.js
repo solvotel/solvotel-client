@@ -22,6 +22,7 @@ import {
   TableGrid,
   TransferOrder,
 } from '@/component/tableOrderComp';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const generateNextOrderNo = (orders) => {
   if (!orders || orders.length === 0) {
@@ -39,6 +40,7 @@ const generateNextOrderNo = (orders) => {
 
 const Page = () => {
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
   const tables = GetDataList({ auth, endPoint: 'tables' });
   const orders = GetDataList({ auth, endPoint: 'table-orders' });
@@ -151,7 +153,9 @@ const Page = () => {
         auth,
         endPoint: 'table-orders',
         id: formData.documentId, // ✅ only for URL
-        payload: { data: updateBody },
+        payload: {
+          data: { ...updateBody, user_updated: auth?.user?.username },
+        },
       });
       SuccessToast('Order updated successfully');
     } else {
@@ -166,6 +170,7 @@ const Page = () => {
             order_id: newOrderNO,
             date: todaysDate,
             time: time,
+            user_created: auth?.user?.username,
           },
         },
       });
@@ -214,6 +219,7 @@ const Page = () => {
               handleTransferOrder={handleTransferOrder}
               handleOrderInvoice={handleOrderInvoice}
               handleEdit={handleEdit}
+              permissions={permissions}
             />
           </Grid>
 
@@ -224,6 +230,7 @@ const Page = () => {
               handleEdit={handleEdit}
               setSelectedRow={setSelectedRow}
               setDeleteOpen={setDeleteOpen}
+              permissions={permissions}
             />
           </Grid>
         </Grid>

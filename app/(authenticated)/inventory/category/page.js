@@ -32,8 +32,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  FormControlLabel,
-  Switch,
   Grid,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -198,18 +196,21 @@ const Page = () => {
             <Table>
               <TableHead>
                 <TableRow sx={{ backgroundColor: 'grey.100' }}>
-                  {['Name', 'Actions'].map((item, index) => (
-                    <TableCell key={index} sx={{ fontWeight: 'bold' }}>
-                      {item}
-                    </TableCell>
-                  ))}
+                  {['Name', 'Created By', 'Updated By', 'Actions'].map(
+                    (item, index) => (
+                      <TableCell key={index} sx={{ fontWeight: 'bold' }}>
+                        {item}
+                      </TableCell>
+                    )
+                  )}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredData?.map((row) => (
                   <TableRow key={row.documentId}>
                     <TableCell>{row.name}</TableCell>
-
+                    <TableCell>{row.user_created}</TableCell>
+                    <TableCell>{row.user_updated}</TableCell>
                     <TableCell sx={{ width: '100px' }}>
                       <Tooltip title="Edit">
                         <IconButton

@@ -8,6 +8,7 @@ const TableGrid = ({
   handleEdit,
   handleTransferOrder,
   handleOrderInvoice,
+  permissions,
 }) => {
   return (
     <>
@@ -79,6 +80,7 @@ const TableGrid = ({
                       color="primary"
                       startIcon={<AddIcon sx={{ fontSize: 16 }} />}
                       onClick={() => handleCreate(table.documentId)}
+                      disabled={!permissions.canCreate}
                       sx={{
                         mt: 1,
                         fontSize: 12,
@@ -114,6 +116,7 @@ const TableGrid = ({
                           px: 1.5,
                           py: 0.3,
                         }}
+                        disabled={!permissions.canUpdate}
                       >
                         Update
                       </Button>
@@ -131,6 +134,7 @@ const TableGrid = ({
                             px: 1.5,
                             py: 0.3,
                           }}
+                          disabled={!permissions.canUpdate}
                         >
                           Transfer
                         </Button>
@@ -146,6 +150,7 @@ const TableGrid = ({
                             px: 1.5,
                             py: 0.3,
                           }}
+                          disabled={!permissions.canUpdate}
                         >
                           Invoice
                         </Button>

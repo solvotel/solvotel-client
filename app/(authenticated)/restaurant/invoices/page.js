@@ -42,6 +42,7 @@ import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { GetCurrentTime } from '@/utils/Timefetcher';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const generateNextInvoiceNo = (invoices) => {
   if (!invoices || invoices.length === 0) {
@@ -60,6 +61,7 @@ const generateNextInvoiceNo = (invoices) => {
 
 const Page = () => {
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
   const data = GetDataList({
     auth,
@@ -217,14 +219,16 @@ const Page = () => {
         auth,
         endPoint: 'restaurant-invoices',
         id: formData.documentId, // ✅ only for URL
-        payload: { data: updateBody },
+        payload: {
+          data: { ...updateBody, user_updated: auth?.user?.username },
+        },
       });
       SuccessToast('Invoice updated successfully');
     } else {
       await CreateNewData({
         auth,
         endPoint: 'restaurant-invoices',
-        payload: { data: finalData },
+        payload: { data: { ...finalData, user_created: auth?.user?.username } },
       });
       SuccessToast('Invoice created successfully');
     }
@@ -290,6 +294,7 @@ const Page = () => {
               startIcon={<AddIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
               onClick={handleCreate}
+              disabled={!permissions.canCreate}
             >
               Create New Invoice
             </Button>
@@ -309,6 +314,8 @@ const Page = () => {
                     'CGST ₹ ',
                     'Payable Amount ₹ ',
                     'Payment Method',
+                    'Created By',
+                    'Updated By',
                     'Actions',
                   ].map((item, index) => (
                     <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -329,7 +336,9 @@ const Page = () => {
                     <TableCell>{row.tax / 2}</TableCell>
                     <TableCell>{row.tax / 2}</TableCell>
                     <TableCell>{row.payable_amount}</TableCell>
-                    <TableCell>{row.mop}</TableCell>
+                    <TableCell>{row.mop}</TableCell>{' '}
+                    <TableCell>{row.user_created}</TableCell>
+                    <TableCell>{row.user_updated}</TableCell>
                     <TableCell sx={{ width: '150px' }}>
                       <Tooltip title="View">
                         <IconButton
@@ -346,6 +355,7 @@ const Page = () => {
                           color="primary"
                           onClick={() => handleEdit(row)}
                           size="small"
+                          disabled={!permissions.canUpdate}
                         >
                           <EditIcon fontSize="inherit" />
                         </IconButton>
@@ -355,6 +365,7 @@ const Page = () => {
                           color="error"
                           onClick={() => handleDeleteClick(row)}
                           size="small"
+                          disabled={!permissions.canDelete}
                         >
                           <DeleteIcon fontSize="inherit" />
                         </IconButton>

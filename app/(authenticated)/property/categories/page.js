@@ -42,9 +42,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const Page = () => {
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const data = GetDataList({
     auth,
     endPoint: 'room-categories',
@@ -177,7 +179,7 @@ const Page = () => {
         endPoint: 'room-categories',
         id: formData.documentId,
         payload: {
-          data: updateBody,
+          data: { ...updateBody, user_updated: auth?.user?.username },
         },
       });
       SuccessToast('Category updated successfully');
@@ -186,7 +188,7 @@ const Page = () => {
         auth,
         endPoint: 'room-categories',
         payload: {
-          data: formData,
+          data: { ...formData, user_created: auth?.user?.username },
         },
       });
       SuccessToast('Category created successfully');
@@ -254,6 +256,7 @@ const Page = () => {
               startIcon={<AddIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
               onClick={handleCreate}
+              disabled={!permissions.canCreate}
             >
               Create New Category
             </Button>
@@ -272,6 +275,8 @@ const Page = () => {
                     'GST',
                     'Total',
                     'Status',
+                    'Created By',
+                    'Updated By',
                     'Actions',
                   ].map((item, index) => (
                     <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -289,6 +294,8 @@ const Page = () => {
                     <TableCell>{row.tariff}</TableCell>
                     <TableCell>{row.gst}</TableCell>
                     <TableCell>{row.total}</TableCell>
+                    <TableCell>{row.user_created}</TableCell>
+                    <TableCell>{row.user_updated}</TableCell>
                     <TableCell>
                       {row.active === 'Yes' || row.active === true ? (
                         <Chip label="Active" color="success" size="small" />
@@ -302,6 +309,7 @@ const Page = () => {
                           color="primary"
                           onClick={() => handleEdit(row)}
                           size="small"
+                          disabled={!permissions.canUpdate}
                         >
                           <EditIcon fontSize="inherit" />
                         </IconButton>
@@ -311,6 +319,7 @@ const Page = () => {
                           color="error"
                           onClick={() => handleDeleteClick(row)}
                           size="small"
+                          disabled={!permissions.canDelete}
                         >
                           <DeleteIcon fontSize="inherit" />
                         </IconButton>

@@ -42,9 +42,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const Page = () => {
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const data = GetDataList({
     auth,
     endPoint: 'restaurant-menus',
@@ -136,7 +138,7 @@ const Page = () => {
         endPoint: 'restaurant-menus',
         id: formData.documentId,
         payload: {
-          data: updateBody,
+          data: { ...updateBody, user_updated: auth?.user?.username },
         },
       });
       SuccessToast('Menu Item updated successfully');
@@ -145,7 +147,7 @@ const Page = () => {
         auth,
         endPoint: 'restaurant-menus',
         payload: {
-          data: formData,
+          data: { ...formData, user_created: auth?.user?.username },
         },
       });
       SuccessToast('Menu Item created successfully');
@@ -213,6 +215,7 @@ const Page = () => {
               startIcon={<AddIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
               onClick={handleCreate}
+              disabled={!permissions.canCreate}
             >
               Create New
             </Button>
@@ -232,6 +235,8 @@ const Page = () => {
                     'SGST (%)',
                     'CGST (%)',
                     'Amount',
+                    'Created By',
+                    'Updated By',
                     'Actions',
                   ].map((item, index) => (
                     <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -251,12 +256,15 @@ const Page = () => {
                     <TableCell>{row.gst / 2}</TableCell>
                     <TableCell>{row.gst / 2}</TableCell>
                     <TableCell>{row.total}</TableCell>
+                    <TableCell>{row.user_created}</TableCell>
+                    <TableCell>{row.user_updated}</TableCell>
                     <TableCell sx={{ width: '100px' }}>
                       <Tooltip title="Edit">
                         <IconButton
                           color="primary"
                           onClick={() => handleEdit(row)}
                           size="small"
+                          disabled={!permissions.canUpdate}
                         >
                           <EditIcon fontSize="inherit" />
                         </IconButton>
@@ -266,6 +274,7 @@ const Page = () => {
                           color="error"
                           onClick={() => handleDeleteClick(row)}
                           size="small"
+                          disabled={!permissions.canDelete}
                         >
                           <DeleteIcon fontSize="inherit" />
                         </IconButton>

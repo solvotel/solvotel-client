@@ -2,6 +2,13 @@
 import {
   Box,
   Breadcrumbs,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Grid,
   IconButton,
   Link,
   Paper,
@@ -17,16 +24,35 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { GetCustomDate } from '@/utils/DateFetcher';
-import { GetDataList, GetSingleData } from '@/utils/ApiFunctions';
-import { Loader } from '@/component/common';
-import { useMemo, useState } from 'react';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import PrintIcon from '@mui/icons-material/Print';
 import { useAuth } from '@/context';
+import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
+import {
+  DeleteData,
+  GetDataList,
+  GetSingleData,
+  UpdateData,
+} from '@/utils/ApiFunctions';
+import { Loader } from '@/component/common';
+import { useMemo, useRef, useState } from 'react';
+import { SuccessToast } from '@/utils/GenerateToast';
+import RoomInvoiceViewDialog from '@/component/bookingComp/RoomInvoiceViewDialog';
+import EditRoomInvoiceDialog from '@/component/bookingComp/RoomInvoiceEditDialog';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const Page = () => {
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
+  const todaysDate = GetTodaysDate().dateString;
   const [search, setSearch] = useState('');
-
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewData, setViewData] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editData, setEditData] = useState(null);
   const hotel = GetSingleData({
     endPoint: 'hotels',
     auth: auth,
@@ -52,6 +78,34 @@ const Page = () => {
       item.invoice_no?.toLowerCase().includes(search.toLowerCase())
     );
   }, [data, search]);
+
+  // handle delete
+  const handleDeleteClick = (row) => {
+    setSelectedRow(row);
+    setDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    await DeleteData({
+      auth,
+      endPoint: 'room-invoices',
+      id: selectedRow.documentId,
+    });
+    SuccessToast('Invoice deleted successfully');
+    setDeleteOpen(false);
+    setSelectedRow(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteOpen(false);
+    setSelectedRow(null);
+  };
+
+  // handle edit
+  const handleEdit = (row) => {
+    setEditData(row);
+    setEditOpen(true);
+  };
 
   return (
     <>
@@ -118,10 +172,10 @@ const Page = () => {
                         {GetCustomDate(row.date)}&nbsp;{row.time}
                       </TableCell>
                       <TableCell>{row.customer_name}</TableCell>
-                      <TableCell>{parseInt(row.total_amount)}</TableCell>
-                      <TableCell>{parseInt(row.tax / 2)}</TableCell>
-                      <TableCell>{parseInt(row.tax / 2)}</TableCell>
-                      <TableCell>{parseInt(row.payable_amount)}</TableCell>
+                      <TableCell>{row.total_amount.toFixed(2)}</TableCell>
+                      <TableCell>{row.tax / 2}</TableCell>
+                      <TableCell>{row.tax / 2}</TableCell>
+                      <TableCell>{row.payable_amount.toFixed(2)}</TableCell>
                       <TableCell>{row.mop}</TableCell>
                       <TableCell sx={{ width: '150px' }}>
                         <Tooltip title="View">
@@ -131,6 +185,27 @@ const Page = () => {
                             size="small"
                           >
                             <VisibilityIcon fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+
+                        <Tooltip title="Edit">
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleEdit(row)}
+                            size="small"
+                            disabled={!permissions.canUpdate}
+                          >
+                            <EditIcon fontSize="inherit" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton
+                            color="error"
+                            onClick={() => handleDeleteClick(row)}
+                            size="small"
+                            disabled={!permissions.canDelete}
+                          >
+                            <DeleteIcon fontSize="inherit" />
                           </IconButton>
                         </Tooltip>
                       </TableCell>
@@ -147,6 +222,47 @@ const Page = () => {
               </TableBody>
             </Table>
           </TableContainer>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={deleteOpen} onClose={handleCancelDelete}>
+            <DialogTitle>Delete Invoice</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Are you sure you want to delete invoice{' '}
+                <strong>{selectedRow?.invoice_no}</strong>? This action cannot
+                be undone.
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelDelete}>Cancel</Button>
+              <Button
+                onClick={handleConfirmDelete}
+                color="error"
+                variant="contained"
+              >
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* View Dialog */}
+          <RoomInvoiceViewDialog
+            viewOpen={viewOpen}
+            setViewOpen={setViewData}
+            viewData={viewData}
+            hotel={hotel}
+            roomBookings={roomBookings}
+          />
+
+          {/* Edit Dialog */}
+          <EditRoomInvoiceDialog
+            editOpen={editOpen}
+            setEditOpen={setEditOpen}
+            editData={editData}
+            setEditData={setEditData}
+            paymentMethods={paymentMethods}
+            auth={auth}
+          />
         </Box>
       )}
     </>

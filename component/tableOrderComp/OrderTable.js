@@ -16,7 +16,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Link from 'next/link';
 
-const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
+const OrderTable = ({
+  orders,
+  handleEdit,
+  setSelectedRow,
+  setDeleteOpen,
+  permissions,
+}) => {
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -130,6 +136,7 @@ const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
                       color="primary"
                       size="small"
                       onClick={() => handleEdit(order)}
+                      disabled={!permissions.canUpdate}
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
@@ -140,6 +147,7 @@ const OrderTable = ({ orders, handleEdit, setSelectedRow, setDeleteOpen }) => {
                         setSelectedRow(order);
                         setDeleteOpen(true);
                       }}
+                      disabled={!permissions.canDelete}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
