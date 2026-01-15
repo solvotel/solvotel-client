@@ -42,8 +42,8 @@ import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const BookingListPage = () => {
   const router = useRouter();
-  const permissions = CheckUserPermission(auth?.user?.permissions);
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const searchParams = useSearchParams();
   const paramsStatus = searchParams.get('bookingStatus');
   const todaysDate = GetTodaysDate().dateString;
