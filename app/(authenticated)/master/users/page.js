@@ -65,10 +65,11 @@ const Page = () => {
     return {
       username: '',
       email: '',
-      confirmed: false,
+      confirmed: true,
       blocked: false,
       role: 1,
       access: [],
+      permissions: [],
       hotel_id: auth?.user?.hotel_id || '',
     };
   }
@@ -76,11 +77,12 @@ const Page = () => {
   const handleEdit = (row) => {
     setEditing(true);
     setFormData({
+      permissions: row.permissions,
       access: row.access,
       blocked: row.blocked,
-      confirmed: row.confirmed,
+      confirmed: true,
       hotel_id: row.hotel_id,
-      role: row.role.id || 1,
+      role: row.role.id,
       username: row.username,
       email: row.email,
       id: row.id,
@@ -112,6 +114,7 @@ const Page = () => {
 
     if (editing) {
       let data = {
+        permissions: formData.permissions,
         access: formData.access,
         blocked: formData.blocked,
         confirmed: formData.confirmed,
@@ -141,6 +144,7 @@ const Page = () => {
       });
       SuccessToast('User created successfully');
     }
+    setSearch('');
     setFormOpen(false);
     setFormData(initialForm());
     setPassword('');
@@ -184,6 +188,7 @@ const Page = () => {
               label="Search by Username"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              autoComplete="off"
             />
             <Button
               variant="contained"
@@ -205,6 +210,7 @@ const Page = () => {
                     'Email',
                     'Role',
                     'Access',
+                    'Permissions',
                     'Status',
                     'Actions',
                   ].map((h) => (
@@ -220,9 +226,15 @@ const Page = () => {
               </TableHead>
               <TableBody>
                 {data
-                  ?.filter((row) =>
-                    row.username?.toLowerCase().includes(search.toLowerCase())
-                  )
+                  ?.filter((row) => {
+                    if (search) {
+                      return row.username
+                        ?.toLowerCase()
+                        .includes(search.toLowerCase());
+                    } else {
+                      return row;
+                    }
+                  })
                   ?.map((row) => (
                     <TableRow key={row.documentId}>
                       <TableCell>{row.username}</TableCell>
@@ -252,6 +264,46 @@ const Page = () => {
                         ) : (
                           <>
                             {row.access.map((acc, index) => (
+                              <Chip
+                                key={index}
+                                label={acc}
+                                variant="contained"
+                                size="small"
+                                sx={{
+                                  m: 0.5,
+                                  fontSize: '0.7rem',
+                                  color: 'black',
+                                  height: 20,
+                                  '& .MuiChip-label': {
+                                    textTransform: 'capitalize',
+                                    p: 0.5,
+                                  },
+                                }}
+                              />
+                            ))}
+                          </>
+                        )}
+                      </TableCell>
+                      <TableCell width={300} align="center">
+                        {row.role?.name === 'hotel-admin' ? (
+                          <Chip
+                            label="All Permissions"
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              m: 0.5,
+                              fontSize: '0.7rem',
+                              color: 'black',
+                              height: 20,
+                              '& .MuiChip-label': {
+                                px: 0.5,
+                                py: 0.5,
+                              },
+                            }}
+                          />
+                        ) : (
+                          <>
+                            {row.permissions.map((acc, index) => (
                               <Chip
                                 key={index}
                                 label={acc}
@@ -351,6 +403,7 @@ const Page = () => {
                   <TextField
                     fullWidth
                     label="Username"
+                    autoComplete="new-username"
                     value={formData.username}
                     onChange={(e) =>
                       setFormData({ ...formData, username: e.target.value })
@@ -365,6 +418,7 @@ const Page = () => {
                     fullWidth
                     label="Email"
                     type="email"
+                    autoComplete="new-email"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
@@ -377,6 +431,7 @@ const Page = () => {
                     fullWidth
                     label="Password"
                     type="password"
+                    autoComplete="new-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     error={!!errors.password}
@@ -408,6 +463,29 @@ const Page = () => {
                     <MenuItem value="restaurant">Restaurant</MenuItem>
                     <MenuItem value="inventory">Inventory</MenuItem>
                     <MenuItem value="accounts">Accounts</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Permissions"
+                    SelectProps={{ multiple: true }}
+                    value={formData.permissions}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        permissions:
+                          typeof e.target.value === 'string'
+                            ? e.target.value.split(',')
+                            : e.target.value,
+                      })
+                    }
+                  >
+                    <MenuItem value="read">Read</MenuItem>
+                    <MenuItem value="write">Write</MenuItem>
+                    <MenuItem value="update">Update</MenuItem>
+                    <MenuItem value="delete">Delete</MenuItem>
                   </TextField>
                 </Grid>
 

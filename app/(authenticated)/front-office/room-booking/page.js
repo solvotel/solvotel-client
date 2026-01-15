@@ -7,7 +7,7 @@ import {
   CreateNewData,
   UpdateData,
 } from '@/utils/ApiFunctions';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense, useEffect } from 'react';
 
 // mui
 import {
@@ -35,34 +35,73 @@ import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { Login as LoginIcon, Logout as LogoutIcon } from '@mui/icons-material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Loader } from '@/component/common';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { color } from 'framer-motion';
 
-const Page = () => {
+const BookingListPage = () => {
   const router = useRouter();
   const { auth } = useAuth();
+  const searchParams = useSearchParams();
+  const paramsStatus = searchParams.get('bookingStatus');
   const todaysDate = GetTodaysDate().dateString;
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
+  const [bookingStatus, setBookingStatus] = useState('');
   const data = GetDataList({
     auth,
     endPoint: 'room-bookings',
   });
+  useEffect(() => {
+    setBookingStatus(paramsStatus || '');
+  }, [paramsStatus]);
 
-  const [search, setSearch] = useState('');
+  console.log(bookingStatus);
 
   // filter data by name
   const filteredData = useMemo(() => {
     if (!data) return [];
-    if (!startDate) {
-      return data;
-    }
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
+
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    if (start) start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(23, 59, 59, 999);
+
     return data.filter((booking) => {
+      // 🔹 STATUS FILTER (custom rules)
+      if (bookingStatus) {
+        switch (bookingStatus) {
+          case 'Confirmed':
+            if (
+              booking.booking_status !== 'Confirmed' ||
+              booking.checked_in ||
+              booking.checked_out
+            ) {
+              return false;
+            }
+            break;
+
+          case 'Checked In':
+            if (!booking.checked_in || booking.checked_out) {
+              return false;
+            }
+            break;
+
+          case 'Blocked':
+            if (booking.booking_status !== 'Blocked') {
+              return false;
+            }
+            break;
+
+          default:
+            break;
+        }
+      }
+
+      // 🔹 DATE FILTER
+      if (!start && !end) return true;
+
       const createdAt = booking.createdAt ? new Date(booking.createdAt) : null;
       const checkin = booking.checkin_date
         ? new Date(booking.checkin_date)
@@ -71,13 +110,12 @@ const Page = () => {
         ? new Date(booking.checkout_date)
         : null;
 
-      return (
-        (createdAt && createdAt >= start && createdAt <= end) ||
-        (checkin && checkin >= start && checkin <= end) ||
-        (checkout && checkout >= start && checkout <= end)
-      );
+      const isInRange = (date) =>
+        date && (!start || date >= start) && (!end || date <= end);
+
+      return isInRange(createdAt) || isInRange(checkin) || isInRange(checkout);
     });
-  }, [data, startDate, endDate]);
+  }, [data, startDate, endDate, bookingStatus]);
 
   const getStatus = (booking) => {
     // Destructure for easier reading
@@ -345,6 +383,14 @@ const Page = () => {
         </Box>
       )}
     </>
+  );
+};
+
+const Page = () => {
+  return (
+    <Suspense>
+      <BookingListPage />
+    </Suspense>
   );
 };
 

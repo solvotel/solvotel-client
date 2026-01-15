@@ -280,28 +280,32 @@ const RoomGridLayout = ({ bookings, rooms }) => {
                 <Grid container spacing={2}>
                   {[
                     {
-                      title: `Available (${availableCount})`,
+                      title: `Available`,
+                      count: availableCount,
                       data: availableGrouped,
                       color: '#22c55e',
                       bg: '#f0fdf4',
                       chipBg: '#bbf7d0',
                     },
                     {
-                      title: `Checked In (${checkedInCount})`,
+                      title: `Checked In`,
+                      count: checkedInCount,
                       data: checkedInGrouped,
                       color: '#0ea5e9',
                       bg: '#e0f2fe',
                       chipBg: '#bae6fd',
                     },
                     {
-                      title: `Confirmed (${confirmedCount})`,
+                      title: `Confirmed`,
+                      count: confirmedCount,
                       data: confirmedGrouped,
                       color: 'purple',
                       bg: '#ffccfdff',
                       chipBg: '#ffb0ecff',
                     },
                     {
-                      title: `Blocked (${blockedCount})`,
+                      title: `Blocked`,
+                      count: blockedCount,
                       data: blockedGrouped,
                       color: 'orange',
                       bg: '#fff7e6',
@@ -324,7 +328,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
                         }}
                       >
                         <Typography variant="subtitle1" fontWeight={600}>
-                          {col.title}
+                          {col.title} ({col.count})
                         </Typography>
                         {Object.entries(col.data).map(([cat, rooms]) => (
                           <Box key={cat} mt={1}>
@@ -351,7 +355,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
                                   }
                                   href={
                                     !col.title.startsWith('Available')
-                                      ? `/front-office/room-booking/${room.bookingId}`
+                                      ? `/front-office/room-booking?bookingStatus=${col.title}`
                                       : undefined
                                   }
                                   sx={{

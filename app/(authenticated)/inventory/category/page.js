@@ -43,9 +43,11 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
 import { Loader } from '@/component/common';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const Page = () => {
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
 
   const data = GetDataList({
     auth,
@@ -110,7 +112,7 @@ const Page = () => {
         endPoint: 'inventory-categories',
         id: formData.documentId,
         payload: {
-          data: updateBody,
+          data: { ...updateBody, user_updated: auth?.user?.username },
         },
       });
       SuccessToast('Category updated successfully');
@@ -119,7 +121,7 @@ const Page = () => {
         auth,
         endPoint: 'inventory-categories',
         payload: {
-          data: formData,
+          data: { ...formData, user_created: auth?.user?.username },
         },
       });
       SuccessToast('Category created successfully');
@@ -185,6 +187,7 @@ const Page = () => {
               startIcon={<AddIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
               onClick={handleCreate}
+              disabled={!permissions.canCreate}
             >
               Create New
             </Button>
@@ -213,6 +216,7 @@ const Page = () => {
                           color="primary"
                           onClick={() => handleEdit(row)}
                           size="small"
+                          disabled={!permissions.canUpdate}
                         >
                           <EditIcon fontSize="inherit" />
                         </IconButton>
@@ -222,6 +226,7 @@ const Page = () => {
                           color="error"
                           onClick={() => handleDeleteClick(row)}
                           size="small"
+                          disabled={!permissions.canDelete}
                         >
                           <DeleteIcon fontSize="inherit" />
                         </IconButton>

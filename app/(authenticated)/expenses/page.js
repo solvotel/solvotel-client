@@ -46,9 +46,11 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const Page = () => {
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
 
   const data = GetDataList({
@@ -130,7 +132,7 @@ const Page = () => {
         endPoint: 'expenses',
         id: formData.documentId,
         payload: {
-          data: updateBody,
+          data: { ...updateBody, user_updated: auth?.user?.username },
         },
       });
       SuccessToast('Expense updated successfully');
@@ -139,7 +141,7 @@ const Page = () => {
         auth,
         endPoint: 'expenses',
         payload: {
-          data: formData,
+          data: { ...formData, user_created: auth?.user?.username },
         },
       });
       SuccessToast('Expense created successfully');
@@ -206,6 +208,7 @@ const Page = () => {
               startIcon={<AddIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
               onClick={handleCreate}
+              disabled={!permissions.canCreate}
             >
               Create New
             </Button>
@@ -256,6 +259,7 @@ const Page = () => {
                               color="primary"
                               onClick={() => handleEdit(row)}
                               size="small"
+                              disabled={!permissions.canUpdate}
                             >
                               <EditIcon fontSize="inherit" />
                             </IconButton>
@@ -265,6 +269,7 @@ const Page = () => {
                               color="error"
                               onClick={() => handleDeleteClick(row)}
                               size="small"
+                              disabled={!permissions.canDelete}
                             >
                               <DeleteIcon fontSize="inherit" />
                             </IconButton>
