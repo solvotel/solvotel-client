@@ -134,6 +134,7 @@ const UpdateBookingForm = ({
         rooms: rooms,
         room_tokens: roomTokens,
         advance_payment: paymentDetails,
+        user_updated: auth?.user?.username,
       };
 
       const res = await UpdateData({

@@ -20,7 +20,7 @@ import { motion } from 'framer-motion';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 import AddIcon from '@mui/icons-material/Add';
 
-const RoomGridLayout = ({ bookings, rooms }) => {
+const RoomGridLayout = ({ bookings, rooms, permissions }) => {
   const todaysDate = GetTodaysDate().dateString;
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [startDate, setStartDate] = useState(todaysDate);
@@ -205,6 +205,7 @@ const RoomGridLayout = ({ bookings, rooms }) => {
           variant="contained"
           startIcon={<AddIcon />}
           sx={{ borderRadius: 2, textTransform: 'none' }}
+          disabled={!permissions.canCreate}
         >
           New Booking
         </Button>

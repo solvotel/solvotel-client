@@ -174,6 +174,7 @@ export default function BookingForm() {
         room_tokens: roomTokens,
         advance_payment: paymentDetails,
         hotel_id: auth?.user?.hotel_id || '',
+        user_created: auth?.user?.username,
       };
 
       const res = await CreateNewData({

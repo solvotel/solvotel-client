@@ -12,9 +12,11 @@ import {
   RoomGridLayout,
 } from '@/component/dashboardComp';
 import { Loader } from '@/component/common';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const Page = () => {
   const { auth } = useAuth();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
   const today = new Date(todaysDate);
   const [selectedDate, setSelectedDate] = useState(today);
@@ -68,7 +70,11 @@ const Page = () => {
   return (
     <>
       <OverviewStats bookings={bookings} rooms={rooms} />
-      <RoomGridLayout bookings={bookings} rooms={rooms} />
+      <RoomGridLayout
+        bookings={bookings}
+        rooms={rooms}
+        permissions={permissions}
+      />
       <BookingList
         expectedCheckin={expectedCheckin}
         expectedCheckout={expectedCheckout}

@@ -38,9 +38,11 @@ import { Loader } from '@/component/common';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { color } from 'framer-motion';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 const BookingListPage = () => {
   const router = useRouter();
+  const permissions = CheckUserPermission(auth?.user?.permissions);
   const { auth } = useAuth();
   const searchParams = useSearchParams();
   const paramsStatus = searchParams.get('bookingStatus');
@@ -222,6 +224,7 @@ const BookingListPage = () => {
               variant="contained"
               startIcon={<AddIcon />}
               sx={{ borderRadius: 2, textTransform: 'none' }}
+              disabled={!permissions.canCreate}
             >
               New Booking
             </Button>
