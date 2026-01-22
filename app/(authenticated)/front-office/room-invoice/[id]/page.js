@@ -60,7 +60,7 @@ export default function Page({ params }) {
   }
 
   const booking = roomBookings?.find(
-    (item) => item?.documentId === invoiceData?.room_booking?.documentId
+    (item) => item?.documentId === invoiceData?.room_booking?.documentId,
   );
 
   // ✅ Build tokens and totals
@@ -231,8 +231,7 @@ export default function Page({ params }) {
         </TableContainer>
 
         {/* Totals */}
-        <Divider sx={{ my: 2 }} />
-        <Box>
+        <Box mt={2}>
           <Typography variant="h6">💰 Summary</Typography>
           <Typography>Subtotal : ₹{toInt(invoiceData.total_amount)}</Typography>
           <Typography>SGST : ₹{toInt(invoiceData.tax / 2)}</Typography>
@@ -240,14 +239,69 @@ export default function Page({ params }) {
           <Typography fontWeight="bold" color="primary">
             Grand Total : ₹{toInt(invoiceData.payable_amount)}
           </Typography>
-          <Typography mt={1}>
-            <strong>Payment Method:</strong> {invoiceData.mop || 'N/A'}
-          </Typography>
         </Box>
+
+        {/* Payment Summary */}
+        <Box mt={2}>
+          <Typography variant="h6">💰 Payment Summary</Typography>
+          <Typography>
+            Total Paid: ₹
+            {invoiceData.payments
+              ? invoiceData.payments
+                  .reduce(
+                    (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+                    0,
+                  )
+                  .toFixed(2)
+              : '0.00'}
+          </Typography>
+          <Typography color={invoiceData.due > 0 ? 'error' : 'success'}>
+            Due Amount: ₹{invoiceData.due || '0.00'}
+          </Typography>
+          {invoiceData.due <= 0 && (
+            <Typography color="success" fontWeight="bold">
+              ✅ Fully Paid
+            </Typography>
+          )}
+        </Box>
+
+        {/* Payments Table */}
+        {invoiceData.payments && invoiceData.payments.length > 0 && (
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <strong>Timestamp</strong>
+                  </TableCell>
+                  <TableCell>
+                    <strong>MOP</strong>
+                  </TableCell>
+                  <TableCell align="right">
+                    <strong>Amount (₹)</strong>
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {invoiceData.payments.map((payment, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      {new Date(payment.time_stamp).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{payment.mop}</TableCell>
+                    <TableCell align="right">
+                      ₹{parseFloat(payment.amount).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Box>
 
       {/* ✅ Hidden printable component */}
-      <div style={{ display: 'block' }}>
+      <div style={{ display: 'none' }}>
         <RoomInvoicePrint
           ref={componentRef}
           data={invoiceData}

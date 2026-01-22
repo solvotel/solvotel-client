@@ -145,7 +145,50 @@ export default function Page({ params }) {
           <Typography>SGST: ₹{invoiceData.tax / 2}</Typography>
           <Typography>CGST: ₹{invoiceData.tax / 2}</Typography>
           <Typography>Payable: ₹{invoiceData.payable_amount}</Typography>
-          <Typography>Payment Method: {invoiceData.mop}</Typography>
+        </Box>
+
+        {/* Payments Table */}
+        {invoiceData.payments && invoiceData.payments.length > 0 && (
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Timestamp</TableCell>
+                  <TableCell>MOP</TableCell>
+                  <TableCell>Amount</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {invoiceData.payments.map((payment, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      {new Date(payment.time_stamp).toLocaleString()}
+                    </TableCell>
+                    <TableCell>{payment.mop}</TableCell>
+                    <TableCell>
+                      ₹{parseFloat(payment.amount).toFixed(2)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {/* Payment Summary */}
+        <Box mt={2}>
+          <Typography>
+            Total Paid: ₹
+            {invoiceData.payments
+              ? invoiceData.payments
+                  .reduce(
+                    (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+                    0,
+                  )
+                  .toFixed(2)
+              : '0.00'}
+          </Typography>
+          <Typography>Due: ₹{invoiceData.due || '0.00'}</Typography>
         </Box>
 
         <div style={{ display: 'none' }}>

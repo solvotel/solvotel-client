@@ -385,6 +385,16 @@ export default function Navbar() {
                         icon: <ClipboardList size={16} />,
                         label: 'Income Expense Report',
                       },
+                      {
+                        href: '/due-report',
+                        icon: <Banknote size={16} />,
+                        label: 'Due Report',
+                      },
+                      {
+                        href: '/collection-report',
+                        icon: <Calculator size={16} />,
+                        label: 'Collection Report',
+                      },
                     ]}
                   />
                 )}

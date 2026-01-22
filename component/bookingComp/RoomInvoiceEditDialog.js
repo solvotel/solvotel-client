@@ -16,7 +16,11 @@ import {
   TableContainer,
   Divider,
   Box,
+  IconButton,
+  Paper,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import { UpdateData } from '@/utils/ApiFunctions';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
@@ -32,19 +36,37 @@ export default function EditRoomInvoiceDialog({
   const [roomTokens, setRoomTokens] = useState([]);
   const [serviceTokens, setServiceTokens] = useState([]);
   const [foodTokens, setFoodTokens] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     if (editData) {
+      // Handle backward compatibility: if old mop exists and no payments, convert to payments
+      let paymentsData = editData.payments || [];
+      if (
+        editData.mop &&
+        (!editData.payments || editData.payments.length === 0)
+      ) {
+        paymentsData = [
+          {
+            time_stamp: new Date().toISOString(),
+            mop: editData.mop,
+            amount: editData.payable_amount - (editData.due || 0),
+          },
+        ];
+      }
+
       setInvData({
         customer_name: editData.customer_name || '',
         customer_phone: editData.customer_phone || '',
         customer_address: editData.customer_address || '',
         customer_gst: editData.customer_gst || '',
-        mop: editData.mop || '',
+        mop: editData.mop || '', // Keep for backward compatibility
       });
       setRoomTokens(editData?.room_tokens || []);
       setServiceTokens(editData?.service_tokens || []);
       setFoodTokens(editData?.food_tokens || []);
+      setPayments(paymentsData);
     }
   }, [editData]);
 
@@ -130,35 +152,129 @@ export default function EditRoomInvoiceDialog({
     setFoodTokens(updated);
   };
 
-  // --- SAVE DATA ---
-  const handleSave = async () => {
+  // --- PAYMENT HANDLERS ---
+  const handleAddPayment = () => {
+    // Calculate current payable amount
     const serviceAndFood = [...foodTokens, ...serviceTokens];
-    const totalRoomRate = roomTokens.reduce(
-      (sum, item) => sum + (parseFloat(item.rate * item.days) || 0),
-      0
-    );
-
     const totalRoomAmount = roomTokens.reduce(
       (sum, item) => sum + (parseFloat(item.amount) || 0),
-      0
+      0,
     );
-    const totalRoomGst = totalRoomAmount - totalRoomRate;
-
     const totalOtherAmount = serviceAndFood.reduce(
       (sum, item) => sum + (parseFloat(item.total_amount) || 0),
-      0
+      0,
     );
+    const payableAmount = totalOtherAmount + totalRoomAmount;
+
+    // Calculate total paid
+    const totalPaid = payments.reduce(
+      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+      0,
+    );
+    const due = Math.max(0, payableAmount - totalPaid);
+
+    // Validation: Check if there's an outstanding amount to pay
+    if (due <= 0) {
+      ErrorToast('No outstanding amount to pay');
+      return;
+    }
+
+    const newPayment = {
+      time_stamp: new Date().toISOString(),
+      mop: '',
+      amount: due,
+    };
+    setPayments([...payments, newPayment]);
+  };
+
+  const handleUpdatePayment = (index, field, value) => {
+    if (field === 'amount') {
+      const numValue = parseFloat(value) || 0;
+      if (numValue < 0) {
+        ErrorToast('Payment amount cannot be negative');
+        return;
+      }
+      value = numValue;
+    }
+
+    const updatedPayments = [...payments];
+    updatedPayments[index][field] = value;
+    setPayments(updatedPayments);
+  };
+
+  const handleRemovePayment = (index) => {
+    const updatedPayments = payments.filter((_, i) => i !== index);
+    setPayments(updatedPayments);
+  };
+
+  // --- SAVE DATA ---
+  const handleSave = async () => {
+    // Validation
+    const errors = {};
+
+    // Calculate payable amount
+    const serviceAndFood = [...foodTokens, ...serviceTokens];
+    const totalRoomAmount = roomTokens.reduce(
+      (sum, item) => sum + (parseFloat(item.amount) || 0),
+      0,
+    );
+    const totalOtherAmount = serviceAndFood.reduce(
+      (sum, item) => sum + (parseFloat(item.total_amount) || 0),
+      0,
+    );
+    const payableAmount = totalOtherAmount + totalRoomAmount;
+
+    // Calculate total paid
+    const totalPaid = payments.reduce(
+      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+      0,
+    );
+
+    // Validate payments
+    if (payments && payments.length > 0) {
+      for (let i = 0; i < payments.length; i++) {
+        const payment = payments[i];
+        if (!payment.mop || payment.mop.trim() === '') {
+          errors.payments = `Payment ${i + 1}: Please select a mode of payment`;
+          break;
+        }
+        if (!payment.amount || parseFloat(payment.amount) <= 0) {
+          errors.payments = `Payment ${i + 1}: Amount must be greater than 0`;
+          break;
+        }
+      }
+    }
+
+    if (totalPaid > payableAmount) {
+      errors.payments = 'Total payment amount cannot exceed payable amount';
+    }
+
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      ErrorToast(Object.values(errors)[0]);
+      return;
+    }
+
+    const totalRoomRate = roomTokens.reduce(
+      (sum, item) => sum + (parseFloat(item.rate * item.days) || 0),
+      0,
+    );
+    const totalRoomGst = totalRoomAmount - totalRoomRate;
     const totalOtherGst = serviceAndFood.reduce(
       (sum, item) => sum + (parseFloat(item.total_gst) || 0),
-      0
+      0,
     );
-
     const totalGst = totalRoomGst + totalOtherGst;
+    const due = Math.max(0, payableAmount - totalPaid);
 
-    const payableAmount = totalOtherAmount + totalRoomAmount;
     try {
       setLoading(true);
       const cleanedRoomTokens = roomTokens.map(({ id, ...rest }) => rest);
+      const cleanedPayments = payments.map(
+        ({ id, documentId, ...rest }) => rest,
+      );
+
       const payload = {
         data: {
           ...invData,
@@ -168,6 +284,8 @@ export default function EditRoomInvoiceDialog({
           payable_amount: payableAmount,
           tax: totalGst,
           total_amount: payableAmount - totalGst,
+          payments: cleanedPayments,
+          due: due,
         },
       };
       await UpdateData({
@@ -247,24 +365,6 @@ export default function EditRoomInvoiceDialog({
                 setInvData({ ...invData, customer_address: e.target.value })
               }
             />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label="Mode of Payment"
-              value={invData?.mop || ''}
-              onChange={(e) => setInvData({ ...invData, mop: e.target.value })}
-              SelectProps={{ native: true }}
-            >
-              <option value="">-- Select --</option>
-              {paymentMethods?.map((pm) => (
-                <option key={pm.documentId} value={pm.name}>
-                  {pm.name}
-                </option>
-              ))}
-            </TextField>
           </Grid>
         </Grid>
 
@@ -364,7 +464,7 @@ export default function EditRoomInvoiceDialog({
                               ti,
                               ii,
                               'rate',
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           sx={{ width: 80 }}
@@ -380,7 +480,7 @@ export default function EditRoomInvoiceDialog({
                               ti,
                               ii,
                               'gst',
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           sx={{ width: 60 }}
@@ -396,7 +496,7 @@ export default function EditRoomInvoiceDialog({
                               ti,
                               ii,
                               'amount',
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           sx={{ width: 80 }}
@@ -476,7 +576,7 @@ export default function EditRoomInvoiceDialog({
                               ti,
                               ii,
                               'amount',
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           sx={{ width: 80 }}
@@ -496,6 +596,144 @@ export default function EditRoomInvoiceDialog({
             </TableContainer>
           </Box>
         ))}
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* PAYMENT SECTION */}
+        <Typography variant="h6" gutterBottom>
+          💳 Payments
+        </Typography>
+        {formErrors.payments && (
+          <Typography color="error" sx={{ mb: 1 }}>
+            {formErrors.payments}
+          </Typography>
+        )}
+
+        <TableContainer component={Paper} sx={{ borderRadius: 1, mb: 2 }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                {['Timestamp', 'MOP', 'Amount', 'Actions'].map((h) => (
+                  <TableCell key={h}>{h}</TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {payments?.length > 0 ? (
+                <>
+                  {payments.map((payment, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        {new Date(payment.time_stamp).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          select
+                          size="small"
+                          fullWidth
+                          value={payment.mop}
+                          onChange={(e) =>
+                            handleUpdatePayment(idx, 'mop', e.target.value)
+                          }
+                          SelectProps={{ native: true }}
+                        >
+                          <option value="">-- Select --</option>
+                          {paymentMethods?.map((cat) => (
+                            <option key={cat.documentId} value={cat.name}>
+                              {cat?.name}
+                            </option>
+                          ))}
+                        </TextField>
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          type="number"
+                          size="small"
+                          value={payment.amount}
+                          onChange={(e) =>
+                            handleUpdatePayment(
+                              idx,
+                              'amount',
+                              parseFloat(e.target.value) || 0,
+                            )
+                          }
+                          sx={{ width: 100 }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleRemovePayment(idx)}
+                          size="small"
+                        >
+                          <DeleteIcon fontSize="inherit" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    Payment not added yet!!
+                  </TableCell>
+                </TableRow>
+              )}
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleAddPayment}
+                    startIcon={<AddIcon />}
+                  >
+                    Add Payment
+                  </Button>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {/* PAYMENT SUMMARY */}
+        {(() => {
+          // Calculate totals for payment summary
+          const serviceAndFood = [...foodTokens, ...serviceTokens];
+          const totalRoomAmount = roomTokens.reduce(
+            (sum, item) => sum + (parseFloat(item.amount) || 0),
+            0,
+          );
+          const totalOtherAmount = serviceAndFood.reduce(
+            (sum, item) => sum + (parseFloat(item.total_amount) || 0),
+            0,
+          );
+          const payableAmount = totalOtherAmount + totalRoomAmount;
+          const totalPaid = payments.reduce(
+            (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+            0,
+          );
+          const due = Math.max(0, payableAmount - totalPaid);
+
+          return (
+            <Grid container spacing={2} mb={2}>
+              <Grid item size={{ xs: 12, sm: 4 }}>
+                <Typography>
+                  <strong>Payable:</strong> ₹{payableAmount.toFixed(2)}
+                </Typography>
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 4 }}>
+                <Typography>
+                  <strong>Paid:</strong> ₹{totalPaid.toFixed(2)}
+                </Typography>
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 4 }}>
+                <Typography>
+                  <strong>Due:</strong> ₹{due.toFixed(2)}
+                </Typography>
+              </Grid>
+            </Grid>
+          );
+        })()}
       </DialogContent>
 
       <DialogActions>

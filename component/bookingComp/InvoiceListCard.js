@@ -7,6 +7,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import { GetCustomDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { RoomInvoicePrint } from '../printables/RoomInvoicePrint';
+import Link from 'next/link';
 
 const InvoiceListCard = ({ roomInvoices, booking, hotel }) => {
   const filteredInvoices = roomInvoices?.filter((inv) => {
@@ -47,48 +48,58 @@ const InvoiceListCard = ({ roomInvoices, booking, hotel }) => {
         <Grid container spacing={3}>
           {filteredInvoices?.map((invoice, idx) => (
             <Grid size={{ xs: 12, sm: 6 }} key={idx}>
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 2,
-                  borderRadius: 3,
-                  background: 'linear-gradient(135deg, #e9ffefff, #e2ffe7ff)',
-                  transition: 'transform 0.2s',
-                  '&:hover': { transform: 'scale(1.02)' },
-                }}
+              <Link
+                href={`/front-office/room-invoice/${invoice.documentId}`}
+                style={{ textDecoration: 'none' }}
               >
-                <Stack spacing={1}>
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                  >
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <ReceiptLongIcon color="primary" />
-                      <Typography variant="h6" fontWeight="600">
-                        {invoice.invoice_no}
-                      </Typography>
-                    </Stack>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      startIcon={<PrintIcon />}
-                      size="small"
-                      sx={{ textTransform: 'none' }}
-                      onClick={() => handlePrint(invoice)}
+                <Paper
+                  elevation={3}
+                  sx={{
+                    p: 2,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #e9ffefff, #e2ffe7ff)',
+                    transition: 'transform 0.2s',
+                    '&:hover': { transform: 'scale(1.02)' },
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Stack spacing={1}>
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="center"
                     >
-                      Print
-                    </Button>
-                  </Box>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <ReceiptLongIcon color="primary" />
+                        <Typography variant="h6" fontWeight="600">
+                          {invoice.invoice_no}
+                        </Typography>
+                      </Stack>
+                      <Button
+                        variant="contained"
+                        color="success"
+                        startIcon={<PrintIcon />}
+                        size="small"
+                        sx={{ textTransform: 'none' }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handlePrint(invoice);
+                        }}
+                      >
+                        Print
+                      </Button>
+                    </Box>
 
-                  <Typography variant="body1">
-                    <strong>Amount:</strong> ₹{invoice?.payable_amount}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>Date:</strong> {GetCustomDate(invoice.date)}
-                  </Typography>
-                </Stack>
-              </Paper>
+                    <Typography variant="body1">
+                      <strong>Amount:</strong> ₹{invoice?.payable_amount}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Date:</strong> {GetCustomDate(invoice.date)}
+                    </Typography>
+                  </Stack>
+                </Paper>
+              </Link>
             </Grid>
           ))}
         </Grid>

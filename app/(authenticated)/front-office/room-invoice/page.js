@@ -75,7 +75,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.invoice_no?.toLowerCase().includes(search.toLowerCase())
+      item.invoice_no?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -149,12 +149,13 @@ const Page = () => {
                   {[
                     'Invoice No',
                     'Date/Time',
-                    'Customer Name',
-                    'Total Amount',
-                    'SGST',
-                    'CGST',
-                    'Payable Amount',
-                    'Payment Method',
+                    'Name',
+                    'Total (₹)',
+                    'SGST (₹)',
+                    'CGST (₹)',
+                    'Payable (₹)',
+                    'Paid (₹)',
+                    'Due (₹)',
                     'Actions',
                   ].map((item, index) => (
                     <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -176,7 +177,15 @@ const Page = () => {
                       <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.payable_amount.toFixed(2)}</TableCell>
-                      <TableCell>{row.mop}</TableCell>
+                      <TableCell>
+                        {row.payments
+                          ?.reduce(
+                            (acc, p) => acc + (parseFloat(p.amount) || 0),
+                            0,
+                          )
+                          .toFixed(2) || '0.00'}
+                      </TableCell>
+                      <TableCell>{row.due}</TableCell>
                       <TableCell sx={{ width: '150px' }}>
                         <Tooltip title="View">
                           <IconButton
@@ -214,7 +223,7 @@ const Page = () => {
                 })}
                 {filteredData?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">
+                    <TableCell colSpan={9} align="center">
                       No invoice found
                     </TableCell>
                   </TableRow>

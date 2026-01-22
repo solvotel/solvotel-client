@@ -43,6 +43,7 @@ import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { GetCurrentTime } from '@/utils/Timefetcher';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { CheckUserPermission } from '@/utils/UserPermissions';
+import { Add } from '@mui/icons-material';
 
 const generateNextInvoiceNo = (invoices) => {
   if (!invoices || invoices.length === 0) {
@@ -86,14 +87,28 @@ const Page = () => {
   const [formData, setFormData] = useState(initialFormData());
   const [editing, setEditing] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState();
+
+  // Calculate payable amount
+  const payableAmount = useMemo(() => {
+    const totalAmount = formData.menu_items.reduce(
+      (acc, cur) => acc + cur.rate * cur.qty,
+      0,
+    );
+    const tax = formData.menu_items.reduce(
+      (acc, cur) => acc + (cur.rate * cur.qty * cur.gst) / 100,
+      0,
+    );
+    return totalAmount + tax;
+  }, [formData.menu_items]);
 
   // filter data by name
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.invoice_no?.toLowerCase().includes(search.toLowerCase())
+      item.invoice_no?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -124,6 +139,66 @@ const Page = () => {
     setSelectedItem('');
   };
 
+  const handleAddPayment = () => {
+    // Calculate current totals
+    const totalAmount = formData.menu_items.reduce(
+      (acc, cur) => acc + cur.rate * cur.qty,
+      0,
+    );
+    const tax = formData.menu_items.reduce(
+      (acc, cur) => acc + (cur.rate * cur.qty * cur.gst) / 100,
+      0,
+    );
+    const payable = totalAmount + tax;
+    const totalPaid = formData.payments.reduce(
+      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+      0,
+    );
+    const due = Math.max(0, payable - totalPaid);
+
+    // Validation: Check if there's an outstanding amount to pay
+    if (due <= 0) {
+      ErrorToast('No outstanding amount to pay');
+      return;
+    }
+
+    const newPayment = {
+      time_stamp: new Date().toISOString(),
+      mop: '',
+      amount: due,
+    };
+    setFormData({
+      ...formData,
+      payments: [...formData.payments, newPayment],
+    });
+  };
+
+  const handleUpdatePayment = (index, field, value) => {
+    if (field === 'amount') {
+      const numValue = parseFloat(value) || 0;
+      if (numValue < 0) {
+        ErrorToast('Payment amount cannot be negative');
+        return;
+      }
+      value = numValue;
+    }
+
+    const updatedPayments = [...formData.payments];
+    updatedPayments[index][field] = value;
+    setFormData({
+      ...formData,
+      payments: updatedPayments,
+    });
+  };
+
+  const handleRemovePayment = (index) => {
+    const updatedPayments = formData.payments.filter((_, i) => i !== index);
+    setFormData({
+      ...formData,
+      payments: updatedPayments,
+    });
+  };
+
   function initialFormData() {
     const newInvoiceNO = generateNextInvoiceNo(data);
     const time = GetCurrentTime();
@@ -138,7 +213,8 @@ const Page = () => {
       total_amount: '',
       tax: '',
       payable_amount: '',
-      mop: '',
+      payments: [], // Changed from mop to payments array
+      due: 0,
       menu_items: [],
       hotel_id: auth?.user?.hotel_id || '',
     };
@@ -147,7 +223,22 @@ const Page = () => {
   // handle edit
   const handleEdit = (row) => {
     setEditing(true);
-    setFormData(row);
+    let formData = { ...row };
+    // Backward compatibility: if old mop exists and no payments, convert to payments
+    if (
+      formData.mop &&
+      (!formData.payments || formData.payments.length === 0)
+    ) {
+      formData.payments = [
+        {
+          time_stamp: new Date().toISOString(),
+          mop: formData.mop,
+          amount: formData.payable_amount - (formData.due || 0),
+        },
+      ];
+      delete formData.mop; // remove old field
+    }
+    setFormData(formData);
     setFormOpen(true);
   };
 
@@ -165,11 +256,47 @@ const Page = () => {
       errors.menu_items = 'Please add at least one menu item';
     }
 
+    // Calculate payable amount
+    const totalAmount = formData.menu_items.reduce(
+      (acc, cur) => acc + cur.rate * cur.qty,
+      0,
+    );
+    const tax = formData.menu_items.reduce(
+      (acc, cur) => acc + (cur.rate * cur.qty * cur.gst) / 100,
+      0,
+    );
+    const payable = totalAmount + tax;
+
+    // Calculate total paid
+    const totalPaid = formData.payments.reduce(
+      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+      0,
+    );
+
+    if (totalPaid > payable) {
+      errors.payments = 'Total payment amount cannot exceed payable amount';
+    }
+
+    // Validate each payment has MOP and amount > 0
+    if (formData.payments && formData.payments.length > 0) {
+      for (let i = 0; i < formData.payments.length; i++) {
+        const payment = formData.payments[i];
+        if (!payment.mop || payment.mop.trim() === '') {
+          errors.payments = `Payment ${i + 1}: Please select a mode of payment`;
+          break;
+        }
+        if (!payment.amount || parseFloat(payment.amount) <= 0) {
+          errors.payments = `Payment ${i + 1}: Amount must be greater than 0`;
+          break;
+        }
+      }
+    }
+
     setFormErrors(errors);
 
     if (Object.keys(errors).length > 0) {
       // show first error toast
-
+      ErrorToast(Object.values(errors)[0]);
       return false;
     }
 
@@ -178,62 +305,85 @@ const Page = () => {
 
   const handleSave = async () => {
     if (!validateForm(formData)) {
-      ErrorToast('Enter required fields');
       return;
     }
-    // recalc before save
-    const totalAmount = formData.menu_items.reduce(
-      (acc, cur) => acc + cur.rate * cur.qty,
-      0
-    );
-    const tax = formData.menu_items.reduce(
-      (acc, cur) => acc + (cur.rate * cur.qty * cur.gst) / 100,
-      0
-    );
-    const payable = totalAmount + tax;
 
-    // ✅ Clean menu_items (remove id/documentId/etc.)
-    const cleanedMenuItems = formData.menu_items.map(
-      ({ id, documentId, ...rest }) => rest
-    );
+    setLoading(true);
 
-    const finalData = {
-      ...formData,
-      total_amount: totalAmount,
-      tax,
-      payable_amount: payable,
-      menu_items: cleanedMenuItems,
-    };
+    try {
+      // recalc before save
+      const totalAmount = formData.menu_items.reduce(
+        (acc, cur) => acc + cur.rate * cur.qty,
+        0,
+      );
+      const tax = formData.menu_items.reduce(
+        (acc, cur) => acc + (cur.rate * cur.qty * cur.gst) / 100,
+        0,
+      );
+      const payable = totalAmount + tax;
 
-    if (editing) {
-      const {
-        id,
-        documentId,
-        publishedAt,
-        updatedAt,
-        createdAt,
-        ...updateBody
-      } = finalData;
+      const totalPaid = formData.payments.reduce(
+        (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+        0,
+      );
+      const due = Math.max(0, payable - totalPaid);
 
-      await UpdateData({
-        auth,
-        endPoint: 'restaurant-invoices',
-        id: formData.documentId, // ✅ only for URL
-        payload: {
-          data: { ...updateBody, user_updated: auth?.user?.username },
-        },
-      });
-      SuccessToast('Invoice updated successfully');
-    } else {
-      await CreateNewData({
-        auth,
-        endPoint: 'restaurant-invoices',
-        payload: { data: { ...finalData, user_created: auth?.user?.username } },
-      });
-      SuccessToast('Invoice created successfully');
+      // ✅ Clean menu_items (remove id/documentId/etc.)
+      const cleanedMenuItems = formData.menu_items.map(
+        ({ id, documentId, ...rest }) => rest,
+      );
+
+      const cleanedPayments = formData.payments.map(
+        ({ id, documentId, ...rest }) => rest,
+      );
+
+      const finalData = {
+        ...formData,
+        total_amount: totalAmount,
+        tax,
+        payable_amount: payable,
+        payments: cleanedPayments,
+        due,
+        menu_items: cleanedMenuItems,
+      };
+
+      if (editing) {
+        const {
+          id,
+          documentId,
+          publishedAt,
+          updatedAt,
+          createdAt,
+          ...updateBody
+        } = finalData;
+
+        await UpdateData({
+          auth,
+          endPoint: 'restaurant-invoices',
+          id: formData.documentId, // ✅ only for URL
+          payload: {
+            data: { ...updateBody, user_updated: auth?.user?.username },
+          },
+        });
+        SuccessToast('Invoice updated successfully');
+      } else {
+        await CreateNewData({
+          auth,
+          endPoint: 'restaurant-invoices',
+          payload: {
+            data: { ...finalData, user_created: auth?.user?.username },
+          },
+        });
+        SuccessToast('Invoice created successfully');
+      }
+
+      setFormOpen(false);
+    } catch (error) {
+      ErrorToast('Failed to save invoice. Please try again.');
+      console.error('Save error:', error);
+    } finally {
+      setLoading(false);
     }
-
-    setFormOpen(false);
   };
 
   // handle delete
@@ -309,11 +459,12 @@ const Page = () => {
                     'Invoice No',
                     'Date/Time',
                     'Customer Name',
-                    'Total Amount ₹',
-                    'SGST ₹ ',
-                    'CGST ₹ ',
-                    'Payable Amount ₹ ',
-                    'Payment Method',
+                    'Total (₹)',
+                    'SGST (₹) ',
+                    'CGST (₹) ',
+                    'Payable (₹) ',
+                    'Paid (₹)',
+                    'Due (₹)',
                     'Created By',
                     'Updated By',
                     'Actions',
@@ -336,7 +487,15 @@ const Page = () => {
                     <TableCell>{row.tax / 2}</TableCell>
                     <TableCell>{row.tax / 2}</TableCell>
                     <TableCell>{row.payable_amount}</TableCell>
-                    <TableCell>{row.mop}</TableCell>{' '}
+                    <TableCell>
+                      {row.payments
+                        ?.reduce(
+                          (acc, p) => acc + (parseFloat(p.amount) || 0),
+                          0,
+                        )
+                        .toFixed(2) || '0.00'}
+                    </TableCell>
+                    <TableCell>{row.due || '0.00'}</TableCell>
                     <TableCell>{row.user_created}</TableCell>
                     <TableCell>{row.user_updated}</TableCell>
                     <TableCell sx={{ width: '150px' }}>
@@ -375,7 +534,7 @@ const Page = () => {
                 ))}
                 {filteredData?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={11} align="center">
                       No invoice found
                     </TableCell>
                   </TableRow>
@@ -686,7 +845,7 @@ const Page = () => {
                               color="error"
                               onClick={() => {
                                 const updated = formData.menu_items.filter(
-                                  (_, i) => i !== idx
+                                  (_, i) => i !== idx,
                                 );
                                 setFormData({
                                   ...formData,
@@ -758,37 +917,149 @@ const Page = () => {
 
               {/* Payment Section */}
               <Typography variant="h6" gutterBottom>
-                Payment
+                Payments
               </Typography>
-              <Grid container spacing={2}>
-                <Grid item size={{ xs: 12 }}>
-                  <TextField
-                    select
-                    margin="dense"
-                    label="Mode Of Payment"
-                    size="small"
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    value={formData.mop}
-                    onChange={(e) =>
-                      setFormData({ ...formData, mop: e.target.value })
-                    }
-                    SelectProps={{ native: true }}
-                  >
-                    <option value="">-- Select --</option>
-                    {paymentMethods?.map((cat) => (
-                      <option key={cat.documentId} value={cat.name}>
-                        {cat?.name}
-                      </option>
-                    ))}
-                  </TextField>
-                </Grid>
-              </Grid>
+              {formErrors.payments && (
+                <Typography color="error" sx={{ mb: 1 }}>
+                  {formErrors.payments}
+                </Typography>
+              )}
+
+              <TableContainer component={Paper} sx={{ borderRadius: 1, mb: 3 }}>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      {['Timestamp', 'MOP', 'Amount', 'Actions'].map((h) => (
+                        <TableCell key={h}>{h}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {formData.payments?.length > 0 ? (
+                      <>
+                        {formData.payments.map((payment, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell>
+                              {new Date(payment.time_stamp).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                select
+                                size="small"
+                                fullWidth
+                                value={payment.mop}
+                                onChange={(e) =>
+                                  handleUpdatePayment(
+                                    idx,
+                                    'mop',
+                                    e.target.value,
+                                  )
+                                }
+                                SelectProps={{ native: true }}
+                              >
+                                <option value="">-- Select --</option>
+                                {paymentMethods?.map((cat) => (
+                                  <option key={cat.documentId} value={cat.name}>
+                                    {cat?.name}
+                                  </option>
+                                ))}
+                              </TextField>
+                            </TableCell>
+                            <TableCell>
+                              <TextField
+                                type="number"
+                                size="small"
+                                value={payment.amount}
+                                onChange={(e) =>
+                                  handleUpdatePayment(
+                                    idx,
+                                    'amount',
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                sx={{ width: 100 }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <IconButton
+                                color="error"
+                                onClick={() => handleRemovePayment(idx)}
+                                size="small"
+                              >
+                                <DeleteIcon fontSize="inherit" />
+                              </IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </>
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          Payment not added yet!!
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        <Button
+                          variant="outlined"
+                          color="secondary"
+                          onClick={handleAddPayment}
+                          startIcon={<Add />}
+                          disabled={payableAmount === 0}
+                        >
+                          Add Payment
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {/* Payment Summary */}
+              {(() => {
+                const totalAmount = formData.menu_items.reduce((acc, cur) => {
+                  const qty = parseFloat(cur.qty) || 0;
+                  const rate = parseFloat(cur.rate) || 0;
+                  return acc + qty * rate;
+                }, 0);
+                const totalTax = formData.menu_items.reduce((acc, cur) => {
+                  const qty = parseFloat(cur.qty) || 0;
+                  const rate = parseFloat(cur.rate) || 0;
+                  const gst = parseFloat(cur.gst) || 0;
+                  return acc + (qty * rate * gst) / 100;
+                }, 0);
+                const payable = totalAmount + totalTax;
+                const totalPaid = formData.payments.reduce(
+                  (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+                  0,
+                );
+                const due = Math.max(0, payable - totalPaid);
+
+                return (
+                  <Grid container spacing={2} mb={2}>
+                    <Grid item size={{ xs: 12, sm: 3 }}>
+                      <Typography>
+                        Total Paid: <b>₹{totalPaid.toFixed(2)}</b>
+                      </Typography>
+                    </Grid>
+                    <Grid item size={{ xs: 12, sm: 3 }}>
+                      <Typography>
+                        Due: <b>₹{due.toFixed(2)}</b>
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                );
+              })()}
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setFormOpen(false)}>Cancel</Button>
-              <Button onClick={handleSave} variant="contained">
-                {editing ? 'Update' : 'Create'}
+              <Button
+                onClick={handleSave}
+                variant="contained"
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : editing ? 'Update' : 'Create'}
               </Button>
             </DialogActions>
           </Dialog>
