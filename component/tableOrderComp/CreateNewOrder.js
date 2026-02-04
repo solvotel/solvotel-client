@@ -237,7 +237,7 @@ const CreateNewOrder = ({
                           color="error"
                           onClick={() => {
                             const updated = formData.food_items.filter(
-                              (_, i) => i !== idx
+                              (_, i) => i !== idx,
                             );
                             setFormData({
                               ...formData,
@@ -263,11 +263,11 @@ const CreateNewOrder = ({
           {(() => {
             const totalAmount = formData.food_items.reduce(
               (acc, cur) => acc + cur.rate * cur.qty,
-              0
+              0,
             );
             const tax = formData.food_items.reduce(
               (acc, cur) => acc + (cur.rate * cur.qty * cur.gst) / 100,
-              0
+              0,
             );
             const payable = totalAmount + tax;
 

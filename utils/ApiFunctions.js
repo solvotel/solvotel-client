@@ -19,7 +19,29 @@ export const GetDataList = ({ auth, endPoint }) => {
     {
       refreshInterval: 500,
       revalidateOnFocus: true,
-    }
+    },
+  );
+  return data;
+};
+
+// fetch data list
+export const GetPosDataList = ({ auth, endPoint }) => {
+  const apiUrl = `${BASEURL}/${endPoint}?sort=createdAt:DESC&filters[$and][0][pos_outlet_id][$eq]=${auth?.user?.pos_outlet_id}&populate=*`;
+
+  const { data } = useSWR(
+    apiUrl,
+    async (url) => {
+      const res = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+        },
+      });
+      return res.data.data;
+    },
+    {
+      refreshInterval: 500,
+      revalidateOnFocus: true,
+    },
   );
   return data;
 };
@@ -40,7 +62,7 @@ export const GetSingleData = ({ auth, endPoint, id }) => {
     {
       refreshInterval: 500,
       revalidateOnFocus: true,
-    }
+    },
   );
   return data;
 };
@@ -96,7 +118,7 @@ export const GetUserList = ({ auth }) => {
     {
       refreshInterval: 500,
       revalidateOnFocus: true,
-    }
+    },
   );
   const filteredData = data?.filter((item) => {
     return item?.hotel_id === auth?.user?.hotel_id;

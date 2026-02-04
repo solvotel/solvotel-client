@@ -74,7 +74,7 @@ const OrderTable = ({
             {orders.map((order) => {
               const totalAmount = order.food_items?.reduce(
                 (sum, item) => sum + item.amount,
-                0
+                0,
               );
 
               return (
@@ -97,8 +97,8 @@ const OrderTable = ({
                         order.token_status === 'Closed'
                           ? 'secondary'
                           : order.token_status === 'Open'
-                          ? 'success'
-                          : 'warning'
+                            ? 'success'
+                            : 'warning'
                       }
                       size="small"
                     />

@@ -112,14 +112,24 @@ export default function Navbar() {
                   <DropdownMenu
                     items={[
                       {
-                        href: '/master/users',
-                        icon: <Users2 size={16} />,
-                        label: 'Users',
-                      },
-                      {
                         href: '/master/profile',
                         icon: <UserCircle size={16} />,
                         label: 'Profile',
+                      },
+                      {
+                        href: '/master/pos-outlets',
+                        icon: <UserCircle size={16} />,
+                        label: 'POS Outlets',
+                      },
+                      {
+                        href: '/master/hotel-users',
+                        icon: <Users2 size={16} />,
+                        label: 'Hotel Users',
+                      },
+                      {
+                        href: '/master/pos-users',
+                        icon: <Users2 size={16} />,
+                        label: 'POS Users',
                       },
                     ]}
                   />

@@ -51,6 +51,8 @@ const Page = () => {
     auth,
   });
 
+  const filteresData = data?.filter((user) => user.role?.name !== 'pos-user');
+
   const [search, setSearch] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -173,7 +175,7 @@ const Page = () => {
           <Link underline="hover" color="inherit" href="/dashboard">
             Dashboard
           </Link>
-          <Typography color="text.primary">Users</Typography>
+          <Typography color="text.primary">Hotel Users</Typography>
         </Breadcrumbs>
       </Box>
 
@@ -225,7 +227,7 @@ const Page = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data
+                {filteresData
                   ?.filter((row) => {
                     if (search) {
                       return row.username
@@ -263,7 +265,7 @@ const Page = () => {
                           />
                         ) : (
                           <>
-                            {row.access.map((acc, index) => (
+                            {row?.access?.map((acc, index) => (
                               <Chip
                                 key={index}
                                 label={acc}
@@ -303,7 +305,7 @@ const Page = () => {
                           />
                         ) : (
                           <>
-                            {row.permissions.map((acc, index) => (
+                            {row?.permissions?.map((acc, index) => (
                               <Chip
                                 key={index}
                                 label={acc}

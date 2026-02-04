@@ -80,7 +80,7 @@ const Page = () => {
       bk.rooms?.map((room) => ({
         booking_id: bk.documentId,
         room_no: room.room_no,
-      })) || []
+      })) || [],
   );
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -131,7 +131,7 @@ const Page = () => {
   const handleSave = async () => {
     // ✅ Clean food_items (remove id/documentId/etc.)
     const cleanedMenuItems = formData.food_items.map(
-      ({ id, documentId, ...rest }) => rest
+      ({ id, documentId, ...rest }) => rest,
     );
 
     const finalData = {
