@@ -90,7 +90,7 @@ export default function FacebookLogin() {
       if (res.data.jwt && res.data.user) {
         const populatedUser = await getPopulatedUser(
           res.data.jwt,
-          res.data.user.id
+          res.data.user.id,
         );
 
         // set the jwt in the cookies
@@ -107,7 +107,10 @@ export default function FacebookLogin() {
           type: 'LOGIN_SUCCESS',
           payload: { token: res.data.jwt, user: populatedUser },
         });
-
+        if (populatedUser.role.name === 'pos-user') {
+          router.push(`/pos-outlet/dashboard`);
+          return;
+        }
         router.push(`/dashboard`);
         return;
       }
