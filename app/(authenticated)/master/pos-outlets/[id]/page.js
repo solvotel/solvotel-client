@@ -1,5 +1,9 @@
 'use client';
 import { Loader } from '@/component/common';
+import {
+  UpdatePosOutletForm,
+  UpdatePosOutletLogo,
+} from '@/component/updateForms';
 import { useAuth } from '@/context';
 import {
   GetDataList,
@@ -7,7 +11,7 @@ import {
   GetSingleData,
 } from '@/utils/ApiFunctions';
 import { NavigateNext } from '@mui/icons-material';
-import { Box, Breadcrumbs, Link, Typography } from '@mui/material';
+import { Box, Breadcrumbs, Grid, Link, Typography } from '@mui/material';
 
 import React, { use } from 'react';
 
@@ -20,27 +24,24 @@ const Page = ({ params }) => {
     auth: auth,
     id: id,
   });
-  const invoices = GetPosDataList({
-    endPoint: 'pos-outlet-invoices',
-    auth: auth,
-  });
+  // const invoices = GetPosDataList({
+  //   endPoint: 'pos-outlet-invoices',
+  //   auth: auth,
+  // });
 
-  const paymentMethods = GetPosDataList({
-    auth,
-    endPoint: 'pos-payment-methods',
-  });
+  // const paymentMethods = GetPosDataList({
+  //   auth,
+  //   endPoint: 'pos-payment-methods',
+  // });
 
-  const menuItems = GetPosDataList({
-    auth,
-    endPoint: 'pos-items',
-  });
-  console.log(data, 'data');
-  console.log(invoices, 'invoices');
-  console.log(paymentMethods, 'paymentMethods');
-  console.log(menuItems, 'menuItems');
+  // const menuItems = GetPosDataList({
+  //   auth,
+  //   endPoint: 'pos-items',
+  // });
+
   return (
     <>
-      {!data || !menuItems || !paymentMethods || !invoices ? (
+      {!data ? (
         <Loader />
       ) : (
         <>
@@ -55,13 +56,21 @@ const Page = ({ params }) => {
               <Link
                 underline="hover"
                 color="inherit"
-                href="/front-office/room-booking"
+                href="/master/pos-outlets"
               >
-                Room Booking
+                POS Outlets
               </Link>
               <Typography color="text.primary">{data?.name}</Typography>
             </Breadcrumbs>
           </Box>
+          <Grid container spacing={2} p={3}>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <UpdatePosOutletForm data={data} auth={auth} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <UpdatePosOutletLogo data={data} auth={auth} />
+            </Grid>
+          </Grid>
         </>
       )}
     </>
