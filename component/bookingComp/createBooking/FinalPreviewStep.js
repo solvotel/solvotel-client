@@ -18,6 +18,7 @@ import {
   MenuItem,
 } from '@mui/material';
 import { CalculateDays } from '@/utils/CalculateDays';
+import { GetCustomDate } from '@/utils/DateFetcher';
 
 const FinalPreviewStep = ({
   selectedGuest,
@@ -211,29 +212,31 @@ const FinalPreviewStep = ({
       </Card>
 
       {/* Selected Rooms */}
-      <Card
-        sx={{
-          mb: 2,
-          borderRadius: 3,
-          background: 'linear-gradient(135deg, #f3e5f5, #ede7f6)',
-        }}
-      >
-        <CardContent>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            Selected Rooms
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {selectedRooms.map((room) => (
-              <Chip
-                key={room.room_no}
-                label={`${room.room_no} - ${room.category.name}`}
-                color="info"
-                size="small"
-              />
-            ))}
-          </Box>
-        </CardContent>
-      </Card>
+      {selectedRooms.length > 0 && (
+        <Card
+          sx={{
+            mb: 2,
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #f3e5f5, #ede7f6)',
+          }}
+        >
+          <CardContent>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+              Selected Rooms ({selectedRooms.length})
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {selectedRooms.map((room) => (
+                <Chip
+                  key={room.key}
+                  label={`Room ${room.room_no} - ${room.category?.name} (${room.date})`}
+                  color="info"
+                  size="small"
+                />
+              ))}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Rooms Table */}
       <TableContainer
@@ -245,7 +248,9 @@ const FinalPreviewStep = ({
             <TableRow>
               <TableCell>Room No</TableCell>
               <TableCell>Type</TableCell>
-              <TableCell>HSN</TableCell>
+              <TableCell>Check-in</TableCell>
+              <TableCell>Check-out</TableCell>
+
               <TableCell>Rate</TableCell>
               <TableCell>Days</TableCell>
               <TableCell>GST %</TableCell>
@@ -254,11 +259,13 @@ const FinalPreviewStep = ({
           </TableHead>
           <TableBody>
             {roomTokens.map((room, index) => (
-              <TableRow key={room.room_no}>
+              <TableRow key={room.room}>
                 <TableCell>{room.room}</TableCell>
                 <TableCell>{room.item}</TableCell>
-                <TableCell>{room.hsn}</TableCell>
-                <TableCell>
+                <TableCell>{GetCustomDate(room.in_date)}</TableCell>
+                <TableCell>{GetCustomDate(room.out_date)}</TableCell>
+
+                <TableCell sx={{ width: '150px' }}>
                   <TextField
                     type="number"
                     value={room.rate}
@@ -270,7 +277,7 @@ const FinalPreviewStep = ({
                   />
                 </TableCell>
                 <TableCell>{room.days}</TableCell>
-                <TableCell>
+                <TableCell sx={{ width: '120px' }}>
                   <TextField
                     type="number"
                     value={room.gst}
@@ -279,22 +286,12 @@ const FinalPreviewStep = ({
                     variant="outlined"
                   />
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>
-                  <TextField
-                    type="number"
-                    value={room.amount}
-                    onChange={(e) =>
-                      handleChange(index, 'amount', e.target.value)
-                    }
-                    size="small"
-                    variant="outlined"
-                  />
-                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>{room.amount}</TableCell>
               </TableRow>
             ))}
             <TableRow>
-              <TableCell colSpan={6} sx={{ fontWeight: 600, textAlign: 'end' }}>
-                Total Amount
+              <TableCell colSpan={7} sx={{ fontWeight: 600, textAlign: 'end' }}>
+                Payable
               </TableCell>
               <TableCell sx={{ fontWeight: 600 }}>
                 {totalAmount.toFixed(2)}

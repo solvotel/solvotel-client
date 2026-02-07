@@ -61,13 +61,12 @@ const Page = () => {
     const dataToExport = filteredInvoices.map((row) => ({
       'Invoice No': row.invoice_no,
       'Date/Time': `${row.date} ${row.time}`,
-      'Customer Name': row.customer_name || 'N/A',
-      GSTIN: row.customer_gst || 'N/A',
-      'Total Amount ₹': row.total_amount,
+      'Customer Name': row.customer_name || 'NA',
+      GSTIN: row.customer_gst || 'NA',
+      'Taxable Amount ₹': row.total_amount,
       'SGST ₹ ': row.tax / 2,
       'CGST ₹ ': row.tax / 2,
       'Payable Amount ₹ ': row.payable_amount,
-      'Payment Method': row.mop || 'N/A',
     }));
 
     setfilteredData(filteredInvoices);
@@ -175,11 +174,10 @@ const Page = () => {
                       'Date/Time',
                       'Customer Name',
                       'GSTIN',
-                      'Total Amount ₹',
+                      'Taxable Amount ₹',
                       'SGST ₹ ',
                       'CGST ₹ ',
                       'Payable Amount ₹ ',
-                      'Payment Method',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
                         {item}
@@ -194,13 +192,12 @@ const Page = () => {
                       <TableCell>
                         {row.date}:{row.time}
                       </TableCell>
-                      <TableCell>{row.customer_name || 'N/A'}</TableCell>
-                      <TableCell>{row.customer_gst || 'N/A'}</TableCell>
+                      <TableCell>{row.customer_name || 'NA'}</TableCell>
+                      <TableCell>{row.customer_gst || 'NA'}</TableCell>
                       <TableCell>{row.total_amount}</TableCell>
                       <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.payable_amount}</TableCell>
-                      <TableCell>{row.mop || 'N/A'}</TableCell>
                     </TableRow>
                   ))}
                   {filteredData?.length === 0 && (

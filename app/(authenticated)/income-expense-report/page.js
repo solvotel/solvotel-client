@@ -96,25 +96,25 @@ const Page = () => {
   const incomeTotal =
     (filteredData.restaurantInvoices?.reduce(
       (acc, i) => acc + (parseFloat(i.payable_amount) || 0),
-      0
+      0,
     ) || 0) +
     (filteredData.roomInvoices?.reduce(
       (acc, i) => acc + (parseFloat(i.payable_amount) || 0),
-      0
+      0,
     ) || 0) +
     (filteredData.saleEntries?.reduce(
       (acc, i) => acc + (parseFloat(i.total_price) || 0),
-      0
+      0,
     ) || 0);
 
   const expenseTotal =
     (filteredData.purchaseEntries?.reduce(
       (acc, i) => acc + (parseFloat(i.total_price) || 0),
-      0
+      0,
     ) || 0) +
     (filteredData.otherExpenses?.reduce(
       (acc, i) => acc + (Number(i.amount) || 0),
-      0
+      0,
     ) || 0);
 
   const netBalance = incomeTotal - expenseTotal;
@@ -204,7 +204,7 @@ const Page = () => {
                       <TableCell sx={{ color: 'white' }}>Date</TableCell>
                       <TableCell sx={{ color: 'white' }}>Source</TableCell>
                       <TableCell sx={{ color: 'white' }}>Invoice No</TableCell>
-                      <TableCell sx={{ color: 'white' }}>MOP</TableCell>
+                      {/* <TableCell sx={{ color: 'white' }}>MOP</TableCell> */}
 
                       <TableCell align="right" sx={{ color: 'white' }}>
                         Amount (₹)
@@ -252,7 +252,7 @@ const Page = () => {
                             {row.invNo}
                           </Link>
                         </TableCell>
-                        <TableCell>{row.mop}</TableCell>
+                        {/* <TableCell>{row.mop}</TableCell> */}
                         <TableCell align="right">
                           {row.amount?.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
@@ -262,7 +262,7 @@ const Page = () => {
                     ))}
                     <TableRow sx={{ backgroundColor: '#e8f5e9' }}>
                       <TableCell
-                        colSpan={4}
+                        colSpan={3}
                         align="right"
                         sx={{ fontWeight: 'bold' }}
                       >
@@ -297,7 +297,7 @@ const Page = () => {
                       <TableCell sx={{ color: 'white' }}>Date</TableCell>
                       <TableCell sx={{ color: 'white' }}>Category</TableCell>
                       <TableCell sx={{ color: 'white' }}>Invoice No</TableCell>
-                      <TableCell sx={{ color: 'white' }}>MOP</TableCell>
+                      {/* <TableCell sx={{ color: 'white' }}>MOP</TableCell> */}
                       <TableCell align="right" sx={{ color: 'white' }}>
                         Amount (₹)
                       </TableCell>
@@ -335,7 +335,7 @@ const Page = () => {
                             {row.invNo}
                           </Link>
                         </TableCell>
-                        <TableCell>{row.mop}</TableCell>
+                        {/* <TableCell>{row.mop}</TableCell> */}
                         <TableCell align="right">
                           {Number(row.amount)?.toLocaleString('en-IN', {
                             minimumFractionDigits: 2,
@@ -345,7 +345,7 @@ const Page = () => {
                     ))}
                     <TableRow sx={{ backgroundColor: '#ffebee' }}>
                       <TableCell
-                        colSpan={4}
+                        colSpan={3}
                         align="right"
                         sx={{ fontWeight: 'bold' }}
                       >

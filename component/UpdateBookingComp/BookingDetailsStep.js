@@ -7,15 +7,17 @@ export default function BookingDetailsStep({
   setBookingDetails,
   setSelectedRooms,
   setRoomTokens,
+  isUpdate = false,
 }) {
   const handleChange = (field, value) => {
-    // Only reset rooms if date **actually changed**
+    // Only reset rooms if date **actually changed** and NOT in update mode
     if (
-      (field === 'checkin_date' && bookingDetails.checkin_date !== value) ||
-      (field === 'checkout_date' && bookingDetails.checkout_date !== value)
+      !isUpdate &&
+      ((field === 'checkin_date' && bookingDetails.checkin_date !== value) ||
+        (field === 'checkout_date' && bookingDetails.checkout_date !== value))
     ) {
-      setSelectedRooms([]);
-      setRoomTokens([]);
+      setSelectedRooms?.([]);
+      setRoomTokens?.([]);
     }
     setBookingDetails({ ...bookingDetails, [field]: value });
   };

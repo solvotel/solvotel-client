@@ -77,7 +77,36 @@ const UpdateBookingForm = ({
     children: bookingData?.children || 0,
   });
 
-  const [selectedRooms, setSelectedRooms] = useState([...bookingData?.rooms]);
+  // Reconstruct selectedRooms from room_tokens by expanding date range
+  const initializeSelectedRooms = () => {
+    const expanded = [];
+    bookingData.room_tokens.forEach((token) => {
+      const inDate = new Date(token.in_date);
+      const outDate = new Date(token.out_date);
+
+      // Generate dates from in_date to day-before-out_date
+      let currentDate = new Date(inDate);
+      while (currentDate < outDate) {
+        const dateString = currentDate.toISOString().split('T')[0];
+        const key = `${token.room}-${dateString}`;
+
+        // Find the room documentId from bookingData.rooms
+        const roomRef = bookingData.rooms.find((r) => r.room_no === token.room);
+
+        expanded.push({
+          key,
+          room_no: token.room,
+          date: dateString,
+          documentId: roomRef?.documentId,
+        });
+
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+    });
+    return expanded;
+  };
+
+  const [selectedRooms, setSelectedRooms] = useState(initializeSelectedRooms());
   const cleanedTokens = bookingData.room_tokens.map(({ id, ...rest }) => rest);
   const [roomTokens, setRoomTokens] = useState([...cleanedTokens]);
   const [paymentDetails, setPaymentDetails] = useState({
@@ -122,9 +151,10 @@ const UpdateBookingForm = ({
 
   const handleSubmitBooking = async () => {
     if (!validateStep()) return;
-    const rooms = selectedRooms.map((r) => {
-      return r.documentId;
-    });
+    // Extract unique documentIds from selectedRooms (remove duplicates from same room multiple dates)
+    const uniqueRoomIds = [...new Set(selectedRooms.map((r) => r.documentId))];
+    const rooms = uniqueRoomIds;
+
     try {
       setLoading(true);
 
@@ -217,6 +247,7 @@ const UpdateBookingForm = ({
                 hotelData={hotelData}
                 setSelectedRooms={setSelectedRooms}
                 setRoomTokens={setRoomTokens}
+                isUpdate={true}
               />
             )}
             {activeStep === 2 && (

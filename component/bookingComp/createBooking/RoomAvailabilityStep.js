@@ -1,71 +1,40 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { GetDataList } from '@/utils/ApiFunctions';
 import {
   Typography,
   Box,
+  Button,
+  Chip,
   Card,
   CardContent,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Button,
-  Checkbox,
-  Chip,
 } from '@mui/material';
 import { useAuth } from '@/context';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Bed,
-  Hotel,
-  Tag,
-  Building,
-  ArrowRight,
-  CheckCircle,
-  Users,
-} from 'lucide-react';
-import { CalculateDays } from '@/utils/CalculateDays';
+import { Calendar, Building, Users } from 'lucide-react';
+import dayjs from 'dayjs';
 
 // Animation variants
-const modalAnimation = {
+const buttonAnimation = {
   hidden: { opacity: 0, scale: 0.8 },
   visible: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.3, ease: 'easeOut' },
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.8,
     transition: { duration: 0.2 },
-  },
-};
-
-const filterAnimation = {
-  hidden: { opacity: 0, y: -20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4 },
-  },
-};
-
-const cardAnimation = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.3 },
   },
   hover: {
-    scale: 1.02,
-    transition: { duration: 0.2 },
+    scale: 1.1,
+    transition: { duration: 0.1 },
   },
-  exit: {
-    opacity: 0,
-    scale: 0.9,
-    transition: { duration: 0.2 },
+};
+
+const rowAnimation = {
+  hidden: { opacity: 0, x: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.3 },
   },
 };
 
@@ -77,284 +46,413 @@ const RoomAvailabilityStep = ({
   setRoomTokens,
 }) => {
   const { auth } = useAuth();
-  const totalDays = CalculateDays({
-    checkin: bookingDetails.checkin_date,
-    checkout: bookingDetails.checkout_date,
-  });
-  const [selectedCategory, setSelectedCategory] = React.useState('all');
-  const [loading, setLoading] = useState(false);
 
   const categories = GetDataList({ auth, endPoint: 'room-categories' });
   const rooms = GetDataList({ auth, endPoint: 'rooms' });
 
-  // Check if a room is available for given bookingDetails
-  const isRoomAvailable = (room, bookingDetails) => {
-    const { checkin_date, checkout_date } = bookingDetails;
+  // Generate date range from check-in to day before check-out
+  const dateRange = useMemo(() => {
+    const dates = [];
+    const current = new Date(bookingDetails.checkin_date);
+    const checkoutDate = new Date(bookingDetails.checkout_date);
 
+    // Loop until day before checkout
+    while (current < checkoutDate) {
+      dates.push(current.toISOString().split('T')[0]);
+      current.setDate(current.getDate() + 1);
+    }
+
+    return dates;
+  }, [bookingDetails.checkin_date, bookingDetails.checkout_date]);
+
+  // Check if a room is available for a specific date
+  const isRoomAvailableForDate = (room, date) => {
     if (!room.room_bookings || room.room_bookings.length === 0) return true;
 
+    const checkDate = new Date(date);
+    const nextDate = new Date(date);
+    nextDate.setDate(nextDate.getDate() + 1);
+
     return !room.room_bookings.some((booking) => {
-      // Ignore bookings that do NOT block the room
       if (booking.checked_out) return false;
-      if (booking.booking_status === 'Cancelled') return false; // ✅ NEW
+      if (booking.booking_status === 'Cancelled') return false;
 
-      // Check date overlap
-      return (
-        (checkin_date >= booking.checkin_date &&
-          checkin_date < booking.checkout_date) ||
-        (checkout_date > booking.checkin_date &&
-          checkout_date <= booking.checkout_date) ||
-        (checkin_date <= booking.checkin_date &&
-          checkout_date >= booking.checkout_date)
-      );
+      const bookingStart = new Date(booking.checkin_date);
+      const bookingEnd = new Date(booking.checkout_date);
+
+      // Check if the night (check date to next date) overlaps with booking
+      return checkDate < bookingEnd && nextDate > bookingStart;
     });
   };
 
-  // Filter rooms based on selected category AND availability
-  const filteredRooms = React.useMemo(() => {
-    if (!rooms) return [];
+  // Group rooms by category
+  const roomsByCategory = useMemo(() => {
+    if (!rooms || !categories) return {};
 
-    return rooms.filter((room) => {
-      const categoryMatch =
-        selectedCategory === 'all' ||
-        room.category?.documentId === selectedCategory;
-      const available = isRoomAvailable(room, bookingDetails);
-      return categoryMatch && available;
+    const grouped = {};
+    categories?.forEach((cat) => {
+      grouped[cat.documentId] = {
+        name: cat.name,
+        rooms: rooms.filter((r) => r.category?.documentId === cat.documentId),
+      };
     });
-  }, [rooms, selectedCategory, bookingDetails]);
 
-  // Handle category filter
-  const handleCategoryFilter = (categoryId) => {
-    setSelectedCategory(categoryId);
-  };
+    return grouped;
+  }, [rooms, categories]);
 
-  // Handle room selection
-  const handleRoomSelection = (room) => {
-    const exists = selectedRooms.find((r) => r.documentId === room.documentId);
+  // Create a unique key for room-date combination
+  const getRoomDateKey = (roomNo, date) => `${roomNo}-${date}`;
+
+  // Handle room + date selection
+  const handleRoomDateSelection = (room, date) => {
+    const key = getRoomDateKey(room.room_no, date);
+    const exists = selectedRooms.some(
+      (r) => r.room_no === room.room_no && r.date === date,
+    );
+
     if (exists) {
-      setSelectedRooms(
-        selectedRooms.filter((r) => r.documentId !== room.documentId)
+      // Remove this date from selectedRooms
+      const updatedSelectedRooms = selectedRooms.filter(
+        (r) => !(r.room_no === room.room_no && r.date === date),
       );
-      setRoomTokens(roomTokens.filter((token) => token.room !== room.room_no));
+      setSelectedRooms(updatedSelectedRooms);
+
+      // Get all remaining dates for this room (sorted)
+      const remainingDatesForRoom = updatedSelectedRooms
+        .filter((r) => r.room_no === room.room_no)
+        .map((r) => r.date)
+        .sort();
+
+      if (remainingDatesForRoom.length === 0) {
+        // No more dates for this room, remove token
+        setRoomTokens(roomTokens.filter((t) => t.room !== room.room_no));
+      } else {
+        // Update token with new date range and days
+        const inDate = remainingDatesForRoom[0];
+        const outDateObj = new Date(
+          remainingDatesForRoom[remainingDatesForRoom.length - 1],
+        );
+        outDateObj.setDate(outDateObj.getDate() + 1);
+        const outDate = outDateObj.toISOString().split('T')[0];
+
+        const updatedTokens = roomTokens.map((t) => {
+          if (t.room === room.room_no) {
+            return {
+              ...t,
+              in_date: inDate,
+              out_date: outDate,
+              days: remainingDatesForRoom.length,
+              amount:
+                (t.rate + (t.rate * t.gst) / 100) *
+                remainingDatesForRoom.length,
+            };
+          }
+          return t;
+        });
+        setRoomTokens(updatedTokens);
+      }
     } else {
-      const roomToAdd = rooms.find((r) => r.documentId === room.documentId);
-      if (roomToAdd) {
-        setSelectedRooms([...selectedRooms, roomToAdd]);
-        setRoomTokens([
-          ...roomTokens,
-          {
-            room: room.room_no,
-            hsn: room?.category.hsn,
-            item: room.category.name,
-            days: totalDays,
-            rate: room.category.tariff,
-            gst: room.category.gst,
-            amount: room.category.total * totalDays,
-          },
-        ]);
+      // Add this date to selectedRooms
+      const newRoom = {
+        key,
+        ...room,
+        date,
+      };
+      const updatedSelectedRooms = [...selectedRooms, newRoom];
+      setSelectedRooms(updatedSelectedRooms);
+
+      // Get all dates for this room (sorted)
+      const allDatesForRoom = updatedSelectedRooms
+        .filter((r) => r.room_no === room.room_no)
+        .map((r) => r.date)
+        .sort();
+
+      const rate = room.category?.tariff || 0;
+      const gst = room.category?.gst || 0;
+      const baseAmount = rate;
+      const gstAmount = (baseAmount * gst) / 100;
+      const totalAmountPerNight = baseAmount + gstAmount;
+
+      const inDate = allDatesForRoom[0];
+      const outDateObj = new Date(allDatesForRoom[allDatesForRoom.length - 1]);
+      outDateObj.setDate(outDateObj.getDate() + 1);
+      const outDate = outDateObj.toISOString().split('T')[0];
+      const daysCount = allDatesForRoom.length;
+
+      // Check if token already exists for this room
+      const existingTokenIndex = roomTokens.findIndex(
+        (t) => t.room === room.room_no,
+      );
+
+      if (existingTokenIndex >= 0) {
+        // Update existing token
+        const updatedTokens = [...roomTokens];
+        updatedTokens[existingTokenIndex] = {
+          ...updatedTokens[existingTokenIndex],
+          in_date: inDate,
+          out_date: outDate,
+          days: daysCount,
+          amount: totalAmountPerNight * daysCount,
+        };
+        setRoomTokens(updatedTokens);
+      } else {
+        // Create new token (no key attribute)
+        const newToken = {
+          room: room.room_no,
+          hsn: room.category?.hsn || '',
+          item: room.category?.name || '',
+          rate: rate,
+          gst: gst,
+          amount: totalAmountPerNight * daysCount,
+          days: daysCount,
+          invoice: false,
+          in_date: inDate,
+          out_date: outDate,
+        };
+        setRoomTokens([...roomTokens, newToken]);
       }
     }
   };
 
-  return (
-    <>
-      <Box>
-        {/* Category Filters */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={filterAnimation}
-        >
-          <Box display="flex" flexWrap="wrap" gap={1} mb={4}>
-            <Button
-              variant={selectedCategory === 'all' ? 'contained' : 'outlined'}
-              onClick={() => handleCategoryFilter('all')}
-              startIcon={<Building size={16} />}
-              sx={{
-                textTransform: 'none',
-                transition: 'all 0.5s ease-in-out',
-                '&:hover': {
-                  boxShadow: 3,
-                  transform: 'scale(1.02)',
-                },
-              }}
-            >
-              All Rooms
-            </Button>
+  // Check if room is selected for a specific date
+  const isRoomSelectedForDate = (roomNo, date) => {
+    return selectedRooms.some((r) => r.room_no === roomNo && r.date === date);
+  };
 
-            {categories?.map((category) => (
-              <Button
-                key={category.id}
-                variant={
-                  selectedCategory === category.documentId
-                    ? 'contained'
-                    : 'outlined'
-                }
-                onClick={() => handleCategoryFilter(category.documentId)}
-                startIcon={<Tag size={16} />}
+  // Remove a specific selection (remove all dates for that room)
+  const removeSelection = (key) => {
+    const roomNo = key.split('-')[0];
+    // Remove all dates for this room
+    const updatedSelectedRooms = selectedRooms.filter(
+      (r) => r.room_no !== roomNo,
+    );
+    setSelectedRooms(updatedSelectedRooms);
+    // Remove token for this room
+    setRoomTokens(roomTokens.filter((t) => t.room !== roomNo));
+  };
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      {/* Date Rows */}
+      <AnimatePresence mode="popLayout">
+        {dateRange.map((date, dateIndex) => {
+          const dateObj = new Date(date);
+          const formattedDate = dayjs(date).format('ddd, MMM DD');
+
+          return (
+            <motion.div
+              key={date}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              variants={rowAnimation}
+              transition={{ delay: dateIndex * 0.1 }}
+            >
+              <Card
                 sx={{
-                  textTransform: 'none',
-                  transition: 'all 0.5s ease-in-out',
-                  '&:hover': {
-                    boxShadow: 3,
-                    transform: 'scale(1.02)',
-                  },
+                  mb: { xs: 2, sm: 2.5, md: 3 },
+                  borderRadius: 1,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                  overflow: 'hidden',
                 }}
               >
-                {category.name}
-              </Button>
-            ))}
-          </Box>
-        </motion.div>
-
-        {/* Room Grid */}
-        <Box
-          display="grid"
-          gridTemplateColumns={{
-            xs: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)',
-            lg: 'repeat(4, 1fr)',
-            xl: 'repeat(4, 1fr)',
-          }}
-          gap={2}
-        >
-          <AnimatePresence mode="popLayout">
-            {filteredRooms?.map((room, index) => {
-              const isSelected = selectedRooms.some(
-                (r) => r.documentId === room.documentId
-              );
-
-              return (
-                <motion.div
-                  key={room.documentId}
-                  layout
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  whileHover="hover"
-                  variants={cardAnimation}
-                  transition={{ delay: index * 0.05 }}
+                {/* Date Header */}
+                <Box
+                  sx={{
+                    bgcolor: '#1976d2',
+                    color: 'white',
+                    p: { xs: 1, sm: 1.5 },
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: { xs: 0.8, sm: 1.5 },
+                    flexWrap: 'wrap',
+                  }}
                 >
-                  <Card
-                    onClick={() => handleRoomSelection(room)}
+                  <Calendar size={16} />
+                  <Typography
+                    variant="body2"
+                    fontWeight="bold"
+                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                  >
+                    {formattedDate}
+                  </Typography>
+                  <Typography
+                    variant="caption"
                     sx={{
-                      cursor: 'pointer',
-                      border: isSelected ? 2 : 1,
-                      borderColor: isSelected ? 'primary.main' : 'grey.200',
-                      boxShadow: isSelected ? 3 : 1,
-                      transition: 'all 0.3s ease-in-out',
-                      position: 'relative',
-                      overflow: 'visible',
-                      borderRadius: 2,
-                      '&:hover': {
-                        backgroundColor: 'grey.50',
-                        transform: 'scale(1.02)',
-                      },
+                      ml: 'auto',
+                      opacity: 0.85,
+                      fontSize: { xs: '0.65rem', sm: '0.75rem' },
                     }}
                   >
-                    <CardContent sx={{ p: 1.5, position: 'relative' }}>
-                      {/* Room Header */}
-                      <Box
-                        display="flex"
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                        mb={0.5}
-                      >
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <motion.div
-                            whileHover={{ rotate: 360 }}
-                            transition={{ duration: 0.5 }}
+                    Night
+                  </Typography>
+                </Box>
+
+                <CardContent sx={{ p: { xs: 1, sm: 1.5 } }}>
+                  {/* Rooms grouped by category */}
+                  <Box>
+                    {Object.entries(roomsByCategory).map(([catId, catData]) => {
+                      const availableRoomsForDate = catData.rooms.filter(
+                        (room) => isRoomAvailableForDate(room, date),
+                      );
+
+                      if (availableRoomsForDate.length === 0) return null;
+
+                      return (
+                        <Box key={catId} mb={{ xs: 1.5, sm: 2 }}>
+                          {/* Category Label */}
+                          <Typography
+                            variant="caption"
+                            fontWeight="600"
+                            sx={{
+                              mb: 0.75,
+                              pb: 0.5,
+                              display: 'block',
+                              borderBottom: '1px solid #e0e0e0',
+                              color: '#424242',
+                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                            }}
                           >
-                            <Bed size={20} color="#1976d2" />
-                          </motion.div>
-                          <Typography variant="h6" fontWeight="bold">
-                            Room {room.room_no}
+                            {catData.name}
                           </Typography>
+
+                          {/* Room Buttons */}
+                          <Box
+                            display="flex"
+                            flexWrap="wrap"
+                            gap={{ xs: 0.5, sm: 0.75 }}
+                          >
+                            <AnimatePresence mode="popLayout">
+                              {availableRoomsForDate.map((room) => {
+                                const isSelected = isRoomSelectedForDate(
+                                  room.room_no,
+                                  date,
+                                );
+
+                                return (
+                                  <motion.div
+                                    key={`${room.documentId}-${date}`}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="hidden"
+                                    whileHover="hover"
+                                    variants={buttonAnimation}
+                                  >
+                                    <Button
+                                      onClick={() =>
+                                        handleRoomDateSelection(room, date)
+                                      }
+                                      variant={
+                                        isSelected ? 'contained' : 'outlined'
+                                      }
+                                      color={isSelected ? 'primary' : 'inherit'}
+                                      sx={{
+                                        px: { xs: 0.8, sm: 1.2 },
+                                        py: { xs: 0.4, sm: 0.6 },
+                                        minWidth: { xs: '36px', sm: '48px' },
+                                        fontWeight: 'bold',
+                                        fontSize: {
+                                          xs: '0.7rem',
+                                          sm: '0.85rem',
+                                        },
+                                        textTransform: 'uppercase',
+                                        borderRadius: 0.5,
+                                        border: isSelected
+                                          ? '2px solid #1976d2'
+                                          : '1px solid #bdbdbd',
+                                        transition: 'all 0.2s ease-in-out',
+                                        bgcolor: isSelected
+                                          ? '#1976d2'
+                                          : 'transparent',
+                                        color: isSelected ? 'white' : '#424242',
+                                        '&:hover': {
+                                          bgcolor: isSelected
+                                            ? '#1565c0'
+                                            : '#f5f5f5',
+                                          boxShadow: 1,
+                                        },
+                                      }}
+                                    >
+                                      {room.room_no}
+                                    </Button>
+                                  </motion.div>
+                                );
+                              })}
+                            </AnimatePresence>
+                          </Box>
                         </Box>
-                      </Box>
+                      );
+                    })}
+                  </Box>
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
 
-                      {/* Room Details */}
-                      <Box sx={{ space: 2 }}>
-                        <Box
-                          display="flex"
-                          alignItems="center"
-                          color="grey.600"
-                          sx={{
-                            '&:hover': {
-                              transform: 'translateX(4px)',
-                              transition: 'transform 0.3s',
-                            },
-                          }}
-                        >
-                          <ArrowRight size={16} style={{ marginRight: 8 }} />
-                          <Typography variant="body2">
-                            Floor {room.floor}
-                          </Typography>
-                        </Box>
-                      </Box>
+      {/* Selection Summary */}
+      {selectedRooms.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+        >
+          <Card
+            sx={{
+              mt: { xs: 2, sm: 2.5, md: 3 },
+              bgcolor: '#f5f5f5',
+              borderLeft: '4px solid #4caf50',
+              borderRadius: 1,
+            }}
+          >
+            <CardContent sx={{ p: { xs: 1, sm: 1.5 } }}>
+              <Box display="flex" alignItems="center" gap={1} mb={1}>
+                <Users size={16} color="#4caf50" />
+                <Typography
+                  variant="body2"
+                  fontWeight="bold"
+                  sx={{ fontSize: { xs: '0.8rem', sm: '0.95rem' } }}
+                >
+                  {selectedRooms.length} Room
+                  {selectedRooms.length !== 1 ? 's' : ''}
+                </Typography>
+              </Box>
 
-                      {/* Selection Indicator */}
-                      {isSelected && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0, opacity: 0 }}
-                          transition={{
-                            type: 'spring',
-                            stiffness: 500,
-                            damping: 30,
-                          }}
-                          style={{
-                            position: 'absolute',
-                            top: 8,
-                            right: 8,
-                          }}
-                        >
-                          <CheckCircle size={20} color="#4caf50" />
-                        </motion.div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </Box>
-      </Box>
-
-      {/* Footer */}
-      <Box
-        sx={{
-          mt: 4,
-          p: 3,
-          bgcolor: 'grey.50',
-          borderTop: 1,
-          borderColor: 'grey.200',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
-          <Box display="flex" alignItems="center" gap={1} color="grey.600">
-            <Users size={20} />
-            <Typography variant="body1">
-              {selectedRooms.length} rooms selected
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1, ml: 3 }}>
-            {selectedRooms.map((room) => (
-              <Chip
-                key={room?.documentId}
-                label={`Room: ${room?.room_no}`}
-                size="small"
-                color="secondary"
-              />
-            ))}
-          </Box>
+              <Box display="flex" flexWrap="wrap" gap={0.75}>
+                {selectedRooms.map((selection) => (
+                  <motion.div
+                    key={selection.key}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                  >
+                    <Chip
+                      label={`${selection.room_no} (${dayjs(selection.date).format('M/D')})`}
+                      onDelete={() => removeSelection(selection.key)}
+                      color="primary"
+                      variant="outlined"
+                      size="small"
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                        '& .MuiChip-deleteIcon': {
+                          color: '#d32f2f !important',
+                          fontSize: 'inherit',
+                          '&:hover': {
+                            color: '#b71c1c !important',
+                          },
+                        },
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
         </motion.div>
-      </Box>
-    </>
+      )}
+    </Box>
   );
 };
 

@@ -155,9 +155,9 @@ export default function BookingForm() {
 
   const handleSubmitBooking = async () => {
     if (!validateStep()) return;
-    const rooms = selectedRooms.map((r) => {
-      return r.documentId;
-    });
+    // Extract unique documentIds from selectedRooms (remove duplicates from same room multiple dates)
+    const uniqueRoomIds = [...new Set(selectedRooms.map((r) => r.documentId))];
+    const rooms = uniqueRoomIds;
 
     if (paymentDetails.amount > totalAmount) {
       setError('Advance payment cannot be more than total amount.');
@@ -176,12 +176,14 @@ export default function BookingForm() {
         hotel_id: auth?.user?.hotel_id || '',
         user_created: auth?.user?.username,
       };
-
+      console.log('Booking payload:', payload);
       const res = await CreateNewData({
         auth,
         endPoint: 'room-bookings',
         payload: { data: payload },
       });
+
+      console.log('Booking res:', res);
       SuccessToast('Booking Create Successfully');
       router.push(`/front-office/room-booking/${res.data.data.documentId}`);
     } catch (err) {

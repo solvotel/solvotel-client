@@ -28,7 +28,7 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
   const data = GetDataList({ auth, endPoint: 'customers' });
 
   const [search, setSearch] = useState(
-    selectedGuest ? selectedGuest?.mobile : ''
+    selectedGuest ? selectedGuest?.mobile : '',
   );
   const [searchClicked, setSearchClicked] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -70,7 +70,7 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
     let list = data.filter(
       (item) =>
         item.mobile?.toLowerCase().includes(lowerSearch) ||
-        item.name?.toLowerCase().includes(lowerSearch)
+        item.name?.toLowerCase().includes(lowerSearch),
     );
 
     if (
@@ -183,7 +183,7 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
             <Grid container spacing={2}>
               {filteredData.slice(0, 2).map((guest) => {
                 return (
-                  <Grid size={{ xs: 12, sm: 6 }} key={guest.documentId}>
+                  <Grid size={{ xs: 12, sm: 4 }} key={guest.documentId}>
                     <Card
                       variant={
                         selectedGuest?.documentId === guest.documentId

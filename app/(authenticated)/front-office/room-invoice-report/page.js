@@ -180,7 +180,7 @@ const Page = () => {
                       'SGST',
                       'CGST',
                       'Payable Amount',
-                      'Payment Method',
+
                       'Action',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -197,13 +197,13 @@ const Page = () => {
                         <TableCell>
                           {GetCustomDate(row.date)}&nbsp;{row.time}
                         </TableCell>
-                        <TableCell>{row?.customer_name}</TableCell>
-                        <TableCell>{row?.customer_gst}</TableCell>
+                        <TableCell>{row?.customer_name || 'NA'}</TableCell>
+                        <TableCell>{row?.customer_gst || 'NA'}</TableCell>
                         <TableCell>{row.total_amount.toFixed(2)}</TableCell>
                         <TableCell>{row.tax / 2}</TableCell>
                         <TableCell>{row.tax / 2}</TableCell>
                         <TableCell>{row.payable_amount.toFixed(2)}</TableCell>
-                        <TableCell>{row?.mop}</TableCell>
+
                         <TableCell sx={{ width: '150px' }}>
                           <Tooltip title="View">
                             <IconButton

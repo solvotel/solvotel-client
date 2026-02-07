@@ -6,7 +6,6 @@ import PosOutletNav from './PosOutletNav';
 
 export default function Navbar() {
   const { auth, logout } = useAuth();
-  console.log('Auth in Navbar:', auth); // Debugging line to check auth state
 
   return (
     <>

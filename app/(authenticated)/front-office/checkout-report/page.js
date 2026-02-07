@@ -67,61 +67,44 @@ const Page = () => {
     const dataToExport = filteredInvoices.map((row) => {
       const foodTokens = row?.food_tokens || [];
       const serviceTokens = row?.service_tokens || [];
+      const totalRoomAmount = row?.room_tokens.reduce(
+        (sum, r) => sum + (parseFloat(r.amount) || 0),
+        0,
+      );
+      const totalServiceAmount = serviceTokens.reduce(
+        (sum, s) => sum + (parseFloat(s.total_amount) || 0),
+        0,
+      );
+      const totalFoodAmount = foodTokens.reduce(
+        (sum, f) => sum + (parseFloat(f.total_amount) || 0),
+        0,
+      );
+      const totalPaidAmount = (row?.payment_tokens || []).reduce(
+        (sum, p) => sum + (Number(p.amount) || 0),
+        0,
+      );
+      const advanceAmount = row?.advance_payment?.amount || 0;
+
       return {
         'Booking ID': row.booking_id,
-        Guest: row.customer.company_name,
-        'Meal Plan': row.meal_plan,
+        Guest: row.customer?.name || row.customer?.company_name || 'N/A',
+        'Meal Plan': row.meal_plan || 'N/A',
         'Room No': row.rooms.map((r) => r.room_no).join(', '),
-        'Room Tokens': row.room_tokens
-          .reduce(
-            (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
-            0
-          )
-          .toFixed(2),
-        Services: serviceTokens
-          .reduce((sum, s) => sum + (parseFloat(s.total_amount) || 0), 0)
-          .toFixed(2),
-        'Food Items': foodTokens
-          .reduce((sum, f) => sum + (parseFloat(f.total_amount) || 0), 0)
-          .toFixed(2),
+        'Room Tokens': totalRoomAmount.toFixed(2),
+        Services: totalServiceAmount.toFixed(2),
+        'Food Items': totalFoodAmount.toFixed(2),
         'Grand Total': (
-          row.room_tokens.reduce(
-            (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
-            0
-          ) +
-          serviceTokens.reduce(
-            (sum, s) => sum + (parseFloat(s.total_amount) || 0),
-            0
-          ) +
-          foodTokens.reduce(
-            (sum, f) => sum + (parseFloat(f.total_amount) || 0),
-            0
-          )
+          totalRoomAmount +
+          totalServiceAmount +
+          totalFoodAmount
         ).toFixed(2),
-        'Total Paid': (
-          row.payment_tokens.reduce(
-            (sum, p) => sum + (Number(p.amount) || 0),
-            0
-          ) + (row.advance_payment ? Number(row.advance_payment.amount) : 0)
-        ).toFixed(2),
+        'Total Paid': (totalPaidAmount + advanceAmount).toFixed(2),
         'Due Payment': (
-          row.room_tokens.reduce(
-            (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
-            0
-          ) +
-          serviceTokens.reduce(
-            (sum, s) => sum + (parseFloat(s.total_amount) || 0),
-            0
-          ) +
-          foodTokens.reduce(
-            (sum, f) => sum + (parseFloat(f.total_amount) || 0),
-            0
-          ) -
-          (row.payment_tokens.reduce(
-            (sum, p) => sum + (Number(p.amount) || 0),
-            0
-          ) +
-            (row.advance_payment ? Number(row.advance_payment.amount) : 0))
+          totalRoomAmount +
+          totalServiceAmount +
+          totalFoodAmount -
+          totalPaidAmount -
+          advanceAmount
         ).toFixed(2),
       };
     });
@@ -187,7 +170,6 @@ const Page = () => {
                   onChange={(e) => setEndDate(e.target.value)}
                   sx={{ mr: 1 }}
                   InputLabelProps={{ shrink: true }} // 👈 fixes label overlap
-                  inputProps={{ max: todaysDate }} // 👈 move `max` inside inputProps
                 />
                 <Button
                   variant="contained"
@@ -248,28 +230,26 @@ const Page = () => {
                     const foodTokens = row?.food_tokens || [];
                     const serviceTokens = row?.service_tokens || [];
                     const totalRoomAmount = row?.room_tokens.reduce(
-                      (sum, r) =>
-                        sum + (parseFloat(r.total_amount) || r.amount || 0),
-                      0
+                      (sum, r) => sum + (parseFloat(r.amount) || 0),
+                      0,
                     );
                     const totalServiceAmount = serviceTokens.reduce(
                       (sum, s) => sum + (parseFloat(s.total_amount) || 0),
-                      0
+                      0,
                     );
                     const totalFoodAmount = foodTokens.reduce(
                       (sum, f) => sum + (parseFloat(f.total_amount) || 0),
-                      0
+                      0,
                     );
-                    const totalAmount = row?.payment_tokens.reduce(
+                    const totalPaidAmount = (row?.payment_tokens || []).reduce(
                       (sum, p) => sum + (Number(p.amount) || 0),
-                      0
+                      0,
                     );
-                    const advancePayment = row?.advance_payment || null;
-                    const advanceAmount = advancePayment?.amount || 0;
+                    const advanceAmount = row?.advance_payment?.amount || 0;
 
                     const grandTotal =
                       totalRoomAmount + totalServiceAmount + totalFoodAmount;
-                    const amountPayed = totalAmount + advanceAmount;
+                    const amountPayed = totalPaidAmount + advanceAmount;
                     const dueAmount = grandTotal - amountPayed;
                     return (
                       <TableRow key={row.documentId}>
@@ -281,23 +261,27 @@ const Page = () => {
                             {row.booking_id}
                           </Link>
                         </TableCell>
-                        <TableCell>{row.customer.name || 'N/A'}</TableCell>
+                        <TableCell>
+                          {row.customer?.name ||
+                            row.customer?.company_name ||
+                            'N/A'}
+                        </TableCell>
                         <TableCell>{row.meal_plan || 'N/A'}</TableCell>
                         <TableCell>
                           {row.rooms.map((r) => r.room_no).join(', ')}
                         </TableCell>
-                        <TableCell>{totalRoomAmount}</TableCell>
-                        <TableCell>{totalServiceAmount}</TableCell>
-                        <TableCell>{totalFoodAmount}</TableCell>
-                        <TableCell>{grandTotal}</TableCell>
-                        <TableCell>{amountPayed}</TableCell>
+                        <TableCell>{totalRoomAmount.toFixed(2)}</TableCell>
+                        <TableCell>{totalServiceAmount.toFixed(2)}</TableCell>
+                        <TableCell>{totalFoodAmount.toFixed(2)}</TableCell>
+                        <TableCell>{grandTotal.toFixed(2)}</TableCell>
+                        <TableCell>{amountPayed.toFixed(2)}</TableCell>
                         <TableCell>{dueAmount.toFixed(2)}</TableCell>
                       </TableRow>
                     );
                   })}
                   {filteredData?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} align="center">
+                      <TableCell colSpan={10} align="center">
                         No invoice found
                       </TableCell>
                     </TableRow>

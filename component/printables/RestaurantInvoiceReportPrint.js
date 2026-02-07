@@ -32,12 +32,6 @@ const CustomTableContainer = styled(TableContainer)``;
 const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
   const { filteredData, startDate, endDate } = props;
 
-  const totalAmount = filteredData?.reduce((sum, i) => sum + i.total_amount, 0);
-  const totalGst = filteredData?.reduce((sum, i) => sum + i.tax, 0);
-  const totalPayable = filteredData?.reduce(
-    (sum, i) => sum + i.payable_amount,
-    0
-  );
   return (
     <Box
       ref={ref}
@@ -67,11 +61,11 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
                 'Invoice No',
                 'Date/Time',
                 'Customer Name',
-                'Total Amount ₹',
+                'GSTIN',
+                'Taxable Amount ₹',
                 'SGST ₹',
                 'CGST ₹',
                 'Payable Amount ₹',
-                'Payment Method',
               ].map((item, index) => (
                 <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>
                   {item}
@@ -84,12 +78,12 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
                 <BodyCell>
                   {row.date}:{row.time}
                 </BodyCell>
-                <BodyCell>{row.customer_name}</BodyCell>
+                <BodyCell>{row.customer_name || 'NA'}</BodyCell>
+                <BodyCell>{row.customer_gst || 'NA'}</BodyCell>
                 <BodyCell>{row.total_amount}</BodyCell>
                 <BodyCell>{row.tax / 2}</BodyCell>
                 <BodyCell>{row.tax / 2}</BodyCell>
                 <BodyCell>{row.payable_amount}</BodyCell>
-                <BodyCell>{row.mop}</BodyCell>
               </TableRow>
             ))}
           </TableBody>

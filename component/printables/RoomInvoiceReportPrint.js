@@ -61,11 +61,11 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
                 'Invoice No',
                 'Date/Time',
                 'Customer Name',
+                'GSTIN',
                 'Taxable Amount',
                 'SGST',
                 'CGST',
                 'Payable Amount',
-                'Payment Method',
               ].map((item, index) => (
                 <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>
                   {item}
@@ -79,12 +79,12 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
                   <BodyCell>
                     {GetCustomDate(row.date)}&nbsp;{row.time}
                   </BodyCell>
-                  <BodyCell>{row.customer_name}</BodyCell>
+                  <BodyCell>{row.customer_name || 'NA'}</BodyCell>
+                  <BodyCell>{row.customer_gst || 'NA'}</BodyCell>
                   <BodyCell>{row.total_amount.toFixed(2)}</BodyCell>
                   <BodyCell>{row.tax / 2}</BodyCell>
                   <BodyCell>{row.tax / 2}</BodyCell>
                   <BodyCell>{row.payable_amount.toFixed(2)}</BodyCell>
-                  <BodyCell>{row.mop}</BodyCell>
                 </TableRow>
               );
             })}
