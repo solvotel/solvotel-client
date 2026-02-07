@@ -8,9 +8,11 @@ export default function BookingDetailsStep({
   setSelectedRooms,
   setRoomTokens,
   isUpdate = false,
+  selectedRooms = [],
+  roomTokens = [],
 }) {
   const handleChange = (field, value) => {
-    // Only reset rooms if date **actually changed** and NOT in update mode
+    // When not update flow, resetting rooms on date change is fine
     if (
       !isUpdate &&
       ((field === 'checkin_date' && bookingDetails.checkin_date !== value) ||
@@ -18,7 +20,78 @@ export default function BookingDetailsStep({
     ) {
       setSelectedRooms?.([]);
       setRoomTokens?.([]);
+      setBookingDetails({ ...bookingDetails, [field]: value });
+      return;
     }
+
+    // In update flow: preserve selections that still fall within new date range
+    if (
+      isUpdate &&
+      ((field === 'checkin_date' && bookingDetails.checkin_date !== value) ||
+        (field === 'checkout_date' && bookingDetails.checkout_date !== value))
+    ) {
+      // compute new date window
+      const newCheckin =
+        field === 'checkin_date' ? value : bookingDetails.checkin_date;
+      const newCheckout =
+        field === 'checkout_date' ? value : bookingDetails.checkout_date;
+
+      // normalize as Date objects
+      const newCheckinDate = new Date(newCheckin);
+      const newCheckoutDate = new Date(newCheckout);
+
+      // filter selectedRooms to keep only dates in [newCheckin, newCheckout)
+      const remainingSelections = (selectedRooms || []).filter((sel) => {
+        const d = new Date(sel.date);
+        return d >= newCheckinDate && d < newCheckoutDate;
+      });
+
+      // rebuild roomTokens from remainingSelections
+      const grouped = {};
+      remainingSelections.forEach((s) => {
+        if (!grouped[s.room_no]) grouped[s.room_no] = [];
+        grouped[s.room_no].push(s.date);
+      });
+
+      const newTokens = Object.entries(grouped).map(([roomNo, dates]) => {
+        const sorted = dates.sort();
+        const inDate = sorted[0];
+        const lastDate = sorted[sorted.length - 1];
+        const outDateObj = new Date(lastDate);
+        outDateObj.setDate(outDateObj.getDate() + 1);
+        const outDate = outDateObj.toISOString().split('T')[0];
+
+        // try preserve existing token fields (rate, gst, item, hsn, invoice)
+        const existing =
+          (roomTokens || []).find((t) => t.room === roomNo) || {};
+
+        const rate = Number(existing.rate) || 0;
+        const gst = Number(existing.gst) || 0;
+        const days = sorted.length;
+        const amount = parseFloat(
+          ((rate + (rate * gst) / 100) * days).toFixed(2),
+        );
+
+        return {
+          ...existing,
+          room: roomNo,
+          in_date: inDate,
+          out_date: outDate,
+          days,
+          rate,
+          gst,
+          amount,
+        };
+      });
+
+      // apply updates
+      setSelectedRooms?.(remainingSelections);
+      setRoomTokens?.(newTokens);
+      setBookingDetails({ ...bookingDetails, [field]: value });
+      return;
+    }
+
+    // default: just update booking details
     setBookingDetails({ ...bookingDetails, [field]: value });
   };
 

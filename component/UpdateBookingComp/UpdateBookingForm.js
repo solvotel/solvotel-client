@@ -247,6 +247,8 @@ const UpdateBookingForm = ({
                 hotelData={hotelData}
                 setSelectedRooms={setSelectedRooms}
                 setRoomTokens={setRoomTokens}
+                selectedRooms={selectedRooms}
+                roomTokens={roomTokens}
                 isUpdate={true}
               />
             )}

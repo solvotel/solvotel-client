@@ -24,7 +24,7 @@ const CustomTableCell = styled(TableCell)`
   }
 `;
 
-const toInt = (n) => Math.round(Number(n) || 0);
+// Removed toInt helper; keep numeric values and format when rendering
 
 const RoomInvoicePrint = React.forwardRef((props, ref) => {
   const toWords = new ToWords();
@@ -35,52 +35,56 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
 
   data?.service_tokens?.forEach((service) => {
     service.items?.forEach((it) => {
-      const gstAmount = it.amount - toInt(it.rate);
+      const rateNum = parseFloat(it.rate) || 0;
+      const amountNum = parseFloat(it.amount) || 0;
+      const gstAmount = amountNum - rateNum;
       const sgst = gstAmount / 2;
       const cgst = gstAmount / 2;
       serviceTokens.push({
         item: it.item,
         hsn: it.hsn || '-',
-        rate: toInt(it.rate),
-        gst: toInt(gstAmount),
-        sgst: toInt(sgst),
+        rate: rateNum,
+        gst: gstAmount,
+        sgst,
         cgst,
         room: service.room_no,
-        amount: toInt(it.amount),
+        amount: amountNum,
       });
     });
   });
 
   data?.room_tokens?.forEach((room) => {
-    const finalRate = toInt(room?.rate) * toInt(room.days);
-    const gstAmount = (finalRate * room.gst) / 100;
+    const ratePerNight = parseFloat(room?.rate) || 0;
+    const days = Number(room.days) || 0;
+    const finalRate = ratePerNight * days;
+    const gstAmount = (finalRate * (parseFloat(room.gst) || 0)) / 100;
     const sgst = gstAmount / 2;
     const cgst = gstAmount / 2;
     roomTokens.push({
       item: room.item,
       room: room.room,
       hsn: room.hsn,
-      rate: toInt(room.rate * room.days),
-      gst: toInt(gstAmount),
-      sgst: toInt(sgst),
-      cgst: toInt(cgst),
-      amount: room.amount,
+      rate: finalRate,
+      gst: gstAmount,
+      sgst,
+      cgst,
+      amount: parseFloat(room.amount) || finalRate + gstAmount,
     });
   });
 
   data?.food_tokens?.forEach((food) => {
-    const gst = toInt(food.total_gst);
-    const payable = toInt(food.total_amount);
+    const gst = parseFloat(food.total_gst) || 0;
+    const payable = parseFloat(food.total_amount) || 0;
     const sgst = gst / 2;
     const cgst = gst / 2;
     foodTokens.push({
       item: 'Food Charges',
       room: food.room_no,
       hsn: '996331',
-      rate: toInt(payable - gst),
-      gst: toInt(gst),
-      sgst: toInt(sgst),
-      cgst: toInt(cgst),
+      rate: payable - gst,
+      gst,
+      sgst,
+      cgst,
       amount: payable,
     });
   });
@@ -89,20 +93,26 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
 
   const totalRate = allTokens.reduce(
     (acc, token) => acc + (token?.rate || 0),
-    0
+    0,
   );
   const totalCGST = allTokens.reduce(
     (acc, token) => acc + (token?.cgst || 0),
-    0
+    0,
   );
   const totalSGST = allTokens.reduce(
-    (acc, token) => acc + (toInt(token?.sgst) || 0),
-    0
+    (acc, token) => acc + (token?.sgst || 0),
+    0,
   );
   const totalGST = totalCGST + totalSGST;
   const totalAmount = totalRate + totalGST;
 
-  let totalInWords = toWords?.convert(totalAmount || 0);
+  // 'Less' is the fractional part (after decimal) of totalAmount, rounded to 2 decimals
+  const less = parseFloat((totalAmount - Math.floor(totalAmount)).toFixed(2));
+  // Payable amount is totalAmount minus the fractional part (i.e., integer rupees)
+  const payableAmount = parseFloat((totalAmount - less).toFixed(2));
+
+  // Use payableAmount (integer rupees) for words
+  let totalInWords = toWords?.convert(payableAmount || 0);
 
   return (
     <div ref={ref}>
@@ -271,31 +281,41 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                     align="center"
                   >
-                    {token?.rate || '-'}
+                    {typeof token?.rate === 'number'
+                      ? token.rate.toFixed(2)
+                      : '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {toInt(token?.sgst) || '-'}
+                    {typeof token?.sgst === 'number'
+                      ? token.sgst.toFixed(2)
+                      : '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {toInt(token?.cgst) || '-'}
+                    {typeof token?.cgst === 'number'
+                      ? token.cgst.toFixed(2)
+                      : '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {toInt(token?.gst) || '-'}
+                    {typeof token?.gst === 'number'
+                      ? token.gst.toFixed(2)
+                      : '-'}
                   </CustomTableCell>
                   <CustomTableCell
                     align="center"
                     sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
                   >
-                    {toInt(token?.amount) || '-'}
+                    {typeof token?.amount === 'number'
+                      ? token.amount.toFixed(2)
+                      : '-'}
                   </CustomTableCell>
                 </TableRow>
               ))}
@@ -318,53 +338,100 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
             </TableBody>
             <TableBody>
               <TableRow>
-                <CustomTableCell>
-                  <Typography fontWeight={600}>Grand Total</Typography>
-                </CustomTableCell>
-                <CustomTableCell align="center">
-                  <Typography></Typography>
-                </CustomTableCell>
-                <CustomTableCell align="center">
-                  <Typography>{toInt(totalRate)}</Typography>
-                </CustomTableCell>
-                <CustomTableCell align="center">
-                  <Typography>{toInt(totalSGST)}</Typography>
-                </CustomTableCell>
-                <CustomTableCell align="center">
-                  <Typography>{toInt(totalCGST)}</Typography>
-                </CustomTableCell>
-
-                <CustomTableCell align="center">
-                  <Typography>{toInt(totalGST)}</Typography>
-                </CustomTableCell>
-
-                <CustomTableCell align="center">
-                  <Typography>{toInt(totalAmount)}</Typography>
-                </CustomTableCell>
-              </TableRow>
-              <TableRow>
                 <CustomTableCell colSpan={2}>
-                  <Typography>Amuount Chargeable (in words):</Typography>
-                  <Typography fontWeight={600}>
-                    {totalInWords} rupees
+                  <Typography fontWeight={600} sx={{ mb: 10 }}>
+                    GUEST SIGNATURE:
                   </Typography>
-                </CustomTableCell>
-                <CustomTableCell rowSpan={2} colSpan={3} align="center">
-                  <Typography variant="body2">
+                  <Typography sx={{ fontSize: '8px' }}>
                     I agree that I&apos;m responsible for the full payment of
                     this invoice,in the event it is not paid by the
                     company,organisation or person indicated above.
                   </Typography>
                 </CustomTableCell>
-                <CustomTableCell colSpan={2} rowSpan={2} align="center">
-                  <Typography fontWeight={600}>Authorised Signatory</Typography>
-                </CustomTableCell>
-              </TableRow>
-              <TableRow>
                 <CustomTableCell colSpan={2}>
-                  <Typography fontWeight={600} sx={{ mb: 10 }}>
-                    GUEST SIGNATURE:
+                  <Typography fontWeight={600} sx={{ mb: 20 }}>
+                    Authorised Signatory:
                   </Typography>
+                </CustomTableCell>
+                <CustomTableCell colSpan={3}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">Taxable</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {totalRate.toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">SGST (₹)</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {totalSGST.toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">CGST (₹)</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {totalCGST.toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">Grand Total</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {totalAmount.toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">Less</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {less.toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 0.5,
+                    }}
+                  >
+                    <Typography variant="body2">Payable Amount</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {payableAmount.toFixed(2)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ borderTop: '1px solid #cecece' }}>
+                    <Typography variant="body2">Amount In Words:</Typography>
+                    <Typography variant="body2" fontWeight={600}>
+                      {totalInWords} Only
+                    </Typography>
+                  </Box>
                 </CustomTableCell>
               </TableRow>
               <TableRow>

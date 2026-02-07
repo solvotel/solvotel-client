@@ -25,7 +25,7 @@ import { Loader } from '@/component/common';
 import { RoomInvoicePrint } from '@/component/printables/RoomInvoicePrint';
 import { GetCustomDate } from '@/utils/DateFetcher';
 
-const toInt = (n) => Math.round(Number(n) || 0);
+// removed toInt — values will be displayed with two decimal places
 
 export default function Page({ params }) {
   const { auth } = useAuth();
@@ -220,10 +220,18 @@ export default function Page({ params }) {
                     <span style={{ fontSize: '12px' }}>Room: {token.room}</span>
                   </TableCell>
                   <TableCell>{token.hsn}</TableCell>
-                  <TableCell align="right">{toInt(token.rate)}</TableCell>
-                  <TableCell align="right">{toInt(token?.sgst)}</TableCell>
-                  <TableCell align="right">{toInt(token?.cgst)}</TableCell>
-                  <TableCell align="right">{toInt(token?.amount)}</TableCell>
+                  <TableCell align="right">
+                    {parseFloat(token.rate || 0).toFixed(2)}
+                  </TableCell>
+                  <TableCell align="right">
+                    {parseFloat(token?.sgst || 0).toFixed(2)}
+                  </TableCell>
+                  <TableCell align="right">
+                    {parseFloat(token?.cgst || 0).toFixed(2)}
+                  </TableCell>
+                  <TableCell align="right">
+                    {parseFloat(token?.amount || 0).toFixed(2)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -233,11 +241,18 @@ export default function Page({ params }) {
         {/* Totals */}
         <Box mt={2}>
           <Typography variant="h6">💰 Summary</Typography>
-          <Typography>Subtotal : ₹{toInt(invoiceData.total_amount)}</Typography>
-          <Typography>SGST : ₹{toInt(invoiceData.tax / 2)}</Typography>
-          <Typography>CGST : ₹{toInt(invoiceData.tax / 2)}</Typography>
+          <Typography>
+            Subtotal : ₹{parseFloat(invoiceData.total_amount || 0).toFixed(2)}
+          </Typography>
+          <Typography>
+            SGST : ₹{parseFloat((invoiceData.tax || 0) / 2).toFixed(2)}
+          </Typography>
+          <Typography>
+            CGST : ₹{parseFloat((invoiceData.tax || 0) / 2).toFixed(2)}
+          </Typography>
           <Typography fontWeight="bold" color="primary">
-            Grand Total : ₹{toInt(invoiceData.payable_amount)}
+            Grand Total : ₹
+            {parseFloat(invoiceData.payable_amount || 0).toFixed(2)}
           </Typography>
         </Box>
 
