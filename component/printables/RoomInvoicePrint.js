@@ -29,6 +29,28 @@ const CustomTableCell = styled(TableCell)`
 const RoomInvoicePrint = React.forwardRef((props, ref) => {
   const toWords = new ToWords();
   const { data, hotel, booking } = props;
+  // format date ranges compactly: "11 - 12 Feb 2026" or with months when needed
+  const formatDateRange = (inDateStr, outDateStr) => {
+    if (!inDateStr || !outDateStr) return '';
+    const inDate = new Date(inDateStr);
+    const outDate = new Date(outDateStr);
+    if (isNaN(inDate) || isNaN(outDate)) return '';
+
+    const inDay = inDate.getDate();
+    const outDay = outDate.getDate();
+    const inMonth = inDate.toLocaleString('en-US', { month: 'short' });
+    const outMonth = outDate.toLocaleString('en-US', { month: 'short' });
+    const inYear = inDate.getFullYear();
+    const outYear = outDate.getFullYear();
+
+    if (inYear === outYear) {
+      if (inMonth === outMonth) {
+        return `${inDay} - ${outDay} ${inMonth} ${inYear}`;
+      }
+      return `${inDay} ${inMonth} - ${outDay} ${outMonth} ${inYear}`;
+    }
+    return `${inDay} ${inMonth} ${inYear} - ${outDay} ${outMonth} ${outYear}`;
+  };
   const roomTokens = [];
   const serviceTokens = [];
   const foodTokens = [];
@@ -73,6 +95,8 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
       sgst,
       cgst,
       amount: parseFloat(room.amount) || finalRate + gstAmount,
+      in_date: room.in_date,
+      out_date: room.out_date,
     });
   });
 
@@ -281,6 +305,19 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     {token?.item}
                     <br />
                     <span style={{ fontSize: '12px' }}>Room: {token.room}</span>
+
+                    {(token?.in_date || token?.out_date) && (
+                      <span
+                        style={{
+                          fontSize: '12px',
+
+                          marginTop: 2,
+                        }}
+                      >
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                        {formatDateRange(token?.in_date, token?.out_date)}
+                      </span>
+                    )}
                   </CustomTableCell>
                   <CustomTableCell
                     sx={{
@@ -478,7 +515,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                       mb: 0.5,
                     }}
                   >
-                    <Typography variant="body2">Less</Typography>
+                    <Typography variant="body2">Round off</Typography>
                     <Typography variant="body2" fontWeight={600}>
                       {less.toFixed(2)}
                     </Typography>

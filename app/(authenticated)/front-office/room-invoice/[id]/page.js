@@ -100,6 +100,8 @@ export default function Page({ params }) {
       sgst,
       cgst,
       amount: room.amount,
+      in_date: room.in_date,
+      out_date: room.out_date,
     });
   });
 
@@ -316,7 +318,7 @@ export default function Page({ params }) {
       </Box>
 
       {/* ✅ Hidden printable component */}
-      <div style={{ display: 'block' }}>
+      <div style={{ display: 'none' }}>
         <RoomInvoicePrint
           ref={componentRef}
           data={invoiceData}
