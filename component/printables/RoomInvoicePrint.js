@@ -38,6 +38,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
       const rateNum = parseFloat(it.rate) || 0;
       const amountNum = parseFloat(it.amount) || 0;
       const gstAmount = amountNum - rateNum;
+      const gstPercent = rateNum > 0 ? (gstAmount / rateNum) * 100 : 0;
       const sgst = gstAmount / 2;
       const cgst = gstAmount / 2;
       serviceTokens.push({
@@ -45,6 +46,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
         hsn: it.hsn || '-',
         rate: rateNum,
         gst: gstAmount,
+        gst_percent: gstPercent,
         sgst,
         cgst,
         room: service.room_no,
@@ -57,7 +59,8 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
     const ratePerNight = parseFloat(room?.rate) || 0;
     const days = Number(room.days) || 0;
     const finalRate = ratePerNight * days;
-    const gstAmount = (finalRate * (parseFloat(room.gst) || 0)) / 100;
+    const gstPercent = parseFloat(room.gst) || 0;
+    const gstAmount = (finalRate * gstPercent) / 100;
     const sgst = gstAmount / 2;
     const cgst = gstAmount / 2;
     roomTokens.push({
@@ -66,6 +69,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
       hsn: room.hsn,
       rate: finalRate,
       gst: gstAmount,
+      gst_percent: gstPercent,
       sgst,
       cgst,
       amount: parseFloat(room.amount) || finalRate + gstAmount,
@@ -75,14 +79,17 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
   data?.food_tokens?.forEach((food) => {
     const gst = parseFloat(food.total_gst) || 0;
     const payable = parseFloat(food.total_amount) || 0;
+    const rateBeforeGst = payable - gst;
+    const gstPercent = rateBeforeGst > 0 ? (gst / rateBeforeGst) * 100 : 0;
     const sgst = gst / 2;
     const cgst = gst / 2;
     foodTokens.push({
       item: 'Food Charges',
       room: food.room_no,
       hsn: '996331',
-      rate: payable - gst,
+      rate: rateBeforeGst,
       gst,
+      gst_percent: gstPercent,
       sgst,
       cgst,
       amount: payable,
@@ -244,19 +251,19 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 <CustomTableCell align="center" width="8%">
                   <Typography fontWeight={600}>HSN/SAC</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
+                <CustomTableCell align="right" width="12%">
                   <Typography fontWeight={600}>Rate</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
+                <CustomTableCell align="right" width="12%">
                   <Typography fontWeight={600}>SGST</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
+                <CustomTableCell align="right" width="12%">
                   <Typography fontWeight={600}>CGST</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
+                <CustomTableCell align="right" width="12%">
                   <Typography fontWeight={600}>Total GST</Typography>
                 </CustomTableCell>
-                <CustomTableCell align="center" width="12%">
+                <CustomTableCell align="right" width="12%">
                   <Typography fontWeight={600}>Total</Typography>
                 </CustomTableCell>
               </TableRow>
@@ -265,57 +272,119 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
               {allTokens?.map((token, index) => (
                 <TableRow key={index}>
                   <CustomTableCell
-                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                    sx={{
+                      borderBottom: '1px solid #cecece',
+                      borderTop: 'none',
+                      py: 0.3,
+                    }}
                   >
                     {token?.item}
                     <br />
                     <span style={{ fontSize: '12px' }}>Room: {token.room}</span>
                   </CustomTableCell>
                   <CustomTableCell
-                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                    sx={{
+                      borderBottom: '1px solid #cecece',
+                      borderTop: 'none',
+                      py: 0.3,
+                    }}
                     align="center"
                   >
                     {token?.hsn}
                   </CustomTableCell>
                   <CustomTableCell
-                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
-                    align="center"
+                    sx={{
+                      borderBottom: '1px solid #cecece',
+                      borderTop: 'none',
+                      py: 0.3,
+                    }}
+                    align="right"
                   >
                     {typeof token?.rate === 'number'
                       ? token.rate.toFixed(2)
                       : '-'}
                   </CustomTableCell>
                   <CustomTableCell
-                    align="center"
-                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                    align="right"
+                    sx={{
+                      borderBottom: '1px solid #e5e5e5',
+                      borderTop: 'none',
+                      py: 0.3,
+                    }}
                   >
-                    {typeof token?.sgst === 'number'
-                      ? token.sgst.toFixed(2)
-                      : '-'}
+                    <Typography>
+                      {typeof token?.sgst === 'number'
+                        ? token.sgst.toFixed(2)
+                        : '-'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontSize: '11px' }}>
+                      {typeof token?.gst_percent === 'number'
+                        ? token.gst_percent / 2
+                        : '0'}
+                      %
+                    </Typography>
                   </CustomTableCell>
                   <CustomTableCell
-                    align="center"
-                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                    align="right"
+                    sx={{
+                      borderBottom: '1px solid #cecece',
+                      borderTop: 'none',
+                      py: 0.3,
+                    }}
                   >
-                    {typeof token?.cgst === 'number'
-                      ? token.cgst.toFixed(2)
-                      : '-'}
+                    <Typography>
+                      {typeof token?.cgst === 'number'
+                        ? token.cgst.toFixed(2)
+                        : '-'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontSize: '11px' }}>
+                      {typeof token?.gst_percent === 'number'
+                        ? token.gst_percent / 2
+                        : '0'}
+                      %
+                    </Typography>
                   </CustomTableCell>
                   <CustomTableCell
-                    align="center"
-                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                    align="right"
+                    sx={{
+                      borderBottom: '1px solid #cecece',
+                      borderTop: 'none',
+                      py: 0.3,
+                    }}
                   >
-                    {typeof token?.gst === 'number'
-                      ? token.gst.toFixed(2)
-                      : '-'}
+                    <Typography>
+                      {typeof token?.gst === 'number'
+                        ? token.gst.toFixed(2)
+                        : '-'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontSize: '11px' }}>
+                      {typeof token?.gst_percent === 'number'
+                        ? token.gst_percent
+                        : '0'}
+                      %
+                    </Typography>
                   </CustomTableCell>
                   <CustomTableCell
-                    align="center"
-                    sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                    align="right"
+                    sx={{
+                      borderBottom: '1px solid #cecece',
+                      borderTop: 'none',
+                      py: 0.3,
+                    }}
                   >
-                    {typeof token?.amount === 'number'
-                      ? token.amount.toFixed(2)
-                      : '-'}
+                    <Box>
+                      <Typography>
+                        {typeof token?.amount === 'number'
+                          ? token.amount.toFixed(2)
+                          : '-'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontSize: '11px' }}>
+                        {typeof token?.gst_percent === 'number'
+                          ? token.gst_percent
+                          : '0'}
+                        %
+                      </Typography>
+                    </Box>
                   </CustomTableCell>
                 </TableRow>
               ))}
@@ -328,7 +397,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   {[...Array(7)].map((__, cellIdx) => (
                     <CustomTableCell
                       key={cellIdx}
-                      sx={{ borderBottom: 'none', borderTop: 'none', py: 0.5 }}
+                      sx={{ borderBottom: 'none', borderTop: 'none', py: 0.3 }}
                     >
                       &nbsp;
                     </CustomTableCell>

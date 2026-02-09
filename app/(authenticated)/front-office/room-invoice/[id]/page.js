@@ -70,7 +70,7 @@ export default function Page({ params }) {
 
   invoiceData?.service_tokens?.forEach((service) => {
     service.items?.forEach((it) => {
-      const gstAmount = it.amount - toInt(it.rate);
+      const gstAmount = it?.amount - it?.rate;
       const sgst = parseFloat(gstAmount / 2).toFixed(1);
       const cgst = parseFloat(gstAmount / 2).toFixed(1);
       serviceTokens.push({
@@ -316,7 +316,7 @@ export default function Page({ params }) {
       </Box>
 
       {/* ✅ Hidden printable component */}
-      <div style={{ display: 'none' }}>
+      <div style={{ display: 'block' }}>
         <RoomInvoicePrint
           ref={componentRef}
           data={invoiceData}
