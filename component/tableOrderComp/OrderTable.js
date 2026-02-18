@@ -9,8 +9,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Typography,
 } from '@mui/material';
+import { useState } from 'react';
 
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -23,6 +25,22 @@ const OrderTable = ({
   setDeleteOpen,
   permissions,
 }) => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const paginatedOrders = orders.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
+  );
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -71,7 +89,7 @@ const OrderTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders.map((order) => {
+            {paginatedOrders.map((order) => {
               const totalAmount = order.food_items?.reduce(
                 (sum, item) => sum + item.amount,
                 0,
@@ -157,6 +175,15 @@ const OrderTable = ({
             })}
           </TableBody>
         </Table>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={orders.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </TableContainer>
     </>
   );

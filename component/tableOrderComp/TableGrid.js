@@ -9,6 +9,8 @@ const TableGrid = ({
   handleTransferOrder,
   handleOrderInvoice,
   permissions,
+  setKotOpen,
+  setSelectedKot,
 }) => {
   return (
     <>
@@ -33,7 +35,8 @@ const TableGrid = ({
           {tables?.map((table) => {
             const activeOrder = orders?.find(
               (o) =>
-                o.table?.table_no == table.table_no && o.token_status === 'Open'
+                o.table?.table_no == table.table_no &&
+                o.token_status === 'Open',
             );
             const isAvailable = !activeOrder;
 
@@ -95,20 +98,12 @@ const TableGrid = ({
                       New Token
                     </Button>
                   ) : (
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 0.5,
-                      }}
-                    >
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       <Button
                         onClick={() => handleEdit(activeOrder)}
                         size="small"
                         variant="contained"
-                        color="success"
-                        // startIcon={<EditIcon sx={{ fontSize: 15 }} />}
+                        color="warning"
                         sx={{
                           fontSize: 12,
                           borderRadius: 2,
@@ -120,41 +115,60 @@ const TableGrid = ({
                       >
                         Update
                       </Button>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="error"
+                        sx={{
+                          fontSize: 12,
+                          borderRadius: 2,
+                          textTransform: 'none',
+                          px: 1.5,
+                          py: 0.3,
+                        }}
+                        disabled={!permissions.canUpdate}
+                        onClick={() => {
+                          const latestKot =
+                            activeOrder.kots?.[activeOrder.kots?.length - 1];
 
-                      <Box sx={{ display: 'flex', gap: 0.5 }}>
-                        <Button
-                          onClick={() => handleTransferOrder(activeOrder)}
-                          size="small"
-                          variant="contained"
-                          color="secondary"
-                          sx={{
-                            fontSize: 12,
-                            borderRadius: 2,
-                            textTransform: 'none',
-                            px: 1.5,
-                            py: 0.3,
-                          }}
-                          disabled={!permissions.canUpdate}
-                        >
-                          Transfer
-                        </Button>
-                        <Button
-                          onClick={() => handleOrderInvoice(activeOrder)}
-                          size="small"
-                          variant="contained"
-                          color="error"
-                          sx={{
-                            fontSize: 12,
-                            borderRadius: 2,
-                            textTransform: 'none',
-                            px: 1.5,
-                            py: 0.3,
-                          }}
-                          disabled={!permissions.canUpdate}
-                        >
-                          Invoice
-                        </Button>
-                      </Box>
+                          setSelectedKot(latestKot);
+                          setKotOpen(true);
+                        }}
+                      >
+                        KOT
+                      </Button>
+                      <Button
+                        onClick={() => handleTransferOrder(activeOrder)}
+                        size="small"
+                        variant="contained"
+                        color="secondary"
+                        sx={{
+                          fontSize: 12,
+                          borderRadius: 2,
+                          textTransform: 'none',
+                          px: 1.5,
+                          py: 0.3,
+                        }}
+                        disabled={!permissions.canUpdate}
+                      >
+                        Transfer
+                      </Button>
+                      <Button
+                        onClick={() => handleOrderInvoice(activeOrder)}
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        sx={{
+                          fontSize: 12,
+                          borderRadius: 2,
+                          textTransform: 'none',
+                          px: 1.5,
+                          py: 0.3,
+                        }}
+                        disabled={!permissions.canUpdate}
+                      >
+                        Invoice
+                      </Button>
                     </Box>
                   )}
                 </Paper>
