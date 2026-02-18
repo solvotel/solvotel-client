@@ -24,6 +24,7 @@ import { GetSingleData, GetDataList } from '@/utils/ApiFunctions';
 import { Loader } from '@/component/common';
 import { RoomInvoicePrint } from '@/component/printables/RoomInvoicePrint';
 import { GetCustomDate } from '@/utils/DateFetcher';
+import { QRCodeCanvas } from 'qrcode.react';
 
 // removed toInt — values will be displayed with two decimal places
 
@@ -122,6 +123,14 @@ export default function Page({ params }) {
   });
 
   const allTokens = [...roomTokens, ...serviceTokens, ...foodTokens];
+
+  // const upiId = 'mahapat@ybl';
+  // const name = 'Amit Mahapatra';
+  // const amount = invoiceData.payable_amount || 0;
+
+  // const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
+  //   name,
+  // )}&am=${amount}&cu=INR`;
 
   return (
     <>
@@ -316,6 +325,9 @@ export default function Page({ params }) {
           </TableContainer>
         )}
       </Box>
+      {/* <Box>
+        <QRCodeCanvas value={upiUrl} size={120} level="H" />
+      </Box> */}
 
       {/* ✅ Hidden printable component */}
       <div style={{ display: 'none' }}>

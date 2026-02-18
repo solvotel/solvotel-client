@@ -89,7 +89,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.title?.toLowerCase().includes(search.toLowerCase())
+      item.title?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -226,6 +226,8 @@ const Page = () => {
                       'Description',
                       'MOP',
                       'Amount',
+                      'Created By',
+                      'Updated By',
                       'Actions',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -244,6 +246,8 @@ const Page = () => {
                         <TableCell>{row.description}</TableCell>
                         <TableCell>{row.mop}</TableCell>
                         <TableCell>{row.amount}</TableCell>
+                        <TableCell>{row.user_created}</TableCell>
+                        <TableCell>{row.user_updated}</TableCell>
                         <TableCell sx={{ width: '130px' }}>
                           <Tooltip title="View">
                             <IconButton

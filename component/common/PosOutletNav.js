@@ -26,7 +26,7 @@ import {
   Logout,
   Receipt,
 } from '@mui/icons-material';
-import { LogOut } from 'lucide-react';
+import { Banknote, LogOut } from 'lucide-react';
 
 const menuItems = [
   {
@@ -40,9 +40,9 @@ const menuItems = [
     href: '/pos-outlet/invoices',
   },
   {
-    label: 'Item Master',
+    label: 'Manage Items',
     icon: <Inventory size={18} />,
-    href: '/pos-outlet/item-master',
+    href: '/pos-outlet/manage-items',
   },
 
   {
@@ -54,6 +54,11 @@ const menuItems = [
     label: 'Collection Report',
     icon: <AssessmentOutlined size={18} />,
     href: '/pos-outlet/collection-report',
+  },
+  {
+    label: 'Due Report',
+    icon: <Banknote size={18} />,
+    href: '/pos-outlet/due-report',
   },
 ];
 

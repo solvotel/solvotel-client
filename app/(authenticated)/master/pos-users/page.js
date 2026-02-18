@@ -50,6 +50,11 @@ const Page = () => {
   const data = GetUserList({
     auth,
   });
+  const outlets = GetDataList({
+    auth,
+    endPoint: 'pos-outlets',
+  });
+  console.log('outlets:', outlets);
   const filteresData = data?.filter(
     (user) =>
       user.role?.name !== 'Authenticated' && user.role?.name !== 'hotel-admin',
@@ -75,6 +80,7 @@ const Page = () => {
       access: [],
       permissions: [],
       hotel_id: auth?.user?.hotel_id || '',
+      pos_outlet_id: '',
     };
   }
 
@@ -90,6 +96,7 @@ const Page = () => {
       username: row.username,
       email: row.email,
       id: row.id,
+      pos_outlet_id: row.pos_outlet_id || '',
     });
     setFormOpen(true);
     setPassword('');
@@ -125,6 +132,7 @@ const Page = () => {
         hotel_id: formData.hotel_id,
         role: formData.role,
         username: formData.username,
+        pos_outlet_id: formData.pos_outlet_id || '',
       };
       if (password) {
         data = {
@@ -213,16 +221,12 @@ const Page = () => {
                     'Username',
                     'Email',
                     'Role',
-                    'Access',
+                    'Outlet',
                     'Permissions',
                     'Status',
                     'Actions',
                   ].map((h) => (
-                    <TableCell
-                      key={h}
-                      sx={{ fontWeight: 'bold' }}
-                      align={h === 'Access' ? 'center' : 'left'}
-                    >
+                    <TableCell key={h} sx={{ fontWeight: 'bold' }}>
                       {h}
                     </TableCell>
                   ))}
@@ -248,7 +252,7 @@ const Page = () => {
                           ? 'Hotel Admin'
                           : 'Employee'}
                       </TableCell>
-                      <TableCell width={300} align="center">
+                      {/* <TableCell width={300} align="center">
                         {row.role?.name === 'hotel-admin' ? (
                           <Chip
                             label="Full Access"
@@ -287,8 +291,13 @@ const Page = () => {
                             ))}
                           </>
                         )}
+                      </TableCell> */}
+                      <TableCell width={300}>
+                        {outlets?.find(
+                          (o) => o.documentId === row.pos_outlet_id,
+                        )?.name || 'N/A'}
                       </TableCell>
-                      <TableCell width={300} align="center">
+                      <TableCell width={300}>
                         {row.role?.name === 'hotel-admin' ? (
                           <Chip
                             label="All Permissions"
@@ -447,26 +456,21 @@ const Page = () => {
                   <TextField
                     select
                     fullWidth
-                    label="Access"
-                    SelectProps={{ multiple: true }}
-                    value={formData.access}
+                    label="Outlet"
+                    value={formData.pos_outlet_id}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        access:
-                          typeof e.target.value === 'string'
-                            ? e.target.value.split(',')
-                            : e.target.value,
+                        pos_outlet_id: e.target.value,
                       })
                     }
                   >
-                    <MenuItem value="admin">Admin</MenuItem>
-                    <MenuItem value="frontoffice">Frontoffice</MenuItem>
-                    <MenuItem value="property">Property</MenuItem>
-                    <MenuItem value="housekeeping">Housekeeping</MenuItem>
-                    <MenuItem value="restaurant">Restaurant</MenuItem>
-                    <MenuItem value="inventory">Inventory</MenuItem>
-                    <MenuItem value="accounts">Accounts</MenuItem>
+                    <MenuItem value="">Select</MenuItem>
+                    {outlets?.map((outlet) => (
+                      <MenuItem key={outlet.id} value={outlet.documentId}>
+                        {outlet.name}
+                      </MenuItem>
+                    ))}
                   </TextField>
                 </Grid>
                 <Grid size={{ xs: 12 }}>

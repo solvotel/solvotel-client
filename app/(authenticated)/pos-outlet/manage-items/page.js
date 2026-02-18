@@ -190,7 +190,7 @@ const Page = () => {
           <Link underline="hover" color="inherit" href="/pos-outlet/dashboard">
             Dashboard
           </Link>
-          <Typography color="text.primary">Item Master</Typography>
+          <Typography color="text.primary">Manage Items</Typography>
         </Breadcrumbs>
       </Box>
       {!data ? (

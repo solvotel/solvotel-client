@@ -50,6 +50,7 @@ const RoomAvailabilityStep = ({
 
   const categories = GetDataList({ auth, endPoint: 'room-categories' });
   const rooms = GetDataList({ auth, endPoint: 'rooms' });
+  const bookings = GetDataList({ auth, endPoint: 'room-bookings' });
 
   // Generate date range from check-in to day before check-out
   const dateRange = useMemo(() => {
@@ -66,26 +67,108 @@ const RoomAvailabilityStep = ({
     return dates;
   }, [bookingDetails.checkin_date, bookingDetails.checkout_date]);
 
-  // Check if a room is available for a specific date
+  // Check if a room is available for a specific date (uses token/status logic)
   const isRoomAvailableForDate = (room, date) => {
-    if (!room.room_bookings || room.room_bookings.length === 0) return true;
+    const occupied = getOccupiedRoomNosForDate(date, room);
+    return !occupied.has(room.room_no);
+  };
 
-    const checkDate = new Date(date);
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + 1);
+  // Build a set of occupied room numbers for a given date using booking tokens and statuses
+  // For update flow we must ignore the booking currently being edited (`bookingData`)
+  const getOccupiedRoomNosForDate = (date, room = null) => {
+    const occupiedRoomNos = new Set();
+    const selectedDate = new Date(date);
 
-    return !room.room_bookings.some((booking) => {
-      // Skip the booking currently being updated
-      if (booking.documentId === bookingData.documentId) return false;
-      if (booking.checked_out) return false;
-      if (booking.booking_status === 'Cancelled') return false;
+    if (bookings && bookings.length > 0) {
+      bookings.forEach((bk) => {
+        // Ignore cancelled/checked-out bookings and the booking being edited
+        if (bk.checked_out) return;
+        if (bk.booking_status === 'Cancelled') return;
+        if (bk.documentId === bookingData?.documentId) return;
 
-      const bookingStart = new Date(booking.checkin_date);
-      const bookingEnd = new Date(booking.checkout_date);
+        const checkIn = new Date(bk.checkin_date);
+        const checkOut = new Date(bk.checkout_date);
 
-      // Check if the night (check date to next date) overlaps with booking
-      return checkDate < bookingEnd && nextDate > bookingStart;
-    });
+        const bookingAppliesToDate =
+          selectedDate >= checkIn && selectedDate < checkOut;
+        if (!bookingAppliesToDate) return;
+
+        bk.room_tokens?.forEach((token) => {
+          const tokenIn = new Date(token.in_date);
+          const tokenOut = new Date(token.out_date);
+
+          const tokenAppliesToDate =
+            selectedDate >= tokenIn && selectedDate < tokenOut;
+          if (!tokenAppliesToDate) return;
+
+          if (bk.checked_in === true && bk.checked_out !== true) {
+            occupiedRoomNos.add(token.room);
+          } else if (
+            bk.checked_in !== true &&
+            bk.checked_out !== true &&
+            bk.booking_status === 'Confirmed'
+          ) {
+            occupiedRoomNos.add(token.room);
+          } else if (bk.booking_status === 'Blocked') {
+            occupiedRoomNos.add(token.room);
+          }
+        });
+      });
+    }
+
+    // Fallback: if room provided and it has own room_bookings array, consider those (skip current booking)
+    if (room && room.room_bookings && room.room_bookings.length > 0) {
+      room.room_bookings.forEach((booking) => {
+        if (booking.documentId === bookingData?.documentId) return;
+        if (booking.checked_out) return;
+        if (booking.booking_status === 'Cancelled') return;
+
+        if (booking.room_tokens && booking.room_tokens.length > 0) {
+          booking.room_tokens.forEach((token) => {
+            if (token.room !== room.room_no) return;
+            const tokenIn = new Date(token.in_date);
+            const tokenOut = new Date(token.out_date);
+            const tokenApplies =
+              selectedDate >= tokenIn && selectedDate < tokenOut;
+            if (!tokenApplies) return;
+
+            if (booking.checked_in === true && booking.checked_out !== true) {
+              occupiedRoomNos.add(token.room);
+            } else if (
+              booking.checked_in !== true &&
+              booking.checked_out !== true &&
+              booking.booking_status === 'Confirmed'
+            ) {
+              occupiedRoomNos.add(token.room);
+            } else if (booking.booking_status === 'Blocked') {
+              occupiedRoomNos.add(token.room);
+            }
+          });
+        } else {
+          // Fallback to booking-level date overlap
+          const bookingStart = new Date(booking.checkin_date);
+          const bookingEnd = new Date(booking.checkout_date);
+          const nextDate = new Date(date);
+          nextDate.setDate(nextDate.getDate() + 1);
+
+          const overlaps = selectedDate < bookingEnd && nextDate > bookingStart;
+          if (overlaps) {
+            const targetRoomNo = booking.room_no || room.room_no;
+            if (booking.checked_in === true && booking.checked_out !== true)
+              occupiedRoomNos.add(targetRoomNo);
+            if (booking.booking_status === 'Blocked')
+              occupiedRoomNos.add(targetRoomNo);
+            if (
+              booking.checked_in !== true &&
+              booking.booking_status === 'Confirmed'
+            )
+              occupiedRoomNos.add(targetRoomNo);
+          }
+        }
+      });
+    }
+
+    return occupiedRoomNos;
   };
 
   // Group rooms by category

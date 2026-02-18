@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context';
-import { GetDataList } from '@/utils/ApiFunctions';
+import { GetPosDataList } from '@/utils/ApiFunctions';
 import { useState, useRef } from 'react';
 
 // mui
@@ -34,13 +34,9 @@ const Page = () => {
   const todaysDate = GetTodaysDate().dateString;
 
   // Fetch both room and restaurant invoices
-  const roomInvoices = GetDataList({
+  const invoices = GetPosDataList({
     auth,
-    endPoint: 'room-invoices',
-  });
-  const restaurantInvoices = GetDataList({
-    auth,
-    endPoint: 'restaurant-invoices',
+    endPoint: 'pos-outlet-invoices',
   });
 
   const [startDate, setStartDate] = useState('');
@@ -57,15 +53,8 @@ const Page = () => {
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
 
-    // Combine all invoices
-    const allInvoices = [
-      ...(roomInvoices?.map((inv) => ({ ...inv, type: 'Room' })) || []),
-      ...(restaurantInvoices?.map((inv) => ({ ...inv, type: 'Restaurant' })) ||
-        []),
-    ];
-
     // Filter invoices with due amount > 0 and within date range
-    const filteredInvoices = allInvoices.filter((inv) => {
+    const filteredInvoices = invoices.filter((inv) => {
       const invoiceDate = new Date(inv.date);
       const hasDue = (inv.due || 0) > 0;
       const inDateRange = invoiceDate >= start && invoiceDate <= end;
@@ -79,10 +68,10 @@ const Page = () => {
       'Date/Time': `${row.date} ${row.time}`,
       'Customer Name': row.customer_name || 'N/A',
       GSTIN: row.customer_gst || 'N/A',
-      'Total Amount ₹': row.total_amount,
-      'SGST ₹': row.tax / 2,
-      'CGST ₹': row.tax / 2,
-      'Payable Amount ₹': row.payable_amount,
+      'Total Amount ₹': row.taxable,
+      'SGST ₹': row.sgst,
+      'CGST ₹': row.cgst,
+      'Payable Amount ₹': row.payable,
       'Total Paid ₹': (() => {
         const totalPaid =
           row.payments?.reduce(
@@ -123,7 +112,7 @@ const Page = () => {
           <Typography color="text.primary">Due Report</Typography>
         </Breadcrumbs>
       </Box>
-      {!roomInvoices || !restaurantInvoices ? (
+      {!invoices ? (
         <Loader />
       ) : (
         <>
@@ -290,11 +279,6 @@ const Page = () => {
                           {row.due || 0}
                         </Typography>
                       </TableCell>
-                      {/* <TableCell>
-                        {row.mop ||
-                          row.payments?.map((p) => p.mop).join(', ') ||
-                          'N/A'}
-                      </TableCell> */}
                     </TableRow>
                   ))}
                   {filteredData?.length === 0 && (

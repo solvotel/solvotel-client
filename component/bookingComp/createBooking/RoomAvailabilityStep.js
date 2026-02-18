@@ -49,6 +49,7 @@ const RoomAvailabilityStep = ({
 
   const categories = GetDataList({ auth, endPoint: 'room-categories' });
   const rooms = GetDataList({ auth, endPoint: 'rooms' });
+  const bookings = GetDataList({ auth, endPoint: 'room-bookings' });
 
   // Generate date range from check-in to day before check-out
   const dateRange = useMemo(() => {
@@ -67,22 +68,52 @@ const RoomAvailabilityStep = ({
 
   // Check if a room is available for a specific date
   const isRoomAvailableForDate = (room, date) => {
-    if (!room.room_bookings || room.room_bookings.length === 0) return true;
+    // Keep for backward-compat - prefer using getOccupiedRoomNosForDate
+    const occupied = getOccupiedRoomNosForDate(date);
+    return !occupied.has(room.room_no);
+  };
 
-    const checkDate = new Date(date);
-    const nextDate = new Date(date);
-    nextDate.setDate(nextDate.getDate() + 1);
+  // Build a set of occupied room numbers for a given date using booking tokens and statuses
+  const getOccupiedRoomNosForDate = (date) => {
+    const occupiedRoomNos = new Set();
+    const selectedDate = new Date(date);
 
-    return !room.room_bookings.some((booking) => {
-      if (booking.checked_out) return false;
-      if (booking.booking_status === 'Cancelled') return false;
+    // If we have global bookings, use them (mirrors RoomGridLayout)
+    if (bookings && bookings.length > 0) {
+      bookings.forEach((bk) => {
+        const checkIn = new Date(bk.checkin_date);
+        const checkOut = new Date(bk.checkout_date);
 
-      const bookingStart = new Date(booking.checkin_date);
-      const bookingEnd = new Date(booking.checkout_date);
+        // Optional: check booking-level applicability first
+        const bookingAppliesToDate =
+          selectedDate >= checkIn && selectedDate < checkOut;
 
-      // Check if the night (check date to next date) overlaps with booking
-      return checkDate < bookingEnd && nextDate > bookingStart;
-    });
+        if (!bookingAppliesToDate) return;
+
+        bk.room_tokens?.forEach((token) => {
+          const tokenIn = new Date(token.in_date);
+          const tokenOut = new Date(token.out_date);
+
+          const tokenAppliesToDate =
+            selectedDate >= tokenIn && selectedDate < tokenOut;
+          if (!tokenAppliesToDate) return;
+
+          if (bk.checked_in === true && bk.checked_out !== true) {
+            occupiedRoomNos.add(token.room);
+          } else if (
+            bk.checked_in !== true &&
+            bk.checked_out !== true &&
+            bk.booking_status === 'Confirmed'
+          ) {
+            occupiedRoomNos.add(token.room);
+          } else if (bk.booking_status === 'Blocked') {
+            occupiedRoomNos.add(token.room);
+          }
+        });
+      });
+    }
+
+    return occupiedRoomNos;
   };
 
   // Group rooms by category
