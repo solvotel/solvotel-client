@@ -73,7 +73,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.table_no?.toLowerCase().includes(search.toLowerCase())
+      item.table_no?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -202,7 +202,7 @@ const Page = () => {
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
                         {item}
                       </TableCell>
-                    )
+                    ),
                   )}
                 </TableRow>
               </TableHead>
@@ -292,6 +292,7 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, table_no: e.target.value })
                     }
+                    InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
               </Grid>

@@ -145,7 +145,6 @@ const Page = () => {
       food_items: cleanedItems,
       kots: cleanedKots,
     };
-    console.log(finalData);
 
     if (editing) {
       // Get previous order data

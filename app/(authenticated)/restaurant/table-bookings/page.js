@@ -29,6 +29,10 @@ import {
   Card,
   CardContent,
   CardActions,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControl,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -120,11 +124,11 @@ const Page = () => {
         item.date === formData.date &&
         item.time === formData.time &&
         item.table_no === formData.table_no &&
-        (!editing || item.documentId !== formData.documentId)
+        (!editing || item.documentId !== formData.documentId),
     );
     if (duplicate) {
       WarningToast(
-        `⚠️ Table ${formData.table_no} is already booked for that slot.`
+        `⚠️ Table ${formData.table_no} is already booked for that slot.`,
       );
       return;
     }
@@ -221,123 +225,150 @@ const Page = () => {
               Create Booking
             </Button>
           </Box>
-
-          {/* Available Tables */}
-          <Typography variant="h6" gutterBottom>
-            🎉Tables
-          </Typography>
-          <Grid container spacing={2} mb={4}>
-            {tableList.length > 0 ? (
-              tableList.map((table) => (
-                <Grid size={{ xs: 12, sm: 6, md: 2 }} key={table.documentId}>
-                  <Card
-                    sx={{ borderRadius: 3, boxShadow: 3, bgcolor: '#e8f5e9' }}
-                  >
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>
-                        <EventSeatIcon sx={{ mr: 1, color: 'green' }} />
-                        Table {table.table_no}
-                      </Typography>
-                      <Chip
-                        label="Available"
-                        color="success"
-                        size="small"
-                        sx={{ mt: 1 }}
-                      />
-                    </CardContent>
-                    <CardActions>
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="primary"
-                        onClick={() => handleQuickBook(table.table_no)}
-                        disabled={!permissions.canCreate}
-                      >
-                        Book Now
-                      </Button>
-                    </CardActions>
-                  </Card>
-                </Grid>
-              ))
-            ) : (
-              <Box width="100%" textAlign="center" py={3}>
-                <Typography variant="body1" color="text.secondary">
-                  No available tables on {GetCustomDate(filterDate)}
-                </Typography>
-              </Box>
-            )}
-          </Grid>
-
-          {/* Bookings */}
-          <Typography variant="h6" gutterBottom>
-            📅 Bookings on {GetCustomDate(filterDate)}
-          </Typography>
           <Grid container spacing={2}>
-            {filteredBookings.length > 0 ? (
-              filteredBookings.map((row) => (
-                <Grid size={{ xs: 12, sm: 6, md: 2 }} key={row.documentId}>
-                  <Card
-                    sx={{ borderRadius: 3, boxShadow: 3, bgcolor: '#fff3e0' }}
-                  >
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>
-                        <EventSeatIcon sx={{ mr: 1, color: '#ff9800' }} />
-                        Table {row.table_no}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+            <Grid size={{ xs: 12, md: 6 }}>
+              {' '}
+              {/* Available Tables */}
+              <Typography variant="h6" gutterBottom>
+                🎉Tables
+              </Typography>
+              <Grid container spacing={2} mb={4}>
+                {tableList.length > 0 ? (
+                  tableList.map((table) => (
+                    <Grid
+                      size={{ xs: 12, sm: 6, md: 3 }}
+                      key={table.documentId}
+                    >
+                      <Card
+                        sx={{
+                          borderRadius: 3,
+                          boxShadow: 3,
+                          bgcolor: '#e8f5e9',
+                        }}
                       >
-                        <CalendarMonthIcon fontSize="small" sx={{ mr: 1 }} />{' '}
-                        {GetCustomDate(row.date)}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ display: 'flex', alignItems: 'center', mb: 1 }}
+                        <CardContent>
+                          <Typography gutterBottom>
+                            <EventSeatIcon sx={{ mr: 1, color: 'green' }} />
+                            Table {table.table_no}
+                          </Typography>
+                          <Chip
+                            label="Available"
+                            color="success"
+                            size="small"
+                            sx={{ mt: 1 }}
+                          />
+                        </CardContent>
+                        <CardActions>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="primary"
+                            onClick={() => handleQuickBook(table.table_no)}
+                            disabled={!permissions.canCreate}
+                          >
+                            Book Now
+                          </Button>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  ))
+                ) : (
+                  <Box width="100%" textAlign="center" py={3}>
+                    <Typography variant="body1" color="text.secondary">
+                      No available tables on {GetCustomDate(filterDate)}
+                    </Typography>
+                  </Box>
+                )}
+              </Grid>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              {/* Bookings */}
+              <Typography variant="h6" gutterBottom>
+                📅 Bookings on {GetCustomDate(filterDate)}
+              </Typography>
+              <Grid container spacing={2}>
+                {filteredBookings.length > 0 ? (
+                  filteredBookings.map((row) => (
+                    <Grid size={{ xs: 12, sm: 6, md: 3 }} key={row.documentId}>
+                      <Card
+                        sx={{
+                          borderRadius: 3,
+                          boxShadow: 3,
+                          bgcolor: '#fff3e0',
+                        }}
                       >
-                        <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />{' '}
-                        {row.time}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{ display: 'flex', alignItems: 'center' }}
-                      >
-                        <PersonIcon fontSize="small" sx={{ mr: 1 }} />{' '}
-                        {row.guest}
-                      </Typography>
-                    </CardContent>
-                    <CardActions>
-                      <Tooltip title="Edit">
-                        <IconButton
-                          color="primary"
-                          onClick={() => handleEdit(row)}
-                          size="small"
-                          disabled={!permissions.canUpdate}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDeleteClick(row)}
-                          size="small"
-                          disabled={!permissions.canDelete}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </CardActions>
-                  </Card>
-                </Grid>
-              ))
-            ) : (
-              <Box width="100%" textAlign="center" py={3}>
-                <Typography variant="body1" color="text.secondary">
-                  No bookings found for this date
-                </Typography>
-              </Box>
-            )}
+                        <CardContent>
+                          <Typography>
+                            <EventSeatIcon sx={{ mr: 1, color: '#ff9800' }} />
+                            Table {row.table_no}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              mb: 1,
+                            }}
+                          >
+                            <CalendarMonthIcon
+                              fontSize="small"
+                              sx={{ mr: 1 }}
+                            />{' '}
+                            {GetCustomDate(row.date)}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              mb: 1,
+                            }}
+                          >
+                            <AccessTimeIcon fontSize="small" sx={{ mr: 1 }} />{' '}
+                            {row.time}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{ display: 'flex', alignItems: 'center' }}
+                          >
+                            <PersonIcon fontSize="small" sx={{ mr: 1 }} />{' '}
+                            {row.guest}
+                          </Typography>
+                        </CardContent>
+                        <CardActions>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleEdit(row)}
+                              size="small"
+                              disabled={!permissions.canUpdate}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDeleteClick(row)}
+                              size="small"
+                              disabled={!permissions.canDelete}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </CardActions>
+                      </Card>
+                    </Grid>
+                  ))
+                ) : (
+                  <Box width="100%" textAlign="center" py={3}>
+                    <Typography variant="body1" color="text.secondary">
+                      No bookings found for this date
+                    </Typography>
+                  </Box>
+                )}
+              </Grid>
+            </Grid>
           </Grid>
 
           {/* Delete Confirmation Dialog */}
@@ -374,24 +405,27 @@ const Page = () => {
             <DialogContent>
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid size={12}>
-                  <TextField
-                    select
-                    margin="dense"
-                    label="Table No"
-                    fullWidth
-                    value={formData.table_no || ''}
-                    onChange={(e) =>
-                      setFormData({ ...formData, table_no: e.target.value })
-                    }
-                    SelectProps={{ native: true }}
-                  >
-                    <option value="">-- Select --</option>
-                    {tableList?.map((cat) => (
-                      <option key={cat.documentId} value={cat.table_no}>
-                        {cat?.table_no}
-                      </option>
-                    ))}
-                  </TextField>
+                  <FormControl fullWidth margin="dense">
+                    <InputLabel id="table-select-label">Table No</InputLabel>
+                    <Select
+                      labelId="table-select-label"
+                      value={formData.table_no || ''}
+                      label="Table No"
+                      onChange={(e) =>
+                        setFormData({ ...formData, table_no: e.target.value })
+                      }
+                    >
+                      <MenuItem value="">
+                        <em>-- Select --</em>
+                      </MenuItem>
+
+                      {tableList?.map((cat) => (
+                        <MenuItem key={cat.documentId} value={cat.table_no}>
+                          {cat?.table_no}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
