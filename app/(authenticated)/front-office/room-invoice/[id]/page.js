@@ -124,13 +124,13 @@ export default function Page({ params }) {
 
   const allTokens = [...roomTokens, ...serviceTokens, ...foodTokens];
 
-  // const upiId = 'mahapat@ybl';
-  // const name = 'Amit Mahapatra';
-  // const amount = invoiceData.payable_amount || 0;
+  const upiId = 'mahapat@ybl';
+  const name = 'Amit Mahapatra';
+  const amount = invoiceData.payable_amount || 0;
 
-  // const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
-  //   name,
-  // )}&am=${amount}&cu=INR`;
+  const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
+    name,
+  )}&am=${amount}&cu=INR`;
 
   return (
     <>
@@ -325,12 +325,9 @@ export default function Page({ params }) {
           </TableContainer>
         )}
       </Box>
-      {/* <Box>
-        <QRCodeCanvas value={upiUrl} size={120} level="H" />
-      </Box> */}
 
       {/* ✅ Hidden printable component */}
-      <div style={{ display: 'none' }}>
+      <div style={{ display: 'block' }}>
         <RoomInvoicePrint
           ref={componentRef}
           data={invoiceData}

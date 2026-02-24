@@ -12,6 +12,7 @@ import {
   TableBody,
 } from '@mui/material';
 import Image from 'next/image';
+import { QRCodeCanvas } from 'qrcode.react';
 import React from 'react';
 import { ToWords } from 'to-words';
 
@@ -144,6 +145,14 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
 
   // Use payableAmount (integer rupees) for words
   let totalInWords = toWords?.convert(payableAmount || 0);
+
+  const upiId = hotel.hotel_upi_id;
+  const name = hotel.hotel_upi_name;
+  const amount = payableAmount || 0;
+
+  const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
+    name,
+  )}&am=${amount}&cu=INR`;
 
   return (
     <div ref={ref}>
@@ -558,6 +567,9 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
         >
           {hotel?.hotel_footer}
         </Typography>
+      </Box>
+      <Box>
+        <QRCodeCanvas value={upiUrl} size={120} level="H" />
       </Box>
     </div>
   );

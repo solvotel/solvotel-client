@@ -1,12 +1,22 @@
 'use client';
 import { GetCustomDate } from '@/utils/DateFetcher';
+import { Box } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 import React from 'react';
-
-// styles
 
 // forwardRef is required for react-to-print
 const RestaurantPosInvoice = React.forwardRef((props, ref) => {
   const { invoice, profile, size } = props;
+
+  const upiId = profile.res_upi_id;
+  const name = profile.res_upi_name;
+  const amount = invoice?.payable_amount || 0;
+
+  const isUpiValid = upiId && name && amount > 0;
+
+  const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
+    name,
+  )}&am=${amount}&cu=INR`;
 
   return (
     <div
@@ -26,16 +36,18 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
         <p style={{ margin: 0 }}>
           {profile.res_district}, {profile.res_state}
         </p>
-        <p style={{ margin: 0 }}>GST: {profile.res_gst_no || 'N/A'}</p>
-        <p style={{ margin: '5px 0' }}>-------------------------------</p>
+        {profile.res_gst_no && (
+          <p style={{ margin: 0 }}>GST: {profile.res_gst_no}</p>
+        )}
       </div>
-
+      <p style={{ margin: '5px 0' }}>-------------------------------</p>
       <p>Invoice No: {invoice.invoice_no}</p>
       <p>
         Date: {GetCustomDate(invoice.date)} | Time: {invoice.time}
       </p>
-      <p>Customer: {invoice.customer_name || 'N/A'}</p>
-      <p>Phone: {invoice.customer_phone || 'N/A'}</p>
+      {invoice.customer_name && <p>Customer: {invoice.customer_name}</p>}
+      {invoice.customer_phone && <p>Phone: {invoice.customer_phone}</p>}
+
       <p style={{ margin: '5px 0' }}>-------------------------------</p>
 
       <table style={{ width: '100%' }}>
@@ -75,15 +87,21 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       </div>
 
       <p style={{ margin: '5px 0' }}>-------------------------------</p>
-
-      <div style={{ textAlign: 'center' }}>
-        <p
-          align="center"
-          style={{ fontSize: '10px', color: '#555', margin: 0 }}
-        >
-          {profile?.res_footer}
-        </p>
-      </div>
+      {isUpiValid && (
+        <div style={{ textAlign: 'center' }}>
+          <QRCodeCanvas value={upiUrl} size={100} level="H" />
+        </div>
+      )}
+      {profile?.res_footer && (
+        <div style={{ textAlign: 'center' }}>
+          <p
+            align="center"
+            style={{ fontSize: '10px', color: '#555', margin: 0 }}
+          >
+            {profile?.res_footer}
+          </p>
+        </div>
+      )}
     </div>
   );
 });
