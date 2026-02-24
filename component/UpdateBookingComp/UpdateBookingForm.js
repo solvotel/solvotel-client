@@ -84,9 +84,9 @@ const UpdateBookingForm = ({
       const inDate = new Date(token.in_date);
       const outDate = new Date(token.out_date);
 
-      // Generate dates from in_date to day-before-out_date
+      // Generate dates from in_date to day-before-out_date (include at least in_date for same-day)
       let currentDate = new Date(inDate);
-      while (currentDate < outDate) {
+      while (currentDate < outDate || expanded.length === 0) {
         const dateString = currentDate.toISOString().split('T')[0];
         const key = `${token.room}-${dateString}`;
 
@@ -101,6 +101,8 @@ const UpdateBookingForm = ({
         });
 
         currentDate.setDate(currentDate.getDate() + 1);
+        // Prevent infinite loop: stop after reaching out_date
+        if (expanded.length > 0 && currentDate >= outDate) break;
       }
     });
     return expanded;

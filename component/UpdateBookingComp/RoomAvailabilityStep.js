@@ -58,10 +58,12 @@ const RoomAvailabilityStep = ({
     const current = new Date(bookingDetails.checkin_date);
     const checkoutDate = new Date(bookingDetails.checkout_date);
 
-    // Loop until day before checkout
-    while (current < checkoutDate) {
+    // Include at least the check-in date (even for same-day bookings)
+    while (current < checkoutDate || dates.length === 0) {
       dates.push(current.toISOString().split('T')[0]);
       current.setDate(current.getDate() + 1);
+      // Prevent infinite loop: stop after adding the checkout date equivalent
+      if (dates.length > 0 && current >= checkoutDate) break;
     }
 
     return dates;
@@ -88,9 +90,11 @@ const RoomAvailabilityStep = ({
 
         const checkIn = new Date(bk.checkin_date);
         const checkOut = new Date(bk.checkout_date);
+        const isSameDay = checkIn.toDateString() === checkOut.toDateString();
 
         const bookingAppliesToDate =
-          selectedDate >= checkIn && selectedDate < checkOut;
+          (selectedDate >= checkIn && selectedDate < checkOut) ||
+          (isSameDay && selectedDate.toDateString() === checkIn.toDateString());
         if (!bookingAppliesToDate) return;
 
         bk.room_tokens?.forEach((token) => {

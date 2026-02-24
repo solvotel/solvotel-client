@@ -35,11 +35,14 @@ const Page = () => {
   const stayOver = bookings?.filter((bk) => {
     const checkIn = new Date(bk.checkin_date);
     const checkOut = new Date(bk.checkout_date);
+    const isSameDay = checkIn.toDateString() === checkOut.toDateString();
     return (
       bk.checked_in === true &&
       bk.checked_out !== true &&
-      selectedDate > checkIn &&
-      selectedDate < checkOut
+      // Multi-day: guest is in middle of stay
+      ((selectedDate > checkIn && selectedDate < checkOut) ||
+        // Same-day: guest checked in on their checkin date (which is also checkout)
+        (isSameDay && selectedDate.toDateString() === checkIn.toDateString()))
     );
   });
 

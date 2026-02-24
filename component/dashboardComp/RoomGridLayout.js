@@ -72,10 +72,12 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
     bookings?.forEach((bk) => {
       const checkIn = new Date(bk.checkin_date);
       const checkOut = new Date(bk.checkout_date);
+      const isSameDay = checkIn.toDateString() === checkOut.toDateString();
 
-      // Check if this booking applies to the selected date
+      // Check if this booking applies to the selected date (include same-day bookings)
       const bookingAppliesToDate =
-        selectedDate >= checkIn && selectedDate < checkOut;
+        (selectedDate >= checkIn && selectedDate < checkOut) ||
+        (isSameDay && selectedDate.toDateString() === checkIn.toDateString());
 
       if (!bookingAppliesToDate) return;
 

@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -16,6 +16,8 @@ import {
   Chip,
   Grid,
   MenuItem,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { CalculateDays } from '@/utils/CalculateDays';
 import { GetCustomDate } from '@/utils/DateFetcher';
@@ -34,6 +36,9 @@ const FinalPreviewStep = ({
     checkin: bookingDetails.checkin_date,
     checkout: bookingDetails.checkout_date,
   });
+
+  const [useBulkPrice, setUseBulkPrice] = useState(false);
+  const [bulkPrice, setBulkPrice] = useState('');
 
   // ✅ Bidirectional handler
   const handleChange = (index, field, value) => {
@@ -72,6 +77,24 @@ const FinalPreviewStep = ({
       ...prev,
       [field]: value,
     }));
+  };
+
+  const handleBulkPriceChange = (value) => {
+    setBulkPrice(value);
+    const numericPrice = parseFloat(value) || 0;
+    if (useBulkPrice && numericPrice > 0) {
+      const updated = roomTokens.map((room) => {
+        const gst = parseFloat(room.gst) || 0;
+        const days = parseFloat(room.days) || totalDays;
+        const newAmount = (numericPrice + (numericPrice * gst) / 100) * days;
+        return {
+          ...room,
+          rate: parseFloat(numericPrice.toFixed(2)),
+          amount: parseFloat(newAmount.toFixed(2)),
+        };
+      });
+      setRoomTokens(updated);
+    }
   };
 
   const totalAmount = roomTokens.reduce((sum, r) => sum + (r.amount || 0), 0);
@@ -206,6 +229,36 @@ const FinalPreviewStep = ({
           </Grid>
         </CardContent>
       </Card>
+
+      {/* Bulk Price Feature */}
+      {roomTokens.length > 0 && (
+        <Card sx={{ mb: 2, borderRadius: 3, background: '#f5e6ff' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={useBulkPrice}
+                    onChange={(e) => setUseBulkPrice(e.target.checked)}
+                  />
+                }
+                label="Set bulk price"
+              />
+              {useBulkPrice && (
+                <TextField
+                  type="number"
+                  label="Enter price for all rooms"
+                  value={bulkPrice}
+                  onChange={(e) => handleBulkPriceChange(e.target.value)}
+                  size="small"
+                  sx={{ width: 250 }}
+                  inputProps={{ step: '0.01', min: '0' }}
+                />
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Rooms Table */}
       <TableContainer

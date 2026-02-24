@@ -39,11 +39,16 @@ export default function BookingDetailsStep({
       // normalize as Date objects
       const newCheckinDate = new Date(newCheckin);
       const newCheckoutDate = new Date(newCheckout);
+      const isSameDay =
+        newCheckinDate.toDateString() === newCheckoutDate.toDateString();
 
-      // filter selectedRooms to keep only dates in [newCheckin, newCheckout)
+      // filter selectedRooms to keep only dates in [newCheckin, newCheckout) or same-day booking
       const remainingSelections = (selectedRooms || []).filter((sel) => {
         const d = new Date(sel.date);
-        return d >= newCheckinDate && d < newCheckoutDate;
+        return (
+          (d >= newCheckinDate && d < newCheckoutDate) ||
+          (isSameDay && d.toDateString() === newCheckinDate.toDateString())
+        );
       });
 
       // rebuild roomTokens from remainingSelections
