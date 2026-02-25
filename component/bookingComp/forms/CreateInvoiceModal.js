@@ -34,12 +34,12 @@ import { CreateNewData, UpdateData } from '@/utils/ApiFunctions';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
 const generateNextInvoiceNo = (roomInvoices) => {
-  if (!roomInvoices || roomInvoices.length === 0) return 'RMINV-1';
+  if (!roomInvoices || roomInvoices.length === 0) return 'INVOICE-1';
   const numbers = roomInvoices
-    .map((inv) => parseInt(inv.invoice_no?.replace('RMINV-', ''), 10))
+    .map((inv) => parseInt(inv.invoice_no?.replace('INVOICE-', ''), 10))
     .filter((n) => !isNaN(n));
   const maxNumber = Math.max(...numbers);
-  return `RMINV-${maxNumber + 1}`;
+  return `INVOICE-${maxNumber + 1}`;
 };
 
 export default function CreateInvoiceModal({
