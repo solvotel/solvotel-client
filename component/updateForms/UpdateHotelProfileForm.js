@@ -32,6 +32,8 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
     hotel_checkout: data.hotel_checkout || '',
     hotel_terms: data.hotel_terms || '',
     hotel_footer: data.hotel_footer || '',
+    hotel_upi_id: data.hotel_upi_id || '',
+    hotel_upi_name: data.hotel_upi_name || '',
   });
 
   const handleChange = (e) => {
@@ -237,7 +239,28 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
                 helperText={errors.hotel_checkout || ''}
               />
             </Grid>
-
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="UPI Id"
+                name="hotel_upi_id"
+                value={formData.hotel_upi_id}
+                onChange={handleChange}
+                error={!!errors.hotel_upi_id}
+                helperText={errors.hotel_upi_id || ''}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="UPI Name"
+                name="hotel_upi_name"
+                value={formData.hotel_upi_name}
+                onChange={handleChange}
+                error={!!errors.hotel_upi_name}
+                helperText={errors.hotel_upi_name || ''}
+              />
+            </Grid>
             <Grid size={12}>
               <TextField
                 fullWidth

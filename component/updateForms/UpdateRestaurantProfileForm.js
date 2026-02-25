@@ -28,6 +28,8 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
     res_state: data.res_state || 'West Bengal',
     res_pincode: data.res_pincode || '',
     res_footer: data.res_footer || '',
+    res_upi_id: data.res_upi_id || '',
+    res_upi_name: data.res_upi_name || '',
   });
 
   const [errors, setErrors] = useState({});
@@ -286,6 +288,28 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 type="number"
                 error={!!errors.res_pincode}
                 helperText={errors.res_pincode}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="UPI Id"
+                name="res_upi_id"
+                value={formData.res_upi_id}
+                onChange={handleChange}
+                error={!!errors.res_upi_id}
+                helperText={errors.res_upi_id || ''}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="UPI Name"
+                name="res_upi_name"
+                value={formData.res_upi_name}
+                onChange={handleChange}
+                error={!!errors.res_upi_name}
+                helperText={errors.res_upi_name || ''}
               />
             </Grid>
             <Grid size={12}>

@@ -218,19 +218,19 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 <CustomTableCell rowSpan={3} colSpan={2}>
                   <Typography variant="caption">Bill to</Typography>
                   <Typography variant="body2">
-                    Guest Name: {booking?.customer?.name || 'N/A'}
+                    Guest Name: {data?.customer_name || 'N/A'}
                   </Typography>
                   <Typography variant="body2">
-                    Phone: {booking?.customer?.name || 'N/A'}
+                    Phone: {data?.customer_phone || 'N/A'}
                   </Typography>
                   <Typography variant="body2">
                     Company Name: {booking?.customer?.company_name || 'N/A'}
                   </Typography>
                   <Typography variant="body2">
-                    Address: {booking?.customer?.address || 'N/A'}
+                    Address: {data?.customer_address || 'N/A'}
                   </Typography>
                   <Typography variant="body2">
-                    GSTIN: {booking?.customer?.gst_no || 'N/A'}
+                    GSTIN: {data?.customer_gst || 'N/A'}
                   </Typography>
                 </CustomTableCell>
                 <CustomTableCell colSpan={2}>
@@ -256,12 +256,12 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 </CustomTableCell>
                 <CustomTableCell rowSpan={2} align="center">
                   <Typography fontWeight={600}>
-                    {GetCustomDate(booking?.checkout_date)}
+                    {GetCustomDate(data?.date)}
                   </Typography>
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell colSpan={2}>
+                <CustomTableCell colSpan={2} sx={{ height: '71px' }}>
                   <Typography>
                     Room No. (s):{' '}
                     {booking?.rooms?.map((item, index) => (
@@ -454,19 +454,32 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
             <TableBody>
               <TableRow>
                 <CustomTableCell colSpan={2}>
-                  <Typography fontWeight={600} sx={{ mb: 10 }}>
-                    GUEST SIGNATURE:
-                  </Typography>
-                  <Typography sx={{ fontSize: '8px' }}>
-                    I agree that I&apos;m responsible for the full payment of
-                    this invoice,in the event it is not paid by the
-                    company,organisation or person indicated above.
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: 'flex',
+
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Typography fontWeight={600} sx={{ mb: 20 }}>
+                      Authorised Signatory
+                    </Typography>
+                  </Box>
                 </CustomTableCell>
                 <CustomTableCell colSpan={2}>
-                  <Typography fontWeight={600} sx={{ mb: 20 }}>
-                    Authorised Signatory:
-                  </Typography>
+                  {hotel?.hotel_upi_id && hotel?.hotel_upi_name ? (
+                    <Box textAlign="center">
+                      <Typography variant="h6" sx={{ mb: 0.5 }}>
+                        Pay Using UPI
+                      </Typography>
+                      <QRCodeCanvas value={upiUrl} size={140} level="H" />
+                    </Box>
+                  ) : (
+                    <Typography fontWeight={600} sx={{ mb: 20 }} align="center">
+                      Guest Signature
+                    </Typography>
+                  )}
                 </CustomTableCell>
                 <CustomTableCell colSpan={3}>
                   <Box
@@ -567,9 +580,6 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
         >
           {hotel?.hotel_footer}
         </Typography>
-      </Box>
-      <Box>
-        <QRCodeCanvas value={upiUrl} size={120} level="H" />
       </Box>
     </div>
   );

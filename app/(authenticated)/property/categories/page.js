@@ -67,7 +67,7 @@ const Page = () => {
       name: '',
       description: '',
       bed_type: '',
-      hsn: '',
+      hsn: '996311',
       tariff: null,
       gst: null,
       total: 0,
@@ -93,7 +93,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.name?.toLowerCase().includes(search.toLowerCase())
+      item.name?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -115,20 +115,11 @@ const Page = () => {
     const errors = {};
 
     if (!data.name?.trim()) errors.name = 'Name is required';
-    if (!data.description?.trim())
-      errors.description = 'Description is required';
-    if (!data.bed_type?.trim()) errors.bed_type = 'Bed type is required';
     if (!data.hsn?.trim()) errors.hsn = 'HSN/SAC is required';
 
     if (data.tariff <= 0) errors.tariff = 'Tariff must be greater than 0';
     if (data.gst < 0) errors.gst = 'GST cannot be negative';
     if (data.total <= 0) errors.total = 'Total must be greater than 0';
-
-    if (data.base_adults <= 0) errors.base_adults = 'Base adults required';
-    if (data.max_adults < data.base_adults)
-      errors.max_adults = 'Max adults must be ≥ base adults';
-    if (data.max_capacity < data.max_adults)
-      errors.max_capacity = 'Max capacity must be ≥ max adults';
 
     setFormErrors(errors);
 
@@ -144,7 +135,7 @@ const Page = () => {
     return data.some(
       (item) =>
         item.name?.trim().toLowerCase() === name.trim().toLowerCase() &&
-        item.documentId !== id
+        item.documentId !== id,
     );
   };
 
@@ -157,7 +148,7 @@ const Page = () => {
     // 🔍 NEW: Check duplicate category name before save
     const duplicate = isDuplicateName(
       formData.name,
-      editing ? formData.documentId : null
+      editing ? formData.documentId : null,
     );
 
     if (duplicate) {

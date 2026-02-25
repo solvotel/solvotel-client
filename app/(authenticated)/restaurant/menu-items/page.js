@@ -68,7 +68,7 @@ const Page = () => {
       category: '',
       segment: '',
       code: '',
-      hsn: '',
+      hsn: '996331',
       rate: 0,
       gst: 0,
       total: 0,
@@ -85,7 +85,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.item?.toLowerCase().includes(search.toLowerCase())
+      item.item?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -493,7 +493,7 @@ const Page = () => {
                         label={field.replace('_', ' ').toUpperCase()}
                       />
                     </Grid>
-                  )
+                  ),
                 )}
               </Grid>
             </DialogContent>

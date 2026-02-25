@@ -28,6 +28,8 @@ const UpdatePosOutletForm = ({ data, auth }) => {
     state: data.state || 'West Bengal',
     pincode: data.pincode || '',
     footer: data.footer || '',
+    upi_id: data.upi_id || '',
+    upi_name: data.upi_name || '',
   });
 
   const [errors, setErrors] = useState({});
@@ -289,6 +291,28 @@ const UpdatePosOutletForm = ({ data, auth }) => {
                 type="number"
                 error={!!errors.pincode}
                 helperText={errors.pincode}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="UPI Id"
+                name="upi_id"
+                value={formData.upi_id}
+                onChange={handleChange}
+                error={!!errors.upi_id}
+                helperText={errors.upi_id || ''}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="UPI Name"
+                name="upi_name"
+                value={formData.upi_name}
+                onChange={handleChange}
+                error={!!errors.upi_name}
+                helperText={errors.upi_name || ''}
               />
             </Grid>
             <Grid size={12}>
