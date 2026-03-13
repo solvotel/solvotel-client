@@ -480,18 +480,22 @@ const CreateOrderInvoice = ({
                         </TableCell>
                         <TableCell>
                           <TextField
-                            type="number"
                             size="small"
-                            value={payment.amount}
-                            onChange={(e) =>
-                              handleUpdatePayment(
-                                idx,
-                                'amount',
-                                parseFloat(e.target.value) || 0,
-                              )
-                            }
+                            value={payment.amount ?? ''}
+                            inputProps={{ inputMode: 'decimal' }}
+                            onChange={(e) => {
+                              const value = e.target.value;
+
+                              // allow only positive numbers with max 2 decimal places
+                              if (/^\d*\.?\d{0,2}$/.test(value)) {
+                                handleUpdatePayment(
+                                  idx,
+                                  'amount',
+                                  value === '' ? '' : Number(value),
+                                );
+                              }
+                            }}
                             sx={{ width: 100 }}
-                            inputProps={{ min: 0, step: 0.01 }}
                           />
                         </TableCell>
                         <TableCell>

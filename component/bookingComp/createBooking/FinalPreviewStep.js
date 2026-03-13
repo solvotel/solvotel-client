@@ -101,7 +101,10 @@ const FinalPreviewStep = ({
     }));
   };
 
-  const totalAmount = roomTokens.reduce((sum, r) => sum + (r.amount || 0), 0);
+  const totalAmount = roomTokens.reduce(
+    (sum, r) => sum + (r.amount || null),
+    0,
+  );
 
   return (
     <Box>
@@ -325,11 +328,16 @@ const FinalPreviewStep = ({
 
                 <TableCell sx={{ width: '150px' }}>
                   <TextField
-                    type="number"
-                    value={room.rate}
-                    onChange={(e) =>
-                      handleChange(index, 'rate', e.target.value)
-                    }
+                    value={room.rate ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // allow only positive numbers with optional decimal
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        handleChange(index, 'rate', value);
+                      }
+                    }}
                     size="small"
                     variant="outlined"
                   />
@@ -337,9 +345,16 @@ const FinalPreviewStep = ({
                 <TableCell>{room.days}</TableCell>
                 <TableCell sx={{ width: '120px' }}>
                   <TextField
-                    type="number"
-                    value={room.gst}
-                    onChange={(e) => handleChange(index, 'gst', e.target.value)}
+                    value={room.gst ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // allow only positive numbers with optional decimal and max 100
+                      if (/^\d*\.?\d*$/.test(value) && Number(value) <= 100) {
+                        handleChange(index, 'gst', value);
+                      }
+                    }}
                     size="small"
                     variant="outlined"
                   />
@@ -392,11 +407,18 @@ const FinalPreviewStep = ({
             <Grid size={{ xs: 12, sm: 4 }}>
               <TextField
                 label="Amount"
-                type="number"
                 size="small"
                 fullWidth
-                value={paymentDetails.amount}
-                onChange={(e) => handleAdvanceChange('amount', e.target.value)}
+                value={paymentDetails.amount ?? ''}
+                inputProps={{ inputMode: 'decimal' }}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  // allow only positive numbers with max 2 decimal places
+                  if (/^\d*\.?\d{0,2}$/.test(value)) {
+                    handleAdvanceChange('amount', value);
+                  }
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>

@@ -28,7 +28,7 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
   const data = GetDataList({ auth, endPoint: 'customers' });
 
   const [search, setSearch] = useState(
-    selectedGuest ? selectedGuest?.mobile : ''
+    selectedGuest ? selectedGuest?.mobile : '',
   );
   const [searchClicked, setSearchClicked] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -70,7 +70,7 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
     let list = data.filter(
       (item) =>
         item.mobile?.toLowerCase().includes(lowerSearch) ||
-        item.name?.toLowerCase().includes(lowerSearch)
+        item.name?.toLowerCase().includes(lowerSearch),
     );
 
     if (
@@ -361,11 +361,19 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
                 fullWidth
                 label="Mobile"
                 value={formData.mobile}
-                onChange={(e) =>
-                  setFormData({ ...formData, mobile: e.target.value })
-                }
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, ''); // remove non-numbers
+                  if (value.length <= 10) {
+                    setFormData({ ...formData, mobile: value });
+                  }
+                }}
                 error={!!errors.mobile}
                 helperText={errors.mobile}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>

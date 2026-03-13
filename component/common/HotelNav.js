@@ -64,6 +64,7 @@ const HotelNav = ({ auth, logout }) => {
   };
 
   const access = auth?.user?.access || [];
+  const hasAllAccess = access.includes('all');
   return (
     <>
       <AppBar
@@ -101,7 +102,7 @@ const HotelNav = ({ auth, logout }) => {
           >
             {' '}
             {/* ========== Admin ========== */}
-            {access.includes('admin') && (
+            {(hasAllAccess || access.includes('admin')) && (
               <Box
                 onMouseEnter={() => handleMouseEnter(1)}
                 onMouseLeave={handleMouseLeave}
@@ -142,7 +143,7 @@ const HotelNav = ({ auth, logout }) => {
               </Box>
             )}
             {/* ========== Property ========== */}
-            {access.includes('property') && (
+            {(hasAllAccess || access.includes('property')) && (
               <Box
                 onMouseEnter={() => handleMouseEnter(2)}
                 onMouseLeave={handleMouseLeave}
@@ -188,7 +189,7 @@ const HotelNav = ({ auth, logout }) => {
               </Box>
             )}
             {/* ========== Frontoffice ========== */}
-            {access.includes('frontoffice') && (
+            {(hasAllAccess || access.includes('frontoffice')) && (
               <Box
                 onMouseEnter={() => handleMouseEnter(3)}
                 onMouseLeave={handleMouseLeave}
@@ -229,7 +230,7 @@ const HotelNav = ({ auth, logout }) => {
               </Box>
             )}
             {/* ========== Housekeeping ========== */}
-            {access.includes('housekeeping') && (
+            {(hasAllAccess || access.includes('housekeeping')) && (
               <Box
                 onMouseEnter={() => handleMouseEnter(4)}
                 onMouseLeave={handleMouseLeave}
@@ -255,7 +256,7 @@ const HotelNav = ({ auth, logout }) => {
               </Box>
             )}
             {/* ========== Restaurant ========== */}
-            {access.includes('restaurant') && (
+            {(hasAllAccess || access.includes('restaurant')) && (
               <Box
                 onMouseEnter={() => handleMouseEnter(5)}
                 onMouseLeave={handleMouseLeave}
@@ -314,7 +315,7 @@ const HotelNav = ({ auth, logout }) => {
               </Box>
             )}
             {/* ========== Inventory ========== */}
-            {access.includes('inventory') && (
+            {(hasAllAccess || access.includes('inventory')) && (
               <Box
                 onMouseEnter={() => handleMouseEnter(6)}
                 onMouseLeave={handleMouseLeave}
@@ -360,7 +361,7 @@ const HotelNav = ({ auth, logout }) => {
               </Box>
             )}
             {/* ========== Accounts ========== */}
-            {access.includes('accounts') && (
+            {(hasAllAccess || access.includes('accounts')) && (
               <Box
                 onMouseEnter={() => handleMouseEnter(7)}
                 onMouseLeave={handleMouseLeave}

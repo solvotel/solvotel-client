@@ -69,8 +69,8 @@ const Page = () => {
       segment: '',
       code: '',
       hsn: '996331',
-      rate: 0,
-      gst: 0,
+      rate: null,
+      gst: null,
       total: 0,
       store_code: '',
       ingredient_code: '',
@@ -107,8 +107,6 @@ const Page = () => {
     const errors = {};
 
     if (!data.item?.trim()) errors.item = 'Name is required';
-    if (!data.category?.trim()) errors.category = 'Category is required';
-    if (!data.hsn?.trim()) errors.hsn = 'HSN/SAC is required';
     if (!data.rate || data.rate <= 0) errors.rate = 'Enter a valid rate';
     if (data.gst === '' || data.gst < 0) errors.gst = 'Enter a valid GST (%)';
 
@@ -424,37 +422,49 @@ const Page = () => {
                   <TextField
                     margin="dense"
                     label="Rate"
-                    type="number"
                     fullWidth
-                    value={formData.rate}
+                    value={formData.rate ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
                     onChange={(e) => {
-                      const rate = parseFloat(e.target.value) || 0;
-                      const gst = parseFloat(formData.gst) || 0;
-                      setFormData({
-                        ...formData,
-                        rate,
-                        total: rate + (rate * gst) / 100,
-                      });
+                      const value = e.target.value;
+
+                      // allow only positive numbers with optional decimal
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const rate = value === '' ? '' : parseFloat(value);
+                        const gst = parseFloat(formData.gst) || 0;
+
+                        setFormData({
+                          ...formData,
+                          rate,
+                          total: rate ? rate + (rate * gst) / 100 : 0,
+                        });
+                      }
                     }}
                     error={!!formErrors.rate}
                     helperText={formErrors.rate}
                   />
                 </Grid>
+
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
                     margin="dense"
                     label="GST (%)"
-                    type="number"
                     fullWidth
-                    value={formData.gst}
+                    value={formData.gst ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
                     onChange={(e) => {
-                      const gst = parseFloat(e.target.value) || 0;
-                      const rate = parseFloat(formData.rate) || 0;
-                      setFormData({
-                        ...formData,
-                        gst,
-                        total: rate + (rate * gst) / 100,
-                      });
+                      const value = e.target.value;
+
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const gst = value === '' ? '' : parseFloat(value);
+                        const rate = parseFloat(formData.rate) || 0;
+
+                        setFormData({
+                          ...formData,
+                          gst,
+                          total: gst !== '' ? rate + (rate * gst) / 100 : rate,
+                        });
+                      }
                     }}
                     error={!!formErrors.gst}
                     helperText={formErrors.gst}

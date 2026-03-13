@@ -115,6 +115,8 @@ export default function BookingDetailsStep({
       <Grid size={{ xs: 12, sm: 6 }}>
         <TextField
           label="Check-in Time"
+          type="time"
+          InputLabelProps={{ shrink: true }}
           fullWidth
           value={bookingDetails.checkin_time || ''}
           onChange={(e) => handleChange('checkin_time', e.target.value)}
@@ -123,6 +125,8 @@ export default function BookingDetailsStep({
       <Grid size={{ xs: 12, sm: 6 }}>
         <TextField
           label="Check-out Time"
+          type="time"
+          InputLabelProps={{ shrink: true }}
           fullWidth
           value={bookingDetails.checkout_time || ''}
           onChange={(e) => handleChange('checkout_time', e.target.value)}

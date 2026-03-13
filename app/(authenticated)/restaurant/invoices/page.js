@@ -736,24 +736,36 @@ const Page = () => {
                           {/* Rate Field */}
                           <TableCell>
                             <TextField
-                              type="number"
                               size="small"
-                              value={item.rate}
+                              value={item.rate ?? ''}
+                              inputProps={{ inputMode: 'decimal' }}
                               onChange={(e) => {
-                                const newRate = parseFloat(e.target.value) || 0;
-                                const updated = [...formData.menu_items];
-                                updated[idx].rate = newRate;
-                                const gst = updated[idx].gst || 0;
-                                const qty = updated[idx].qty || 1;
-                                updated[idx].amount = +(
-                                  qty *
-                                  newRate *
-                                  (1 + gst / 100)
-                                ).toFixed(2);
-                                setFormData({
-                                  ...formData,
-                                  menu_items: updated,
-                                });
+                                const value = e.target.value;
+
+                                if (/^\d*\.?\d*$/.test(value)) {
+                                  const newRate =
+                                    value === '' ? '' : Number(value);
+
+                                  const updated = [...formData.menu_items];
+                                  updated[idx].rate = newRate;
+
+                                  const gst = updated[idx].gst || 0;
+                                  const qty = updated[idx].qty || 1;
+
+                                  updated[idx].amount =
+                                    newRate !== ''
+                                      ? +(
+                                          qty *
+                                          newRate *
+                                          (1 + gst / 100)
+                                        ).toFixed(2)
+                                      : 0;
+
+                                  setFormData({
+                                    ...formData,
+                                    menu_items: updated,
+                                  });
+                                }
                               }}
                               sx={{ width: 80 }}
                             />
@@ -762,24 +774,36 @@ const Page = () => {
                           {/* Qty Field */}
                           <TableCell>
                             <TextField
-                              type="number"
                               size="small"
-                              value={item.qty}
+                              value={item.qty ?? ''}
+                              inputProps={{ inputMode: 'numeric' }}
                               onChange={(e) => {
-                                const newQty = parseFloat(e.target.value) || 1;
-                                const updated = [...formData.menu_items];
-                                updated[idx].qty = newQty;
-                                const rate = updated[idx].rate || 0;
-                                const gst = updated[idx].gst || 0;
-                                updated[idx].amount = +(
-                                  newQty *
-                                  rate *
-                                  (1 + gst / 100)
-                                ).toFixed(2);
-                                setFormData({
-                                  ...formData,
-                                  menu_items: updated,
-                                });
+                                const value = e.target.value;
+
+                                if (/^\d*$/.test(value)) {
+                                  const newQty =
+                                    value === '' ? '' : Number(value);
+
+                                  const updated = [...formData.menu_items];
+                                  updated[idx].qty = newQty;
+
+                                  const rate = updated[idx].rate || 0;
+                                  const gst = updated[idx].gst || 0;
+
+                                  updated[idx].amount =
+                                    newQty !== ''
+                                      ? +(
+                                          newQty *
+                                          rate *
+                                          (1 + gst / 100)
+                                        ).toFixed(2)
+                                      : 0;
+
+                                  setFormData({
+                                    ...formData,
+                                    menu_items: updated,
+                                  });
+                                }
                               }}
                               sx={{ width: 60 }}
                             />
@@ -788,24 +812,39 @@ const Page = () => {
                           {/* GST Field */}
                           <TableCell>
                             <TextField
-                              type="number"
                               size="small"
-                              value={item.gst}
+                              value={item.gst ?? ''}
+                              inputProps={{ inputMode: 'decimal' }}
                               onChange={(e) => {
-                                const newGst = parseFloat(e.target.value) || 0;
-                                const updated = [...formData.menu_items];
-                                updated[idx].gst = newGst;
-                                const rate = updated[idx].rate || 0;
-                                const qty = updated[idx].qty || 1;
-                                updated[idx].amount = +(
-                                  qty *
-                                  rate *
-                                  (1 + newGst / 100)
-                                ).toFixed(2);
-                                setFormData({
-                                  ...formData,
-                                  menu_items: updated,
-                                });
+                                const value = e.target.value;
+
+                                if (
+                                  /^\d*\.?\d*$/.test(value) &&
+                                  Number(value) <= 100
+                                ) {
+                                  const newGst =
+                                    value === '' ? '' : Number(value);
+
+                                  const updated = [...formData.menu_items];
+                                  updated[idx].gst = newGst;
+
+                                  const rate = updated[idx].rate || 0;
+                                  const qty = updated[idx].qty || 1;
+
+                                  updated[idx].amount =
+                                    newGst !== ''
+                                      ? +(
+                                          qty *
+                                          rate *
+                                          (1 + newGst / 100)
+                                        ).toFixed(2)
+                                      : +(qty * rate).toFixed(2);
+
+                                  setFormData({
+                                    ...formData,
+                                    menu_items: updated,
+                                  });
+                                }
                               }}
                               sx={{ width: 60 }}
                             />
@@ -864,7 +903,6 @@ const Page = () => {
                 </TableContainer>
               )}
 
-              {/* Summary Section */}
               {/* Summary Section */}
               <Typography variant="h6" gutterBottom>
                 Summary
@@ -967,16 +1005,21 @@ const Page = () => {
                             </TableCell>
                             <TableCell>
                               <TextField
-                                type="number"
                                 size="small"
-                                value={payment.amount}
-                                onChange={(e) =>
-                                  handleUpdatePayment(
-                                    idx,
-                                    'amount',
-                                    parseFloat(e.target.value) || 0,
-                                  )
-                                }
+                                value={payment.amount ?? ''}
+                                inputProps={{ inputMode: 'decimal' }}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+
+                                  // allow only positive numbers with optional decimal
+                                  if (/^\d*\.?\d*$/.test(value)) {
+                                    handleUpdatePayment(
+                                      idx,
+                                      'amount',
+                                      value === '' ? '' : Number(value),
+                                    );
+                                  }
+                                }}
                                 sx={{ width: 100 }}
                               />
                             </TableCell>

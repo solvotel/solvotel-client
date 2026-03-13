@@ -319,7 +319,7 @@ export default function BookingServiceActionsCard({
                 booking.booking_status === 'Blocked'
               }
             >
-              Manage Room Tariff
+              Manage Tariff
             </Button>
           </Grid>
           {/* Create Invoice */}

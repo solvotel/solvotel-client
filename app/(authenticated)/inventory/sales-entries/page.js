@@ -110,7 +110,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.invoice_no?.toLowerCase().includes(search.toLowerCase())
+      item.invoice_no?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -430,7 +430,7 @@ const Page = () => {
                     value={formData.inventory_item || ''}
                     onChange={(e) => {
                       const selected = inventoryItemList.find(
-                        (item) => item?.documentId == e.target.value
+                        (item) => item?.documentId == e.target.value,
                       );
                       setFormData({
                         ...formData,
@@ -456,49 +456,60 @@ const Page = () => {
                   <TextField
                     margin="dense"
                     label="Rate"
-                    type="number"
                     fullWidth
-                    value={formData.rate}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        rate: Number(e.target.value),
-                      })
-                    }
+                    value={formData.rate ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        setFormData({
+                          ...formData,
+                          rate: value === '' ? '' : Number(value),
+                        });
+                      }
+                    }}
                     error={!!formErrors.rate}
                     helperText={formErrors.rate}
                   />
                 </Grid>
+
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     margin="dense"
                     label="Quantity"
-                    type="number"
                     fullWidth
-                    value={formData.qty}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        qty: Number(e.target.value),
-                      })
-                    }
+                    value={formData.qty ?? ''}
+                    inputProps={{ inputMode: 'numeric' }}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^\d*$/.test(value)) {
+                        setFormData({
+                          ...formData,
+                          qty: value === '' ? '' : Number(value),
+                        });
+                      }
+                    }}
                     error={!!formErrors.qty}
                     helperText={formErrors.qty}
                   />
                 </Grid>
+
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
-                    type="number"
                     margin="dense"
                     label="GST (%)"
                     fullWidth
-                    value={formData.tax}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        tax: Number(e.target.value),
-                      })
-                    }
+                    value={formData.tax ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^\d*\.?\d*$/.test(value) && Number(value) <= 100) {
+                        setFormData({
+                          ...formData,
+                          tax: value === '' ? '' : Number(value),
+                        });
+                      }
+                    }}
                     error={!!formErrors.tax}
                     helperText={formErrors.tax}
                   />

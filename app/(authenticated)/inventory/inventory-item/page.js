@@ -84,7 +84,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.name?.toLowerCase().includes(search.toLowerCase())
+      item.name?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -421,14 +421,22 @@ const Page = () => {
                 {/* Tax */}
                 <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
-                    type="number"
                     margin="dense"
                     label="GST (%)"
                     fullWidth
-                    value={formData.tax}
-                    onChange={(e) =>
-                      setFormData({ ...formData, tax: e.target.value })
-                    }
+                    value={formData.tax ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // allow only positive numbers with optional decimal
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        setFormData({
+                          ...formData,
+                          tax: value,
+                        });
+                      }
+                    }}
                     error={!!formErrors.tax}
                     helperText={formErrors.tax}
                   />

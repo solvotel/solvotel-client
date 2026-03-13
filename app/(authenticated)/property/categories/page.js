@@ -162,6 +162,7 @@ const Page = () => {
         publishedAt,
         updatedAt,
         createdAt,
+        rooms,
         ...updateBody
       } = formData;
 
@@ -260,7 +261,7 @@ const Page = () => {
                 <TableRow sx={{ backgroundColor: 'grey.100' }}>
                   {[
                     'Name',
-                    'Bead Type',
+                    'Bed Type',
                     'HSN/SAC',
                     'Tariff',
                     'GST',
@@ -283,7 +284,7 @@ const Page = () => {
                     <TableCell>{row.bed_type}</TableCell>
                     <TableCell>{row.hsn}</TableCell>
                     <TableCell>{row.tariff}</TableCell>
-                    <TableCell>{row.gst}</TableCell>
+                    <TableCell>{row.gst || 'nil'}</TableCell>
                     <TableCell>{row.total}</TableCell>
                     <TableCell>{row.user_created}</TableCell>
                     <TableCell>{row.user_updated}</TableCell>
@@ -434,17 +435,22 @@ const Page = () => {
                   <TextField
                     margin="dense"
                     label="Tariff"
-                    type="number"
                     fullWidth
-                    value={formData.tariff}
+                    value={formData.tariff ?? null}
                     onChange={(e) => {
-                      const tariff = parseFloat(e.target.value) || null;
-                      const gst = parseFloat(formData.gst) || null;
-                      setFormData({
-                        ...formData,
-                        tariff,
-                        total: tariff + (tariff * gst) / 100,
-                      });
+                      const value = e.target.value;
+
+                      // allow only positive numbers with optional decimal
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const tariff = value === '' ? '' : parseFloat(value);
+                        const gst = parseFloat(formData.gst) || 0;
+
+                        setFormData({
+                          ...formData,
+                          tariff,
+                          total: tariff ? tariff + (tariff * gst) / 100 : 0,
+                        });
+                      }
                     }}
                     error={!!formErrors.tariff}
                     helperText={formErrors.tariff}
@@ -456,17 +462,24 @@ const Page = () => {
                   <TextField
                     margin="dense"
                     label="GST (%)"
-                    type="number"
                     fullWidth
-                    value={formData.gst}
+                    value={formData.gst ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
                     onChange={(e) => {
-                      const gst = parseFloat(e.target.value) || null;
-                      const tariff = parseFloat(formData.tariff) || null;
-                      setFormData({
-                        ...formData,
-                        gst,
-                        total: tariff + (tariff * gst) / 100,
-                      });
+                      const value = e.target.value;
+
+                      // allow only positive numbers with optional decimal
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const gst = value === '' ? '' : parseFloat(value);
+                        const tariff = parseFloat(formData.tariff) || 0;
+
+                        setFormData({
+                          ...formData,
+                          gst,
+                          total:
+                            gst !== '' ? tariff + (tariff * gst) / 100 : tariff,
+                        });
+                      }
                     }}
                     error={!!formErrors.gst}
                     helperText={formErrors.gst}

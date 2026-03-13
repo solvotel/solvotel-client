@@ -225,6 +225,7 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.hotel_checkin}
                 helperText={errors.hotel_checkin || ''}
+                InputLabelProps={{ shrink: true }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -237,6 +238,7 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.hotel_checkout}
                 helperText={errors.hotel_checkout || ''}
+                InputLabelProps={{ shrink: true }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>

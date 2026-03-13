@@ -60,7 +60,7 @@ const CreateNewOrder = ({
   const handleItemChange = (index, field, value) => {
     const updated = [...formData.food_items];
     const item = { ...updated[index] };
-    const numericValue = parseFloat(value) || 0;
+    const numericValue = parseFloat(value) || null;
 
     item[field] = numericValue;
 
@@ -92,7 +92,7 @@ const CreateNewOrder = ({
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>{editing ? 'Edit Invoice' : 'Create Invoice'}</DialogTitle>
+        <DialogTitle>{editing ? 'Edit Order' : 'Create Order'}</DialogTitle>
         <DialogContent dividers>
           <Box sx={{ mb: 2, width: '250px' }}>
             <TextField
@@ -182,12 +182,15 @@ const CreateNewOrder = ({
                       {/* Rate */}
                       <TableCell>
                         <TextField
-                          type="number"
                           size="small"
-                          value={item.rate}
-                          onChange={(e) =>
-                            handleItemChange(idx, 'rate', e.target.value)
-                          }
+                          value={item.rate ?? ''}
+                          inputProps={{ inputMode: 'decimal' }}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*\.?\d*$/.test(value)) {
+                              handleItemChange(idx, 'rate', value);
+                            }
+                          }}
                           sx={{ width: 80 }}
                         />
                       </TableCell>
@@ -195,12 +198,15 @@ const CreateNewOrder = ({
                       {/* Qty */}
                       <TableCell>
                         <TextField
-                          type="number"
                           size="small"
-                          value={item.qty}
-                          onChange={(e) =>
-                            handleItemChange(idx, 'qty', e.target.value)
-                          }
+                          value={item.qty ?? ''}
+                          inputProps={{ inputMode: 'numeric' }}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*$/.test(value)) {
+                              handleItemChange(idx, 'qty', value);
+                            }
+                          }}
                           sx={{ width: 60 }}
                         />
                       </TableCell>
@@ -208,12 +214,18 @@ const CreateNewOrder = ({
                       {/* GST */}
                       <TableCell>
                         <TextField
-                          type="number"
                           size="small"
-                          value={item.gst}
-                          onChange={(e) =>
-                            handleItemChange(idx, 'gst', e.target.value)
-                          }
+                          value={item.gst ?? ''}
+                          inputProps={{ inputMode: 'decimal' }}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (
+                              /^\d*\.?\d*$/.test(value) &&
+                              Number(value) <= 100
+                            ) {
+                              handleItemChange(idx, 'gst', value);
+                            }
+                          }}
                           sx={{ width: 60 }}
                         />
                       </TableCell>

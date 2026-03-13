@@ -19,6 +19,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { motion } from 'framer-motion';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 import AddIcon from '@mui/icons-material/Add';
+import Link from 'next/link';
 
 const RoomGridLayout = ({ bookings, rooms, permissions }) => {
   const todaysDate = GetTodaysDate().dateString;
@@ -287,66 +288,72 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
                     },
                   ].map((col, idx) => (
                     <Grid key={idx} size={{ xs: 12, md: 3 }}>
-                      <Paper
-                        component={motion.div}
-                        whileHover={{ scale: 1.01 }}
-                        sx={{
-                          p: 2,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          flex: 1,
-                          borderLeft: `4px solid ${col.color}`,
-                          bgcolor: col.bg,
-                          borderRadius: 2,
-                          height: '100%',
-                        }}
+                      <Link
+                        href={
+                          !col.title.startsWith('Available')
+                            ? `/front-office/room-booking?bookingStatus=${col.title}`
+                            : '/front-office/room-booking'
+                        }
+                        style={{ textDecoration: 'none' }}
                       >
-                        <Typography variant="subtitle1" fontWeight={600}>
-                          {col.title} ({col.count})
-                        </Typography>
-                        {Object.entries(col.data).map(([cat, rooms]) => (
-                          <Box key={cat} mt={1}>
-                            <Typography variant="body2" fontWeight={600}>
-                              {cat}
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: 0.5,
-                              }}
-                            >
-                              {rooms.map((room) => (
-                                <Chip
-                                  key={room.room_no}
-                                  label={room.room_no}
-                                  size="small"
-                                  clickable={!col.title.startsWith('Available')}
-                                  component={
-                                    !col.title.startsWith('Available')
-                                      ? 'a'
-                                      : 'div'
-                                  }
-                                  href={
-                                    !col.title.startsWith('Available')
-                                      ? `/front-office/room-booking?bookingStatus=${col.title}`
-                                      : undefined
-                                  }
-                                  sx={{
-                                    bgcolor: col.chipBg,
-                                    cursor: col.title.startsWith('Available')
-                                      ? 'default'
-                                      : 'pointer',
-                                    '&:hover': {
-                                      opacity: 0.8,
-                                    },
-                                  }}
-                                />
-                              ))}
+                        <Paper
+                          component={motion.div}
+                          whileHover={{ scale: 1.01 }}
+                          sx={{
+                            p: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            flex: 1,
+                            borderLeft: `4px solid ${col.color}`,
+                            bgcolor: col.bg,
+                            borderRadius: 2,
+                            height: '100%',
+                          }}
+                        >
+                          <Typography variant="subtitle1" fontWeight={600}>
+                            {col.title} ({col.count})
+                          </Typography>
+                          {Object.entries(col.data).map(([cat, rooms]) => (
+                            <Box key={cat} mt={1}>
+                              <Typography variant="body2" fontWeight={600}>
+                                {cat}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  gap: 0.5,
+                                }}
+                              >
+                                {rooms.map((room) => (
+                                  <Chip
+                                    key={room.room_no}
+                                    label={room.room_no}
+                                    size="small"
+                                    clickable={
+                                      !col.title.startsWith('Available')
+                                    }
+                                    component={
+                                      !col.title.startsWith('Available')
+                                        ? 'a'
+                                        : 'div'
+                                    }
+                                    sx={{
+                                      bgcolor: col.chipBg,
+                                      cursor: col.title.startsWith('Available')
+                                        ? 'default'
+                                        : 'pointer',
+                                      '&:hover': {
+                                        opacity: 0.8,
+                                      },
+                                    }}
+                                  />
+                                ))}
+                              </Box>
                             </Box>
-                          </Box>
-                        ))}
-                      </Paper>
+                          ))}
+                        </Paper>
+                      </Link>
                     </Grid>
                   ))}
                 </Grid>

@@ -361,11 +361,19 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
                 fullWidth
                 label="Mobile"
                 value={formData.mobile}
-                onChange={(e) =>
-                  setFormData({ ...formData, mobile: e.target.value })
-                }
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, ''); // remove non-numbers
+                  if (value.length <= 10) {
+                    setFormData({ ...formData, mobile: value });
+                  }
+                }}
                 error={!!errors.mobile}
                 helperText={errors.mobile}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12 }}>
