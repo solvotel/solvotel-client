@@ -175,8 +175,12 @@ const Page = () => {
       // 3️⃣ If there are changes, create a new KOT
       if (changes.length > 0) {
         const kotNumber = (prevOrder.kots?.length || 0) + 1;
+        const tableNo =
+          prevOrder.table_no ||
+          tables?.find((t) => t.documentId === prevOrder.table)?.table_no ||
+          null;
 
-        await CreateNewData({
+        const res = await CreateNewData({
           auth,
           endPoint: 'kots',
           payload: {
@@ -185,16 +189,19 @@ const Page = () => {
               type: 'update', // overall KOT type
               items: changes, // each item has its own type (+ or cancel)
               table_order: prevOrder.documentId,
+              table_no: tableNo,
             },
           },
         });
-
+        console.log('KOT creation response:', res.data?.data?.updatedAt);
         // 4️⃣ Open print dialog for latest KOT
         setSelectedKot({
           kot_number: kotNumber,
           items: changes,
           type: 'update',
+          table_no: tableNo,
           table_order: prevOrder,
+          updatedAt: res.data?.data?.updatedAt || new Date().toISOString(),
         });
         setKotOpen(true);
       }
@@ -219,8 +226,13 @@ const Page = () => {
       });
 
       const newOrderId = orderRes.data?.data?.documentId;
-      console.log(orderRes);
-      await CreateNewData({
+
+      const tableNo =
+        formData.table_no ||
+        tables?.find((t) => t.documentId === formData.table)?.table_no ||
+        null;
+
+      const res = await CreateNewData({
         auth,
         endPoint: 'kots',
         payload: {
@@ -233,6 +245,7 @@ const Page = () => {
               type: 'new',
             })),
             table_order: newOrderId,
+            table_no: tableNo,
           },
         },
       });
@@ -249,6 +262,7 @@ const Page = () => {
           tables?.find((t) => t.documentId === formData.table)?.table_no ||
           null,
         table_order: { documentId: newOrderId, table: formData.table },
+        updatedAt: res.data?.data?.updatedAt || new Date().toISOString(),
       });
       setKotOpen(true);
 

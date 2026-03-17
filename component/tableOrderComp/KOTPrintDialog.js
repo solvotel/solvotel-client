@@ -28,7 +28,7 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
 
   if (!selectedKot) return null;
 
-  const typeLabel = selectedKot.type === 'new' ? '🆕 NEW' : '📝 UPDATE';
+  const typeLabel = selectedKot.type === 'new' ? 'NEW' : 'UPDATE';
   const tableNo =
     selectedKot.table_no ||
     selectedKot.table?.table_no ||
@@ -36,6 +36,17 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
     selectedKot.table_order?.table_no ||
     selectedKot.table_order?.table ||
     null;
+
+  const updatedAt = selectedKot.updatedAt
+    ? new Date(selectedKot.updatedAt).toLocaleString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      })
+    : 'N/A';
 
   return (
     <>
@@ -50,7 +61,6 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
           {/* Print Content */}
 
           <Box
-            ref={printRef}
             sx={{
               p: 2,
               fontFamily: 'monospace',
@@ -73,6 +83,9 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
                   Table: {tableNo}
                 </Typography>
               )}
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                Date & Time: {updatedAt}
+              </Typography>
               <Typography
                 variant="caption"
                 sx={{
@@ -113,7 +126,11 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
                     const qtyRaw =
                       item.qty ?? item.quantity ?? item.qtyString ?? '';
                     const qty =
-                      typeof qtyRaw === 'string' ? qtyRaw : `+${qtyRaw}`;
+                      qtyRaw === 0 || qtyRaw === '0'
+                        ? 'Cancel'
+                        : typeof qtyRaw === 'string'
+                          ? qtyRaw
+                          : `+${qtyRaw}`;
 
                     return (
                       <TableRow key={idx}>
@@ -155,10 +172,12 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
       <KOTPrint
         ref={printRef}
         kotData={selectedKot}
         tableNo={tableNo}
+        typeLabel={typeLabel}
         size="80mm"
       />
     </>
