@@ -22,6 +22,7 @@ import { Delete } from '@mui/icons-material';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { UpdateData } from '@/utils/ApiFunctions';
 import { useAuth } from '@/context';
+import { GetCustomDate } from '@/utils/DateFetcher';
 
 export default function BillingSummaryCard({ booking }) {
   const { auth } = useAuth();
@@ -32,15 +33,15 @@ export default function BillingSummaryCard({ booking }) {
   // ---- Summary calculations ----
   const totalRoomAmount = roomTokens.reduce(
     (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
-    0
+    0,
   );
   const totalServiceAmount = services.reduce(
     (sum, s) => sum + (parseFloat(s.total_amount) || 0),
-    0
+    0,
   );
   const totalFoodAmount = foodItems.reduce(
     (sum, f) => sum + (parseFloat(f.total_amount) || 0),
-    0
+    0,
   );
   const grandTotal = totalRoomAmount + totalServiceAmount + totalFoodAmount;
 
@@ -62,26 +63,32 @@ export default function BillingSummaryCard({ booking }) {
 
   const deleteFoodItems = async ({ id, orderId }) => {
     const filteredFoodItems = foodItems.filter((_, index) => index !== id);
+
     try {
-      await UpdateData({
-        auth,
-        endPoint: 'table-orders',
-        id: orderId,
-        payload: {
-          data: {
-            closing_method: 'Room Transfer',
-            token_status: 'Open',
-            room_no: '',
-            room_booking: null,
-          },
-        },
-      });
+      // Update room booking tokens first (mandatory)
       await UpdateData({
         endPoint: 'room-bookings',
         auth,
         id: booking?.documentId,
         payload: { data: { food_tokens: filteredFoodItems } },
       });
+
+      // If this food token is linked to a table-order, update that too
+      if (orderId) {
+        await UpdateData({
+          auth,
+          endPoint: 'table-orders',
+          id: orderId,
+          payload: {
+            data: {
+              closing_method: 'Room Transfer',
+              token_status: 'Open',
+              room_no: '',
+              room_booking: null,
+            },
+          },
+        });
+      }
 
       SuccessToast('Food item deleted successfully');
     } catch (err) {
@@ -169,6 +176,9 @@ export default function BillingSummaryCard({ booking }) {
                     <b>Room No</b>
                   </TableCell>
                   <TableCell>
+                    <b>Check In/Out</b>
+                  </TableCell>
+                  <TableCell>
                     <b>Items</b>
                   </TableCell>
                   <TableCell align="right">
@@ -188,6 +198,10 @@ export default function BillingSummaryCard({ booking }) {
                   return (
                     <TableRow key={index}>
                       <TableCell>{room.room || room.room_no}</TableCell>
+                      <TableCell>
+                        {GetCustomDate(room.in_date)} <br />
+                        {GetCustomDate(room.out_date)}
+                      </TableCell>
                       <TableCell>{room.item}</TableCell>
                       <TableCell align="right">
                         {parseFloat((room.amount - rate) / 2 || 0).toFixed(2)}

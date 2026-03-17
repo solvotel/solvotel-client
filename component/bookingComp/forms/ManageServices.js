@@ -46,21 +46,23 @@ export default function ManageServices({
     const updated = [...services];
     updated[index][field] = value;
 
-    let rate = parseFloat(updated[index].rate) || 0;
-    let gst = parseFloat(updated[index].gst) || 0;
-    let amount = parseFloat(updated[index].amount) || 0;
+    let rate =
+      updated[index].rate === '' ? null : parseFloat(updated[index].rate);
+    let gst = updated[index].gst === '' ? null : parseFloat(updated[index].gst);
+    let amount =
+      updated[index].amount === '' ? null : parseFloat(updated[index].amount);
 
-    // 🔹 If Rate and GST entered → Calculate Amount
+    // 🔹 Rate + GST → Calculate Amount (GST can be 0)
     if (field === 'rate' || field === 'gst') {
-      if (rate && gst) {
+      if (rate !== null && gst !== null) {
         amount = +(rate + (rate * gst) / 100).toFixed(2);
         updated[index].amount = amount;
       }
     }
 
-    // 🔹 If Amount and GST entered → Calculate Rate
-    if (field === 'amount' || field === 'gst') {
-      if (amount && gst && field === 'amount') {
+    // 🔹 Amount + GST → Calculate Rate (GST can be 0)
+    if (field === 'amount') {
+      if (amount !== null && gst !== null) {
         rate = +(amount / (1 + gst / 100)).toFixed(2);
         updated[index].rate = rate;
       }
@@ -81,7 +83,7 @@ export default function ManageServices({
     for (let s of services) {
       if (!s.item || !s.rate || !s.gst) {
         WarningToast(
-          'Please fill Room, Item, and Rate for all rows before saving.'
+          'Please fill Room, Item, and Rate for all rows before saving.',
         );
         return;
       }
@@ -103,7 +105,7 @@ export default function ManageServices({
 
     const total_amount = services.reduce(
       (acc, item) => acc + (parseFloat(item.amount) || 0),
-      0
+      0,
     );
 
     const payload = {
@@ -249,33 +251,53 @@ export default function ManageServices({
                     <TableCell>
                       <TextField
                         size="small"
-                        type="number"
-                        value={service.rate}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'rate', e.target.value)
-                        }
+                        value={service.rate ?? ''}
+                        inputProps={{ inputMode: 'decimal' }}
+                        onChange={(e) => {
+                          const value = e.target.value;
+
+                          // positive decimal
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            handleInlineChange(index, 'rate', value);
+                          }
+                        }}
                         fullWidth
                       />
                     </TableCell>
+
                     <TableCell>
                       <TextField
                         size="small"
-                        type="number"
-                        value={service.gst}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'gst', e.target.value)
-                        }
+                        value={service.gst ?? ''}
+                        inputProps={{ inputMode: 'decimal' }}
+                        onChange={(e) => {
+                          const value = e.target.value;
+
+                          // positive decimal + max 100
+                          if (
+                            /^\d*\.?\d*$/.test(value) &&
+                            Number(value) <= 100
+                          ) {
+                            handleInlineChange(index, 'gst', value);
+                          }
+                        }}
                         fullWidth
                       />
                     </TableCell>
+
                     <TableCell>
                       <TextField
                         size="small"
-                        type="number"
-                        value={service.amount}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'amount', e.target.value)
-                        }
+                        value={service.amount ?? ''}
+                        inputProps={{ inputMode: 'decimal' }}
+                        onChange={(e) => {
+                          const value = e.target.value;
+
+                          // positive decimal with max 2 decimal places (currency)
+                          if (/^\d*\.?\d{0,2}$/.test(value)) {
+                            handleInlineChange(index, 'amount', value);
+                          }
+                        }}
                         fullWidth
                       />
                     </TableCell>

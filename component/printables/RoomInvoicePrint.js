@@ -428,12 +428,10 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                           ? token.amount.toFixed(2)
                           : '-'}
                       </Typography>
-                      <Typography variant="caption" sx={{ fontSize: '11px' }}>
-                        {typeof token?.gst_percent === 'number'
-                          ? token.gst_percent
-                          : '0'}
-                        %
-                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ fontSize: '11px' }}
+                      ></Typography>
                     </Box>
                   </CustomTableCell>
                 </TableRow>

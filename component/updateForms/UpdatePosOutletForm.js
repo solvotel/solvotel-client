@@ -87,7 +87,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
       await UpdateData({
         auth,
         endPoint: 'pos-outlets',
-        id: auth?.user?.pos_outlet_id,
+        id: data?.documentId,
         payload,
       });
       SuccessToast('Data Updated Successfully.');
