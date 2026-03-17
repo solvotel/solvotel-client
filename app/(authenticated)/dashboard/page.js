@@ -32,17 +32,22 @@ const Page = () => {
   });
 
   // 🔹 Filter Logic
+  const yesterday = new Date(selectedDate);
+  yesterday.setDate(yesterday.getDate() - 1);
+
   const stayOver = bookings?.filter((bk) => {
     const checkIn = new Date(bk.checkin_date);
     const checkOut = new Date(bk.checkout_date);
     const isSameDay = checkIn.toDateString() === checkOut.toDateString();
+    const isYesterdayCheckIn =
+      checkIn.toDateString() === yesterday.toDateString();
+
     return (
       bk.checked_in === true &&
       bk.checked_out !== true &&
-      // Multi-day: guest is in middle of stay
-      ((selectedDate > checkIn && selectedDate < checkOut) ||
-        // Same-day: guest checked in on their checkin date (which is also checkout)
-        (isSameDay && selectedDate.toDateString() === checkIn.toDateString()))
+      isYesterdayCheckIn &&
+      // Exclude same-day checkin/checkout from stayOver
+      !isSameDay
     );
   });
 
