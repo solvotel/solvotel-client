@@ -29,15 +29,11 @@ import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
 import { CollectionReportPrint } from '@/component/printables/CollectionReportPrint';
 
-const Page = () => {
+const CollectionReportPage = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
 
   // Fetch both room and restaurant invoices
-  const roomInvoices = GetDataList({
-    auth,
-    endPoint: 'room-invoices',
-  });
   const roomBookings = GetDataList({
     auth,
     endPoint: 'room-bookings',
@@ -58,94 +54,122 @@ const Page = () => {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    // Normalize to ignore time part
+
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
 
-    // Combine all invoices
-    const allInvoices = [
-      ...(roomInvoices?.map((inv) => ({ ...inv, source: 'Room' })) || []),
-      ...(restaurantInvoices?.map((inv) => ({
-        ...inv,
-        source: 'Restaurant',
-      })) || []),
-    ];
-
-    // Extract all payments from invoices
     const allPayments = [];
-    allInvoices.forEach((invoice) => {
-      if (invoice.payments && invoice.payments.length > 0) {
-        invoice.payments.forEach((payment) => {
-          const paymentDate = new Date(payment.time_stamp);
-          if (paymentDate >= start && paymentDate <= end) {
-            allPayments.push({
-              id: `${invoice.documentId}-${payment.time_stamp}`,
-              invoice_no: invoice.invoice_no,
-              source: invoice.source,
-              customer_name: invoice.customer_name || 'N/A',
-              time_stamp: payment.time_stamp,
-              mop: payment.mop,
-              amount: parseFloat(payment.amount) || 0,
-            });
-          }
-        });
-      }
-      // Handle backward compatibility for old mop field
-      else if (
-        invoice.mop &&
-        invoice.payable_amount &&
-        invoice.due !== undefined
-      ) {
-        const paidAmount = invoice.payable_amount - (invoice.due || 0);
-        if (paidAmount > 0) {
-          const paymentDate = new Date(invoice.date);
-          if (paymentDate >= start && paymentDate <= end) {
-            allPayments.push({
-              id: `${invoice.documentId}-legacy`,
-              invoice_no: invoice.invoice_no,
-              source: invoice.source,
-              customer_name: invoice.customer_name || 'N/A',
-              time_stamp: new Date(
-                invoice.date + ' ' + invoice.time,
-              ).toISOString(),
-              mop: invoice.mop,
-              amount: paidAmount,
-            });
-          }
+
+    // 🟢 ROOM BOOKINGS
+    roomBookings?.forEach((booking) => {
+      // payment_tokens
+      booking.payment_tokens?.forEach((p) => {
+        const date = new Date(p.date);
+
+        if (date >= start && date <= end) {
+          allPayments.push({
+            documentId: booking.documentId,
+            uid: booking.booking_id,
+            type: 'Room',
+            customer_name: booking.customer?.name || 'N/A',
+            time_stamp: date.toISOString(),
+            mop: p.mode,
+            amount: Number(p.amount) || 0,
+          });
+        }
+      });
+
+      // advance_payment
+      if (booking.advance_payment) {
+        const ap = booking.advance_payment;
+        const date = new Date(ap.date);
+
+        if (date >= start && date <= end) {
+          allPayments.push({
+            documentId: booking.documentId,
+            uid: booking.booking_id,
+            type: 'Room',
+            customer_name: booking.customer?.name || 'N/A',
+            time_stamp: date.toISOString(),
+            mop: ap.mode,
+            amount: Number(ap.amount) || 0,
+          });
         }
       }
     });
 
-    // Sort by timestamp (newest first)
+    // 🟡 RESTAURANT INVOICES
+    restaurantInvoices?.forEach((inv) => {
+      // new payments array
+      if (inv.payments?.length) {
+        inv.payments.forEach((p) => {
+          const date = new Date(p.time_stamp);
+
+          if (date >= start && date <= end) {
+            allPayments.push({
+              documentId: inv.documentId,
+              uid: inv.invoice_no,
+              type: 'Restaurant',
+              customer_name: inv.customer_name || 'N/A',
+              time_stamp: p.time_stamp,
+              mop: p.mop,
+              amount: Number(p.amount) || 0,
+            });
+          }
+        });
+      }
+    });
+
+    // 🔽 SORT (latest first)
     allPayments.sort((a, b) => new Date(b.time_stamp) - new Date(a.time_stamp));
 
-    // Calculate stats by MOP
+    // 📊 STATS
     const mopStats = {};
     let totalAmount = 0;
+    let totalRoomCollection = 0;
+    let totalRestaurantCollection = 0;
 
-    allPayments.forEach((payment) => {
-      const mop = payment.mop || 'N/A';
+    allPayments.forEach((p) => {
+      const mop = p.mop || 'N/A';
+
       if (!mopStats[mop]) {
         mopStats[mop] = { count: 0, amount: 0 };
       }
+
       mopStats[mop].count += 1;
-      mopStats[mop].amount += payment.amount;
-      totalAmount += payment.amount;
+      mopStats[mop].amount += p.amount;
+      totalAmount += p.amount;
+
+      // Track room and restaurant collection separately
+      if (p.type === 'Room') {
+        totalRoomCollection += p.amount;
+      } else if (p.type === 'Restaurant') {
+        totalRestaurantCollection += p.amount;
+      }
     });
 
-    // Prepare data for export
-    const dataToExport = allPayments.map((payment) => ({
-      'Invoice No': payment.invoice_no,
-      Source: payment.source,
-      'Customer Name': payment.customer_name,
-      'Payment Method': payment.mop,
-      'Amount ₹': payment.amount,
-      Timestamp: new Date(payment.time_stamp).toLocaleString(),
+    // 📤 EXPORT DATA
+    const dataToExport = allPayments.map((p) => ({
+      Type: p.type,
+      ID: p.uid || '',
+      'Customer Name': p.customer_name,
+      'Payment Method': p.mop,
+      'Amount ₹': p.amount,
+      'Date & Time': new Date(p.time_stamp).toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+      }),
     }));
 
+    // ✅ SET STATE
     setFilteredData(allPayments);
     setDataToExport(dataToExport);
-    setStats({ mopStats, totalAmount, totalPayments: allPayments.length });
+    setStats({
+      mopStats,
+      totalAmount,
+      totalPayments: allPayments.length,
+      totalRoomCollection,
+      totalRestaurantCollection,
+    });
   };
 
   const componentRef = useRef(null);
@@ -171,7 +195,7 @@ const Page = () => {
           <Typography color="text.primary">Collection Report</Typography>
         </Breadcrumbs>
       </Box>
-      {!roomInvoices || !restaurantInvoices ? (
+      {!roomBookings || !restaurantInvoices ? (
         <Loader />
       ) : (
         <>
@@ -252,9 +276,16 @@ const Page = () => {
                     <strong>Total Amount Collected:</strong> ₹
                     {stats.totalAmount?.toFixed(2) || '0.00'}
                   </Typography>
+                  <Typography>
+                    <strong>Room Collection:</strong> ₹
+                    {stats.totalRoomCollection?.toFixed(2) || '0.00'}
+                  </Typography>
+                  <Typography>
+                    <strong>Restaurant Collection:</strong> ₹
+                    {stats.totalRestaurantCollection?.toFixed(2) || '0.00'}
+                  </Typography>
                 </Box>
 
-                {/* MOP-wise Stats */}
                 <Typography variant="subtitle1" gutterBottom>
                   Payment Method Breakdown:
                 </Typography>
@@ -291,49 +322,49 @@ const Page = () => {
                 <TableHead>
                   <TableRow sx={{ backgroundColor: 'grey.100' }}>
                     {[
-                      'Invoice No',
+                      'ID',
                       'Source',
                       'Customer Name',
                       'Payment Method',
                       'Amount ₹',
                       'Timestamp',
                     ].map((item, index) => (
-                      <TableCell key={index} sx={{ fontWeight: 'bold' }}>
+                      <TableCell
+                        align="center"
+                        key={index}
+                        sx={{ fontWeight: 'bold' }}
+                      >
                         {item}
                       </TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredData?.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>{payment.invoice_no}</TableCell>
-                      <TableCell>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            bgcolor:
-                              payment.source === 'Room'
-                                ? 'primary.main'
-                                : 'secondary.main',
-                            color: 'white',
-                            px: 1,
-                            py: 0.5,
-                            borderRadius: 1,
-                            display: 'inline-block',
-                          }}
+                  {filteredData?.map((payment, index) => (
+                    <TableRow key={index}>
+                      <TableCell align="center">
+                        <Link
+                          href={
+                            payment.type === 'Room'
+                              ? `/front-office/room-booking/${payment.documentId}`
+                              : `/restaurant/invoices/${payment.documentId}`
+                          }
+                          style={{ textDecoration: 'none' }}
                         >
-                          {payment.source}
-                        </Typography>
+                          {payment.uid}
+                        </Link>
                       </TableCell>
-                      <TableCell>{payment.customer_name}</TableCell>
-                      <TableCell>{payment.mop}</TableCell>
+                      <TableCell align="center">{payment.type}</TableCell>
+                      <TableCell align="center">
+                        {payment.customer_name}
+                      </TableCell>
+                      <TableCell align="center">{payment.mop}</TableCell>
                       <TableCell align="right">
                         <Typography fontWeight="bold" color="success.main">
                           ₹{payment.amount.toFixed(2)}
                         </Typography>
                       </TableCell>
-                      <TableCell>
+                      <TableCell align="center">
                         {new Date(payment.time_stamp).toLocaleString()}
                       </TableCell>
                     </TableRow>
@@ -364,4 +395,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default CollectionReportPage;

@@ -19,11 +19,13 @@ const HeadingCell = styled(TableCell)`
   padding: 2px 5px;
   font-size: 15px;
   font-weight: 600;
+  text-align: center;
 `;
 const BodyCell = styled(TableCell)`
   border: 1px solid black;
   padding: 2px 5px;
   font-size: 14px;
+  text-align: center;
 `;
 
 const CustomTableContainer = styled(TableContainer)``;
@@ -70,6 +72,18 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
               ₹{stats?.totalAmount?.toFixed(2) || '0.00'}
             </span>
           </Typography>
+          <Typography>
+            Room Collection:{' '}
+            <span style={{ fontWeight: 600 }}>
+              ₹{stats?.totalRoomCollection?.toFixed(2) || '0.00'}
+            </span>
+          </Typography>
+          <Typography>
+            Restaurant Collection:{' '}
+            <span style={{ fontWeight: 600 }}>
+              ₹{stats?.totalRestaurantCollection?.toFixed(2) || '0.00'}
+            </span>
+          </Typography>
         </Box>
 
         {/* MOP-wise Stats */}
@@ -106,7 +120,7 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
           <TableBody>
             <TableRow>
               {[
-                'Invoice No',
+                'ID',
                 'Source',
                 'Customer Name',
                 'Payment Method',
@@ -120,8 +134,8 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
             </TableRow>
             {filteredData?.map((payment, index) => (
               <TableRow key={index}>
-                <BodyCell>{payment.invoice_no}</BodyCell>
-                <BodyCell>{payment.source}</BodyCell>
+                <BodyCell>{payment.uid}</BodyCell>
+                <BodyCell>{payment.type}</BodyCell>
                 <BodyCell>{payment.customer_name || 'N/A'}</BodyCell>
                 <BodyCell>{payment.mop}</BodyCell>
                 <BodyCell align="right">₹{payment.amount.toFixed(2)}</BodyCell>
@@ -134,11 +148,11 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
             <TableRow>
               <HeadingCell
                 colSpan={5}
-                sx={{ textAlign: 'right', fontWeight: 'bold' }}
+                sx={{ textAlign: 'center', fontWeight: 'bold' }}
               >
                 TOTAL
               </HeadingCell>
-              <HeadingCell sx={{ fontWeight: 'bold', textAlign: 'right' }}>
+              <HeadingCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>
                 ₹{stats?.totalAmount?.toFixed(2) || '0.00'}
               </HeadingCell>
             </TableRow>
