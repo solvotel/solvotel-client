@@ -154,8 +154,6 @@ const Page = () => {
                     'SGST (₹)',
                     'CGST (₹)',
                     'Payable (₹)',
-                    'Paid (₹)',
-                    'Due (₹)',
                     'Actions',
                   ].map((item, index) => (
                     <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -177,15 +175,7 @@ const Page = () => {
                       <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.payable_amount.toFixed(2)}</TableCell>
-                      <TableCell>
-                        {row.payments
-                          ?.reduce(
-                            (acc, p) => acc + (parseFloat(p.amount) || 0),
-                            0,
-                          )
-                          .toFixed(2) || '0.00'}
-                      </TableCell>
-                      <TableCell>{row.due}</TableCell>
+
                       <TableCell sx={{ width: '150px' }}>
                         <Tooltip title="View">
                           <IconButton

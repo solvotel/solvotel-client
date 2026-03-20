@@ -124,14 +124,6 @@ export default function Page({ params }) {
 
   const allTokens = [...roomTokens, ...serviceTokens, ...foodTokens];
 
-  const upiId = 'mahapat@ybl';
-  const name = 'Amit Mahapatra';
-  const amount = invoiceData.payable_amount || 0;
-
-  const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
-    name,
-  )}&am=${amount}&cu=INR`;
-
   return (
     <>
       {/* ✅ Breadcrumb Header */}
@@ -266,64 +258,6 @@ export default function Page({ params }) {
             {parseFloat(invoiceData.payable_amount || 0).toFixed(2)}
           </Typography>
         </Box>
-
-        {/* Payment Summary */}
-        <Box mt={2}>
-          <Typography variant="h6">💰 Payment Summary</Typography>
-          <Typography>
-            Total Paid: ₹
-            {invoiceData.payments
-              ? invoiceData.payments
-                  .reduce(
-                    (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-                    0,
-                  )
-                  .toFixed(2)
-              : '0.00'}
-          </Typography>
-          <Typography color={invoiceData.due > 0 ? 'error' : 'success'}>
-            Due Amount: ₹{invoiceData.due || '0.00'}
-          </Typography>
-          {invoiceData.due <= 0 && (
-            <Typography color="success" fontWeight="bold">
-              ✅ Fully Paid
-            </Typography>
-          )}
-        </Box>
-
-        {/* Payments Table */}
-        {invoiceData.payments && invoiceData.payments.length > 0 && (
-          <TableContainer component={Paper} sx={{ mt: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <strong>Timestamp</strong>
-                  </TableCell>
-                  <TableCell>
-                    <strong>MOP</strong>
-                  </TableCell>
-                  <TableCell align="right">
-                    <strong>Amount (₹)</strong>
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {invoiceData.payments.map((payment, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell>
-                      {new Date(payment.time_stamp).toLocaleString()}
-                    </TableCell>
-                    <TableCell>{payment.mop}</TableCell>
-                    <TableCell align="right">
-                      ₹{parseFloat(payment.amount).toFixed(2)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
       </Box>
 
       {/* ✅ Hidden printable component */}

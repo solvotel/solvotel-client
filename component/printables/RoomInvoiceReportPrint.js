@@ -60,6 +60,8 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
               {[
                 'Invoice No',
                 'Date/Time',
+                'Checkin',
+                'Checkout',
                 'Customer Name',
                 'GSTIN',
                 'Taxable Amount',
@@ -78,6 +80,12 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
                   <BodyCell>{row.invoice_no}</BodyCell>
                   <BodyCell>
                     {GetCustomDate(row.date)}&nbsp;{row.time}
+                  </BodyCell>
+                  <BodyCell>
+                    {GetCustomDate(row.room_booking.checkin_date) || '-'}
+                  </BodyCell>
+                  <BodyCell>
+                    {GetCustomDate(row.room_booking.checkin_out) || '-'}
                   </BodyCell>
                   <BodyCell>{row.customer_name || 'NA'}</BodyCell>
                   <BodyCell>{row.customer_gst || 'NA'}</BodyCell>

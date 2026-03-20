@@ -38,6 +38,10 @@ const Page = () => {
     auth,
     endPoint: 'room-invoices',
   });
+  const roomBookings = GetDataList({
+    auth,
+    endPoint: 'room-bookings',
+  });
   const restaurantInvoices = GetDataList({
     auth,
     endPoint: 'restaurant-invoices',

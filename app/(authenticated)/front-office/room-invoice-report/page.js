@@ -39,6 +39,8 @@ const Page = () => {
     endPoint: 'room-invoices',
   });
 
+  console.log('data', data);
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setfilteredData] = useState([]);
@@ -63,6 +65,8 @@ const Page = () => {
       return {
         'Invoice No': row.invoice_no,
         'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
+        Checkin: `${GetCustomDate(row.room_booking.checkin_date)}`,
+        Checkout: `${GetCustomDate(row.room_booking.checkin_out)}`,
         'Customer Name': row?.customer_name,
         GSTIN: row?.customer_gst,
         'Taxable Amount': row.total_amount.toFixed(2),
@@ -174,6 +178,8 @@ const Page = () => {
                     {[
                       'Invoice No',
                       'Date/Time',
+                      'Checkin',
+                      'Checkout',
                       'Customer Name',
                       'GSTIN',
                       'Taxable Amount',
@@ -196,6 +202,12 @@ const Page = () => {
                         <TableCell>{row.invoice_no}</TableCell>
                         <TableCell>
                           {GetCustomDate(row.date)}&nbsp;{row.time}
+                        </TableCell>
+                        <TableCell>
+                          {GetCustomDate(row.room_booking.checkin_date) || '-'}
+                        </TableCell>
+                        <TableCell>
+                          {GetCustomDate(row.room_booking.checkin_out) || '-'}
                         </TableCell>
                         <TableCell>{row?.customer_name || 'NA'}</TableCell>
                         <TableCell>{row?.customer_gst || 'NA'}</TableCell>
@@ -220,7 +232,7 @@ const Page = () => {
                   })}
                   {filteredData?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} align="center">
+                      <TableCell colSpan={11} align="center">
                         No invoice found
                       </TableCell>
                     </TableRow>

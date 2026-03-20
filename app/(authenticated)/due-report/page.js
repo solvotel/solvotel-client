@@ -29,14 +29,62 @@ import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
 import { DueReportPrint } from '@/component/printables/DueReportPrint';
 
+const formatDateTime = (isoString) => {
+  const date = new Date(isoString);
+
+  return date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
+
+const RoomBookingCalculator = (booking) => {
+  const payments = booking?.payment_tokens || [];
+  const roomTokens = booking?.room_tokens || [];
+  const services = booking?.service_tokens || [];
+  const foodItems = booking?.food_tokens || [];
+  const totalAmount = payments.reduce(
+    (sum, p) => sum + (Number(p.amount) || 0),
+    0,
+  );
+  const advancePayment = booking?.advance_payment || null;
+  const advanceAmount = advancePayment?.amount || 0;
+  const totalRoomAmount = roomTokens.reduce(
+    (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
+    0,
+  );
+  const totalServiceAmount = services.reduce(
+    (sum, s) => sum + (parseFloat(s.total_amount) || 0),
+    0,
+  );
+  const totalFoodAmount = foodItems.reduce(
+    (sum, f) => sum + (parseFloat(f.total_amount) || 0),
+    0,
+  );
+  const grandTotal = totalRoomAmount + totalServiceAmount + totalFoodAmount;
+  const amountPayed = totalAmount + advanceAmount;
+  const dueAmount = grandTotal - amountPayed;
+
+  return {
+    grandTotal: parseFloat(grandTotal.toFixed(2)),
+    amountPayed: parseFloat(amountPayed.toFixed(2)),
+    dueAmount: parseFloat(dueAmount.toFixed(2)),
+  };
+};
+
 const Page = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
 
   // Fetch both room and restaurant invoices
-  const roomInvoices = GetDataList({
+
+  const roomBookings = GetDataList({
     auth,
-    endPoint: 'room-invoices',
+    endPoint: 'room-bookings',
   });
   const restaurantInvoices = GetDataList({
     auth,
@@ -57,12 +105,44 @@ const Page = () => {
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
 
+    const restructuredRoomData =
+      roomBookings?.map((booking) => {
+        const { grandTotal, amountPayed, dueAmount } =
+          RoomBookingCalculator(booking);
+        return {
+          documentId: booking.documentId,
+          type: 'Room',
+          invoice_no: booking.booking_id,
+          date: booking.createdAt,
+          customer_name: booking.customer.name,
+          payable_amount: grandTotal,
+          payed: amountPayed,
+          due: dueAmount,
+        };
+      }) || [];
+
+    const restructuredRestaurantData =
+      restaurantInvoices?.map((invoice) => ({
+        documentId: invoice.documentId,
+        type: 'Restaurant',
+        invoice_no: invoice.invoice_no,
+        date: invoice.createdAt,
+        customer_name: invoice.customer_name,
+        payable_amount: invoice.payable_amount,
+        payed: invoice.payments?.reduce(
+          (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+          0,
+        ),
+        due: invoice.due,
+      })) || [];
+
     // Combine all invoices
     const allInvoices = [
-      ...(roomInvoices?.map((inv) => ({ ...inv, type: 'Room' })) || []),
-      ...(restaurantInvoices?.map((inv) => ({ ...inv, type: 'Restaurant' })) ||
-        []),
+      ...(restructuredRoomData || []),
+      ...(restructuredRestaurantData || []),
     ];
+
+    console.log('All Invoices:', allInvoices);
 
     // Filter invoices with due amount > 0 and within date range
     const filteredInvoices = allInvoices.filter((inv) => {
@@ -76,24 +156,11 @@ const Page = () => {
     const dataToExport = filteredInvoices.map((row) => ({
       Type: row.type,
       'Invoice No': row.invoice_no,
-      'Date/Time': `${row.date} ${row.time}`,
+      'Date/Time': formatDateTime(row.date),
       'Customer Name': row.customer_name || 'N/A',
-      GSTIN: row.customer_gst || 'N/A',
-      'Total Amount ₹': row.total_amount,
-      'SGST ₹': row.tax / 2,
-      'CGST ₹': row.tax / 2,
       'Payable Amount ₹': row.payable_amount,
-      'Total Paid ₹': (() => {
-        const totalPaid =
-          row.payments?.reduce(
-            (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-            0,
-          ) || 0;
-        return totalPaid;
-      })(),
+      'Total Paid ₹': row.payed || 0,
       'Due Amount ₹': row.due || 0,
-      'Payment Method':
-        row.mop || row.payments?.map((p) => p.mop).join(', ') || 'N/A',
     }));
 
     setFilteredData(filteredInvoices);
@@ -123,7 +190,7 @@ const Page = () => {
           <Typography color="text.primary">Due Report</Typography>
         </Breadcrumbs>
       </Box>
-      {!roomInvoices || !restaurantInvoices ? (
+      {!roomBookings || !restaurantInvoices ? (
         <Loader />
       ) : (
         <>
@@ -198,7 +265,7 @@ const Page = () => {
                 </Typography>
                 <Box display="flex" gap={3}>
                   <Typography>
-                    <strong>Total Invoices:</strong> {filteredData.length}
+                    <strong>Total Entries:</strong> {filteredData.length}
                   </Typography>
                   <Typography>
                     <strong>Total Due Amount:</strong> ₹
@@ -207,7 +274,7 @@ const Page = () => {
                       .toFixed(2)}
                   </Typography>
                   <Typography>
-                    <strong>Room Invoices:</strong>{' '}
+                    <strong>Room Bookings:</strong>{' '}
                     {filteredData.filter((inv) => inv.type === 'Room').length}
                   </Typography>
                   <Typography>
@@ -231,10 +298,7 @@ const Page = () => {
                       'Invoice No',
                       'Date/Time',
                       'Customer Name',
-                      'GSTIN',
-                      'Taxable ₹',
-                      'SGST ₹',
-                      'CGST ₹',
+
                       'Payable ₹',
                       ' Paid ₹',
                       'Due ₹',
@@ -266,35 +330,28 @@ const Page = () => {
                           {row.type}
                         </Typography>
                       </TableCell>
-                      <TableCell>{row.invoice_no}</TableCell>
                       <TableCell>
-                        {row.date} {row.time}
+                        <Link
+                          href={
+                            row.type === 'Room'
+                              ? `/front-office/room-booking/${row.documentId}`
+                              : `/restaurant/invoices/${row.documentId}`
+                          }
+                          style={{ textDecoration: 'none' }}
+                        >
+                          {row.invoice_no}
+                        </Link>
                       </TableCell>
+                      <TableCell>{formatDateTime(row.date)}</TableCell>
                       <TableCell>{row.customer_name || 'N/A'}</TableCell>
-                      <TableCell>{row.customer_gst || 'N/A'}</TableCell>
-                      <TableCell>{row.total_amount}</TableCell>
-                      <TableCell>{row.tax / 2}</TableCell>
-                      <TableCell>{row.tax / 2}</TableCell>
+
                       <TableCell>{row.payable_amount}</TableCell>
-                      <TableCell>
-                        {row.payments
-                          ?.reduce(
-                            (acc, payment) =>
-                              acc + (parseFloat(payment.amount) || 0),
-                            0,
-                          )
-                          .toFixed(2) || '0.00'}
-                      </TableCell>
+                      <TableCell>{row.payed || '0.00'}</TableCell>
                       <TableCell>
                         <Typography color="error" fontWeight="bold">
                           {row.due || 0}
                         </Typography>
                       </TableCell>
-                      {/* <TableCell>
-                        {row.mop ||
-                          row.payments?.map((p) => p.mop).join(', ') ||
-                          'N/A'}
-                      </TableCell> */}
                     </TableRow>
                   ))}
                   {filteredData?.length === 0 && (

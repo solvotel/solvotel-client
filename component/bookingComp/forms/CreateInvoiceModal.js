@@ -47,7 +47,6 @@ export default function CreateInvoiceModal({
   setOpen,
   booking,
   roomInvoices,
-  paymentMethods,
 }) {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
@@ -136,110 +135,6 @@ export default function CreateInvoiceModal({
       return cleanObj;
     });
 
-  const handleAddPayment = () => {
-    // Calculate current totals
-    const selectedRooms = roomTokens.filter((r) => r.invoice);
-    const selectedServices = services.filter((s) => s.invoice);
-    const selectedFood = foodItems.filter((f) => f.invoice);
-    const serviceAndFood = [...selectedServices, ...selectedFood];
-
-    const totalRoomAmount = selectedRooms.reduce(
-      (sum, item) => sum + (parseFloat(item.amount) || 0),
-      0,
-    );
-    const totalOtherAmount = serviceAndFood.reduce(
-      (sum, item) => sum + (parseFloat(item.total_amount) || 0),
-      0,
-    );
-    const payableAmount = totalOtherAmount + totalRoomAmount;
-    const totalPaid = payments.reduce(
-      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-      0,
-    );
-    const due = Math.max(0, payableAmount - totalPaid);
-
-    // Validation: Check if there's an outstanding amount to pay
-    if (due <= 0) {
-      ErrorToast('No outstanding amount to pay');
-      return;
-    }
-
-    const newPayment = {
-      time_stamp: new Date().toISOString(),
-      mop: '',
-      amount: due,
-    };
-    setPayments([...payments, newPayment]);
-  };
-
-  const handleUpdatePayment = (index, field, value) => {
-    if (field === 'amount') {
-      const numValue = parseFloat(value) || 0;
-      if (numValue < 0) {
-        ErrorToast('Payment amount cannot be negative');
-        return;
-      }
-      value = numValue;
-    }
-
-    const updatedPayments = [...payments];
-    updatedPayments[index][field] = value;
-    setPayments(updatedPayments);
-  };
-
-  const handleRemovePayment = (index) => {
-    const updatedPayments = payments.filter((_, i) => i !== index);
-    setPayments(updatedPayments);
-  };
-
-  const validateForm = () => {
-    // Check if at least one payment exists
-    if (payments.length === 0) {
-      ErrorToast('Please add at least one payment');
-      return false;
-    }
-
-    // Check each payment has valid MOP and amount > 0
-    for (let i = 0; i < payments.length; i++) {
-      const payment = payments[i];
-      if (!payment.mop || payment.mop.trim() === '') {
-        ErrorToast(`Payment ${i + 1}: Please select a mode of payment`);
-        return false;
-      }
-      if (!payment.amount || parseFloat(payment.amount) <= 0) {
-        ErrorToast(`Payment ${i + 1}: Payment amount must be greater than 0`);
-        return false;
-      }
-    }
-
-    // Check total payments don't exceed payable amount
-    const selectedRooms = roomTokens.filter((r) => r.invoice);
-    const selectedServices = services.filter((s) => s.invoice);
-    const selectedFood = foodItems.filter((f) => f.invoice);
-    const serviceAndFood = [...selectedServices, ...selectedFood];
-
-    const totalRoomAmount = selectedRooms.reduce(
-      (sum, item) => sum + (parseFloat(item.amount) || 0),
-      0,
-    );
-    const totalOtherAmount = serviceAndFood.reduce(
-      (sum, item) => sum + (parseFloat(item.total_amount) || 0),
-      0,
-    );
-    const payableAmount = totalOtherAmount + totalRoomAmount;
-    const totalPaid = payments.reduce(
-      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-      0,
-    );
-
-    if (totalPaid > payableAmount) {
-      ErrorToast('Total payment amount cannot exceed the payable amount');
-      return false;
-    }
-
-    return true;
-  };
-
   const createInvoice = async () => {
     try {
       const selectedRooms = roomTokens.filter((r) => r.invoice);
@@ -269,11 +164,6 @@ export default function CreateInvoiceModal({
 
       const totalGst = totalRoomGst + totalOtherGst;
       const payableAmount = totalOtherAmount + totalRoomAmount;
-      const totalPaid = payments.reduce(
-        (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-        0,
-      );
-      const due = Math.max(0, payableAmount - totalPaid);
 
       if (
         selectedRooms.length === 0 &&
@@ -286,10 +176,6 @@ export default function CreateInvoiceModal({
 
       const newInvoiceNo = generateNextInvoiceNo(roomInvoices);
       const time = GetCurrentTime();
-
-      const cleanedPayments = payments.map(
-        ({ id, documentId, ...rest }) => rest,
-      );
 
       const finalPayload = {
         data: {
@@ -308,8 +194,6 @@ export default function CreateInvoiceModal({
           payable_amount: payableAmount,
           tax: totalGst,
           total_amount: payableAmount - totalGst,
-          payments: cleanedPayments,
-          due,
         },
       };
 
@@ -346,10 +230,6 @@ export default function CreateInvoiceModal({
   };
 
   const handleSave = async () => {
-    if (!validateForm()) {
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -701,150 +581,9 @@ export default function CreateInvoiceModal({
                     Payable: <b>₹{payableAmount.toFixed(2)}</b>
                   </Typography>
                 </Grid>
-                <Grid item size={{ xs: 12, sm: 3 }}>
-                  <Typography>
-                    Total Paid: <b>₹{totalPaid.toFixed(2)}</b>
-                  </Typography>
-                </Grid>
-                <Grid item size={{ xs: 12, sm: 3 }}>
-                  <Typography>
-                    Due: <b>₹{due.toFixed(2)}</b>
-                  </Typography>
-                </Grid>
               </Grid>
             );
           })()}
-        </Box>
-
-        <Divider sx={{ my: 2 }} />
-
-        {/* Payment Section */}
-        <Box>
-          <Typography variant="h6" gutterBottom>
-            Payments
-          </Typography>
-
-          <TableContainer component={Paper} sx={{ borderRadius: 1, mb: 3 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  {['Timestamp', 'MOP', 'Amount', 'Actions'].map((h) => (
-                    <TableCell key={h}>{h}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {payments?.length > 0 ? (
-                  <>
-                    {payments.map((payment, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell>
-                          {new Date(payment.time_stamp).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            select
-                            size="small"
-                            fullWidth
-                            value={payment.mop}
-                            onChange={(e) =>
-                              handleUpdatePayment(idx, 'mop', e.target.value)
-                            }
-                            SelectProps={{ native: true }}
-                          >
-                            <option value="">-- Select --</option>
-                            {paymentMethods?.map((method) => (
-                              <option
-                                key={method.documentId}
-                                value={method.name}
-                              >
-                                {method?.name}
-                              </option>
-                            ))}
-                          </TextField>
-                        </TableCell>
-                        <TableCell>
-                          <TextField
-                            type="number"
-                            size="small"
-                            value={payment.amount}
-                            onChange={(e) =>
-                              handleUpdatePayment(
-                                idx,
-                                'amount',
-                                parseFloat(e.target.value) || 0,
-                              )
-                            }
-                            sx={{ width: 100 }}
-                            inputProps={{ min: 0, step: 0.01 }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <IconButton
-                            color="error"
-                            onClick={() => handleRemovePayment(idx)}
-                            size="small"
-                          >
-                            <DeleteIcon fontSize="inherit" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </>
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      Payment not added yet!!
-                    </TableCell>
-                  </TableRow>
-                )}
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    <Button
-                      variant="outlined"
-                      color="secondary"
-                      onClick={handleAddPayment}
-                      startIcon={<AddIcon />}
-                      disabled={(() => {
-                        const selectedRooms = roomTokens.filter(
-                          (r) => r.invoice,
-                        );
-                        const selectedServices = services.filter(
-                          (s) => s.invoice,
-                        );
-                        const selectedFood = foodItems.filter((f) => f.invoice);
-                        const serviceAndFood = [
-                          ...selectedServices,
-                          ...selectedFood,
-                        ];
-
-                        const totalRoomAmount = selectedRooms.reduce(
-                          (sum, item) => sum + (parseFloat(item.amount) || 0),
-                          0,
-                        );
-                        const totalOtherAmount = serviceAndFood.reduce(
-                          (sum, item) =>
-                            sum + (parseFloat(item.total_amount) || 0),
-                          0,
-                        );
-                        const payableAmount =
-                          totalOtherAmount + totalRoomAmount;
-                        const totalPaid = payments.reduce(
-                          (acc, payment) =>
-                            acc + (parseFloat(payment.amount) || 0),
-                          0,
-                        );
-                        const due = Math.max(0, payableAmount - totalPaid);
-                        return due <= 0;
-                      })()}
-                    >
-                      Add Payment
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
         </Box>
 
         <Stack direction="row" spacing={2} mt={3} justifyContent="flex-end">

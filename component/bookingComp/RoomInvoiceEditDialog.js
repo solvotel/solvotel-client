@@ -152,61 +152,6 @@ export default function EditRoomInvoiceDialog({
     setFoodTokens(updated);
   };
 
-  // --- PAYMENT HANDLERS ---
-  const handleAddPayment = () => {
-    // Calculate current payable amount
-    const serviceAndFood = [...foodTokens, ...serviceTokens];
-    const totalRoomAmount = roomTokens.reduce(
-      (sum, item) => sum + (parseFloat(item.amount) || 0),
-      0,
-    );
-    const totalOtherAmount = serviceAndFood.reduce(
-      (sum, item) => sum + (parseFloat(item.total_amount) || 0),
-      0,
-    );
-    const payableAmount = totalOtherAmount + totalRoomAmount;
-
-    // Calculate total paid
-    const totalPaid = payments.reduce(
-      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-      0,
-    );
-    const due = Math.max(0, payableAmount - totalPaid);
-
-    // Validation: Check if there's an outstanding amount to pay
-    if (due <= 0) {
-      ErrorToast('No outstanding amount to pay');
-      return;
-    }
-
-    const newPayment = {
-      time_stamp: new Date().toISOString(),
-      mop: '',
-      amount: due,
-    };
-    setPayments([...payments, newPayment]);
-  };
-
-  const handleUpdatePayment = (index, field, value) => {
-    if (field === 'amount') {
-      const numValue = parseFloat(value) || 0;
-      if (numValue < 0) {
-        ErrorToast('Payment amount cannot be negative');
-        return;
-      }
-      value = numValue;
-    }
-
-    const updatedPayments = [...payments];
-    updatedPayments[index][field] = value;
-    setPayments(updatedPayments);
-  };
-
-  const handleRemovePayment = (index) => {
-    const updatedPayments = payments.filter((_, i) => i !== index);
-    setPayments(updatedPayments);
-  };
-
   // --- SAVE DATA ---
   const handleSave = async () => {
     // Validation
@@ -223,31 +168,6 @@ export default function EditRoomInvoiceDialog({
       0,
     );
     const payableAmount = totalOtherAmount + totalRoomAmount;
-
-    // Calculate total paid
-    const totalPaid = payments.reduce(
-      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-      0,
-    );
-
-    // Validate payments
-    if (payments && payments.length > 0) {
-      for (let i = 0; i < payments.length; i++) {
-        const payment = payments[i];
-        if (!payment.mop || payment.mop.trim() === '') {
-          errors.payments = `Payment ${i + 1}: Please select a mode of payment`;
-          break;
-        }
-        if (!payment.amount || parseFloat(payment.amount) <= 0) {
-          errors.payments = `Payment ${i + 1}: Amount must be greater than 0`;
-          break;
-        }
-      }
-    }
-
-    if (totalPaid > payableAmount) {
-      errors.payments = 'Total payment amount cannot exceed payable amount';
-    }
 
     setFormErrors(errors);
 
@@ -266,14 +186,10 @@ export default function EditRoomInvoiceDialog({
       0,
     );
     const totalGst = totalRoomGst + totalOtherGst;
-    const due = Math.max(0, payableAmount - totalPaid);
 
     try {
       setLoading(true);
       const cleanedRoomTokens = roomTokens.map(({ id, ...rest }) => rest);
-      const cleanedPayments = payments.map(
-        ({ id, documentId, ...rest }) => rest,
-      );
 
       const payload = {
         data: {
@@ -284,8 +200,6 @@ export default function EditRoomInvoiceDialog({
           payable_amount: payableAmount,
           tax: totalGst,
           total_amount: payableAmount - totalGst,
-          payments: cleanedPayments,
-          due: due,
         },
       };
       await UpdateData({
@@ -430,310 +344,190 @@ export default function EditRoomInvoiceDialog({
         <Divider sx={{ my: 2 }} />
 
         {/* SERVICE TOKENS */}
-        <Typography variant="h6" gutterBottom>
-          🧰 Service Charges
-        </Typography>
-        {serviceTokens.map((token, ti) => (
-          <Box key={ti} mb={2}>
-            <Typography variant="subtitle2">
-              Room No: {token.room_no}
+        {serviceTokens.length > 0 && (
+          <>
+            <Typography variant="h6" gutterBottom>
+              🧰 Service Charges
             </Typography>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Item</TableCell>
-                    <TableCell>HSN</TableCell>
-                    <TableCell align="right">Rate</TableCell>
-                    <TableCell align="right">GST %</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {token.items.map((item, ii) => (
-                    <TableRow key={ii}>
-                      <TableCell>{item.item}</TableCell>
-                      <TableCell>{item.hsn}</TableCell>
-                      <TableCell align="right">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={item.rate}
-                          onChange={(e) =>
-                            handleServiceItemChange(
-                              ti,
-                              ii,
-                              'rate',
-                              e.target.value,
-                            )
-                          }
-                          sx={{ width: 80 }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={item.gst}
-                          onChange={(e) =>
-                            handleServiceItemChange(
-                              ti,
-                              ii,
-                              'gst',
-                              e.target.value,
-                            )
-                          }
-                          sx={{ width: 60 }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={item.amount}
-                          onChange={(e) =>
-                            handleServiceItemChange(
-                              ti,
-                              ii,
-                              'amount',
-                              e.target.value,
-                            )
-                          }
-                          sx={{ width: 80 }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow>
-                    <TableCell colSpan={3} />
-                    <TableCell align="right">Total</TableCell>
-                    <TableCell align="right">
-                      ₹{token.total_amount || 0}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        ))}
+            {serviceTokens.map((token, ti) => (
+              <Box key={ti} mb={2}>
+                <Typography variant="subtitle2">
+                  Room No: {token.room_no}
+                </Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Item</TableCell>
+                        <TableCell>HSN</TableCell>
+                        <TableCell align="right">Rate</TableCell>
+                        <TableCell align="right">GST %</TableCell>
+                        <TableCell align="right">Amount</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {token.items.map((item, ii) => (
+                        <TableRow key={ii}>
+                          <TableCell>{item.item}</TableCell>
+                          <TableCell>{item.hsn}</TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={item.rate}
+                              onChange={(e) =>
+                                handleServiceItemChange(
+                                  ti,
+                                  ii,
+                                  'rate',
+                                  e.target.value,
+                                )
+                              }
+                              sx={{ width: 80 }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={item.gst}
+                              onChange={(e) =>
+                                handleServiceItemChange(
+                                  ti,
+                                  ii,
+                                  'gst',
+                                  e.target.value,
+                                )
+                              }
+                              sx={{ width: 60 }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={item.amount}
+                              onChange={(e) =>
+                                handleServiceItemChange(
+                                  ti,
+                                  ii,
+                                  'amount',
+                                  e.target.value,
+                                )
+                              }
+                              sx={{ width: 80 }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow>
+                        <TableCell colSpan={3} />
+                        <TableCell align="right">Total</TableCell>
+                        <TableCell align="right">
+                          ₹{token.total_amount || 0}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            ))}
 
-        <Divider sx={{ my: 2 }} />
-
-        {/* FOOD TOKENS */}
-        <Typography variant="h6" gutterBottom>
-          🍽️ Food Charges
-        </Typography>
-        {foodTokens.map((token, ti) => (
-          <Box key={ti} mb={2}>
-            <Typography variant="subtitle2">
-              Type: {token.type} | Room: {token.room_no}
-            </Typography>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Item</TableCell>
-                    <TableCell>HSN</TableCell>
-                    <TableCell align="right">Rate</TableCell>
-                    <TableCell align="right">GST %</TableCell>
-                    <TableCell align="right">Amount</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {token.items.map((item, ii) => (
-                    <TableRow key={ii}>
-                      <TableCell>{item.item}</TableCell>
-                      <TableCell>{item.hsn}</TableCell>
-                      <TableCell align="right">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={item.rate}
-                          onChange={(e) =>
-                            handleFoodItemChange(ti, ii, 'rate', e.target.value)
-                          }
-                          sx={{ width: 80 }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={item.gst}
-                          onChange={(e) =>
-                            handleFoodItemChange(ti, ii, 'gst', e.target.value)
-                          }
-                          sx={{ width: 60 }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={item.amount}
-                          onChange={(e) =>
-                            handleFoodItemChange(
-                              ti,
-                              ii,
-                              'amount',
-                              e.target.value,
-                            )
-                          }
-                          sx={{ width: 80 }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow>
-                    <TableCell colSpan={3} />
-                    <TableCell align="right">Total</TableCell>
-                    <TableCell align="right">
-                      ₹{token.total_amount || 0}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        ))}
-
-        <Divider sx={{ my: 2 }} />
-
-        {/* PAYMENT SECTION */}
-        <Typography variant="h6" gutterBottom>
-          💳 Payments
-        </Typography>
-        {formErrors.payments && (
-          <Typography color="error" sx={{ mb: 1 }}>
-            {formErrors.payments}
-          </Typography>
+            <Divider sx={{ my: 2 }} />
+          </>
         )}
 
-        <TableContainer component={Paper} sx={{ borderRadius: 1, mb: 2 }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                {['Timestamp', 'MOP', 'Amount', 'Actions'].map((h) => (
-                  <TableCell key={h}>{h}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {payments?.length > 0 ? (
-                <>
-                  {payments.map((payment, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>
-                        {new Date(payment.time_stamp).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <TextField
-                          select
-                          size="small"
-                          fullWidth
-                          value={payment.mop}
-                          onChange={(e) =>
-                            handleUpdatePayment(idx, 'mop', e.target.value)
-                          }
-                          SelectProps={{ native: true }}
-                        >
-                          <option value="">-- Select --</option>
-                          {paymentMethods?.map((cat) => (
-                            <option key={cat.documentId} value={cat.name}>
-                              {cat?.name}
-                            </option>
-                          ))}
-                        </TextField>
-                      </TableCell>
-                      <TableCell>
-                        <TextField
-                          type="number"
-                          size="small"
-                          value={payment.amount}
-                          onChange={(e) =>
-                            handleUpdatePayment(
-                              idx,
-                              'amount',
-                              parseFloat(e.target.value) || 0,
-                            )
-                          }
-                          sx={{ width: 100 }}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <IconButton
-                          color="error"
-                          onClick={() => handleRemovePayment(idx)}
-                          size="small"
-                        >
-                          <DeleteIcon fontSize="inherit" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </>
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} align="center">
-                    Payment not added yet!!
-                  </TableCell>
-                </TableRow>
-              )}
-              <TableRow>
-                <TableCell colSpan={4} align="center">
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={handleAddPayment}
-                    startIcon={<AddIcon />}
-                  >
-                    Add Payment
-                  </Button>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-
-        {/* PAYMENT SUMMARY */}
-        {(() => {
-          // Calculate totals for payment summary
-          const serviceAndFood = [...foodTokens, ...serviceTokens];
-          const totalRoomAmount = roomTokens.reduce(
-            (sum, item) => sum + (parseFloat(item.amount) || 0),
-            0,
-          );
-          const totalOtherAmount = serviceAndFood.reduce(
-            (sum, item) => sum + (parseFloat(item.total_amount) || 0),
-            0,
-          );
-          const payableAmount = totalOtherAmount + totalRoomAmount;
-          const totalPaid = payments.reduce(
-            (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-            0,
-          );
-          const due = Math.max(0, payableAmount - totalPaid);
-
-          return (
-            <Grid container spacing={2} mb={2}>
-              <Grid item size={{ xs: 12, sm: 4 }}>
-                <Typography>
-                  <strong>Payable:</strong> ₹{payableAmount.toFixed(2)}
+        {/* FOOD TOKENS */}
+        {foodTokens.length > 0 && (
+          <>
+            <Typography variant="h6" gutterBottom>
+              🍽️ Food Charges
+            </Typography>
+            {foodTokens.map((token, ti) => (
+              <Box key={ti} mb={2}>
+                <Typography variant="subtitle2">
+                  Type: {token.type} | Room: {token.room_no}
                 </Typography>
-              </Grid>
-              <Grid item size={{ xs: 12, sm: 4 }}>
-                <Typography>
-                  <strong>Paid:</strong> ₹{totalPaid.toFixed(2)}
-                </Typography>
-              </Grid>
-              <Grid item size={{ xs: 12, sm: 4 }}>
-                <Typography>
-                  <strong>Due:</strong> ₹{due.toFixed(2)}
-                </Typography>
-              </Grid>
-            </Grid>
-          );
-        })()}
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Item</TableCell>
+                        <TableCell>HSN</TableCell>
+                        <TableCell align="right">Rate</TableCell>
+                        <TableCell align="right">GST %</TableCell>
+                        <TableCell align="right">Amount</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {token.items.map((item, ii) => (
+                        <TableRow key={ii}>
+                          <TableCell>{item.item}</TableCell>
+                          <TableCell>{item.hsn}</TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={item.rate}
+                              onChange={(e) =>
+                                handleFoodItemChange(
+                                  ti,
+                                  ii,
+                                  'rate',
+                                  e.target.value,
+                                )
+                              }
+                              sx={{ width: 80 }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={item.gst}
+                              onChange={(e) =>
+                                handleFoodItemChange(
+                                  ti,
+                                  ii,
+                                  'gst',
+                                  e.target.value,
+                                )
+                              }
+                              sx={{ width: 60 }}
+                            />
+                          </TableCell>
+                          <TableCell align="right">
+                            <TextField
+                              size="small"
+                              type="number"
+                              value={item.amount}
+                              onChange={(e) =>
+                                handleFoodItemChange(
+                                  ti,
+                                  ii,
+                                  'amount',
+                                  e.target.value,
+                                )
+                              }
+                              sx={{ width: 80 }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow>
+                        <TableCell colSpan={3} />
+                        <TableCell align="right">Total</TableCell>
+                        <TableCell align="right">
+                          ₹{token.total_amount || 0}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            ))}
+          </>
+        )}
       </DialogContent>
 
       <DialogActions>

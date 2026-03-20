@@ -27,26 +27,30 @@ const BodyCell = styled(TableCell)`
 `;
 
 const CustomTableContainer = styled(TableContainer)``;
+const formatDateTime = (isoString) => {
+  const date = new Date(isoString);
+
+  return date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+};
 
 // forwardRef is required for react-to-print
 const DueReportPrint = React.forwardRef((props, ref) => {
   const { filteredData, startDate, endDate } = props;
 
-  const totalAmount = filteredData?.reduce((sum, i) => sum + i.total_amount, 0);
-  const totalGst = filteredData?.reduce((sum, i) => sum + i.tax, 0);
-  const totalPayable = filteredData?.reduce(
+  const totalAmount = filteredData?.reduce(
     (sum, i) => sum + i.payable_amount,
     0,
   );
+
   const totalDue = filteredData?.reduce((sum, i) => sum + (i.due || 0), 0);
-  const totalPaid = filteredData?.reduce((sum, i) => {
-    const paid =
-      i.payments?.reduce(
-        (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-        0,
-      ) || 0;
-    return sum + paid;
-  }, 0);
+  const totalPaid = filteredData?.reduce((sum, i) => sum + i.payed || 0, 0);
 
   return (
     <Box
@@ -87,7 +91,7 @@ const DueReportPrint = React.forwardRef((props, ref) => {
             </span>
           </Typography>
           <Typography>
-            Room Invoices:{' '}
+            Room Booking:{' '}
             <span style={{ fontWeight: 600 }}>
               {filteredData?.filter((inv) => inv.type === 'Room').length || 0}
             </span>
@@ -111,13 +115,9 @@ const DueReportPrint = React.forwardRef((props, ref) => {
                 'Invoice No',
                 'Date/Time',
                 'Customer Name',
-                'Total Amount ₹',
-                'SGST ₹',
-                'CGST ₹',
                 'Payable Amount ₹',
                 'Total Paid ₹',
                 'Due Amount ₹',
-                'Payment Method',
               ].map((item, index) => (
                 <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>
                   {item}
@@ -128,28 +128,11 @@ const DueReportPrint = React.forwardRef((props, ref) => {
               <TableRow key={index}>
                 <BodyCell>{row.type}</BodyCell>
                 <BodyCell>{row.invoice_no}</BodyCell>
-                <BodyCell>
-                  {row.date} {row.time}
-                </BodyCell>
+                <BodyCell>{formatDateTime(row.date)}</BodyCell>
                 <BodyCell>{row.customer_name || 'N/A'}</BodyCell>
-                <BodyCell>{row.total_amount}</BodyCell>
-                <BodyCell>{row.tax / 2}</BodyCell>
-                <BodyCell>{row.tax / 2}</BodyCell>
                 <BodyCell>{row.payable_amount}</BodyCell>
-                <BodyCell>
-                  {row.payments
-                    ?.reduce(
-                      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-                      0,
-                    )
-                    .toFixed(2) || '0.00'}
-                </BodyCell>
+                <BodyCell>{row.payed || '0.00'}</BodyCell>
                 <BodyCell>{row.due || 0}</BodyCell>
-                <BodyCell>
-                  {row.mop ||
-                    row.payments?.map((p) => p.mop).join(', ') ||
-                    'N/A'}
-                </BodyCell>
               </TableRow>
             ))}
             {/* Totals Row */}
@@ -164,21 +147,11 @@ const DueReportPrint = React.forwardRef((props, ref) => {
                 ₹{totalAmount?.toFixed(2) || '0.00'}
               </HeadingCell>
               <HeadingCell sx={{ fontWeight: 'bold' }}>
-                ₹{(totalGst / 2)?.toFixed(2) || '0.00'}
-              </HeadingCell>
-              <HeadingCell sx={{ fontWeight: 'bold' }}>
-                ₹{(totalGst / 2)?.toFixed(2) || '0.00'}
-              </HeadingCell>
-              <HeadingCell sx={{ fontWeight: 'bold' }}>
-                ₹{totalPayable?.toFixed(2) || '0.00'}
-              </HeadingCell>
-              <HeadingCell sx={{ fontWeight: 'bold' }}>
                 ₹{totalPaid?.toFixed(2) || '0.00'}
               </HeadingCell>
               <HeadingCell sx={{ fontWeight: 'bold' }}>
                 ₹{totalDue?.toFixed(2) || '0.00'}
               </HeadingCell>
-              <HeadingCell sx={{ fontWeight: 'bold' }}>-</HeadingCell>
             </TableRow>
           </TableBody>
         </Table>
