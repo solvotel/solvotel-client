@@ -36,7 +36,7 @@ import {
   UpdateData,
 } from '@/utils/ApiFunctions';
 import { Loader } from '@/component/common';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { SuccessToast } from '@/utils/GenerateToast';
 import RoomInvoiceViewDialog from '@/component/bookingComp/RoomInvoiceViewDialog';
 import EditRoomInvoiceDialog from '@/component/bookingComp/RoomInvoiceEditDialog';
@@ -86,14 +86,65 @@ const Page = () => {
   };
 
   const handleConfirmDelete = async () => {
-    await DeleteData({
-      auth,
-      endPoint: 'room-invoices',
-      id: selectedRow.documentId,
-    });
-    SuccessToast('Invoice deleted successfully');
-    setDeleteOpen(false);
-    setSelectedRow(null);
+    try {
+      const booking = selectedRow?.room_booking;
+
+      // Update Service Tokens
+      const updatedServiceTokens = booking?.service_tokens?.map((token) => {
+        const exists = selectedRow?.service_tokens?.some(
+          (invToken) => invToken.id === token.id,
+        );
+
+        return exists ? { ...token, invoice: false } : token;
+      });
+
+      // Update Food Tokens
+      const updatedFoodTokens = booking?.food_tokens?.map((token) => {
+        const exists = selectedRow?.food_tokens?.some(
+          (invToken) => invToken.id === token.id,
+        );
+
+        return exists ? { ...token, invoice: false } : token;
+      });
+
+      // Update Room Tokens
+      const updatedRoomTokens = booking?.room_tokens?.map((token) => {
+        const exists = selectedRow?.room_tokens?.some(
+          (invToken) => invToken.id === token.id,
+        );
+
+        return exists ? { ...token, invoice: false } : token;
+      });
+
+      const payload = {
+        data: {
+          service_tokens: updatedServiceTokens,
+          food_tokens: updatedFoodTokens,
+          room_tokens: updatedRoomTokens,
+        },
+      };
+
+      await UpdateData({
+        auth,
+        endPoint: 'room-bookings',
+        id: booking.documentId,
+        payload,
+      });
+
+      await DeleteData({
+        auth,
+        endPoint: 'room-invoices',
+        id: selectedRow.documentId,
+      });
+
+      SuccessToast('Invoice deleted successfully');
+
+      setDeleteOpen(false);
+      setSelectedRow(null);
+    } catch (error) {
+      console.error(error);
+      ErrorToast('Something went wrong');
+    }
   };
 
   const handleCancelDelete = () => {

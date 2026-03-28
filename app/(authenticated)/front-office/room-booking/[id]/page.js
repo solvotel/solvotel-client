@@ -41,6 +41,7 @@ export default function RoomBookings({ params }) {
     auth: auth,
     id: id,
   });
+
   const roomInvoices = GetDataList({
     endPoint: 'room-invoices',
     auth: auth,

@@ -80,13 +80,12 @@ export default function BookingServiceActionsCard({
   };
 
   const handleManageRoomTariff = async (roomTokens) => {
-    const cleanedRoomTokens = roomTokens.map(({ id, ...rest }) => rest);
     try {
       const res = await UpdateData({
         endPoint: 'room-bookings',
         auth,
         id: booking?.documentId,
-        payload: { data: { room_tokens: cleanedRoomTokens } },
+        payload: { data: { room_tokens: roomTokens } },
       });
       return res;
     } catch (err) {

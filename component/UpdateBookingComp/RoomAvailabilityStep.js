@@ -193,6 +193,10 @@ const RoomAvailabilityStep = ({
   // Create a unique key for room-date combination
   const getRoomDateKey = (roomNo, date) => `${roomNo}-${date}`;
 
+  // Generate temporary client-side ID for room tokens (for UI/tracking before backend persistence)
+  const generateRoomTokenId = () =>
+    `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
   // Handle room + date selection
   const handleRoomDateSelection = (room, date) => {
     const key = getRoomDateKey(room.room_no, date);
@@ -288,6 +292,7 @@ const RoomAvailabilityStep = ({
       } else {
         // Create new token (no key attribute)
         const newToken = {
+          id: generateRoomTokenId(),
           room: room.room_no,
           hsn: room.category?.hsn || '',
           item: room.category?.name || '',

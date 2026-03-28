@@ -183,7 +183,6 @@ export default function BookingForm() {
         payload: { data: payload },
       });
 
-      console.log('Booking res:', res);
       SuccessToast('Booking Create Successfully');
       router.push(`/front-office/room-booking/${res.data.data.documentId}`);
     } catch (err) {

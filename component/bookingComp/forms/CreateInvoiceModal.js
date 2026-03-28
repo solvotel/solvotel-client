@@ -25,8 +25,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import RoomIcon from '@mui/icons-material/MeetingRoom';
 import LocalMallIcon from '@mui/icons-material/LocalMall';
 import RestaurantIcon from '@mui/icons-material/Restaurant';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
+
 import { useAuth } from '@/context';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 import { GetCurrentTime } from '@/utils/Timefetcher';
@@ -220,8 +219,8 @@ export default function CreateInvoiceModal({
       endPoint: 'room-bookings',
       payload: {
         data: {
-          service_tokens: sanitizeArray(updatedServices),
-          food_tokens: sanitizeArray(updatedFood),
+          service_tokens: updatedServices,
+          food_tokens: updatedFood,
           room_tokens: sanitizeArray(updatedRoomTokens),
         },
       },
