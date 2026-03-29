@@ -8,6 +8,7 @@ export const GetDataList = ({ auth, endPoint }) => {
 
   const { data } = useSWR(apiUrl, fetcher, {
     revalidateOnFocus: true,
+    refreshInterval: 500,
   });
   return data;
 };
@@ -18,6 +19,7 @@ export const GetPosDataList = ({ auth, endPoint }) => {
 
   const { data } = useSWR(apiUrl, fetcher, {
     revalidateOnFocus: true,
+    refreshInterval: 500,
   });
   return data;
 };
