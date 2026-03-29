@@ -46,7 +46,7 @@ const TableGrid = ({
                   elevation={2}
                   sx={{
                     p: 1.5,
-                    height: 110,
+                    height: 130,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -75,6 +75,11 @@ const TableGrid = ({
                   >
                     {table.table_no}
                   </Typography>
+                  {activeOrder?.temp_room_no && (
+                    <Typography sx={{ fontSize: 11 }}>
+                      ( Room: {activeOrder?.temp_room_no?.split('|')[1]})
+                    </Typography>
+                  )}
 
                   {isAvailable ? (
                     <Button

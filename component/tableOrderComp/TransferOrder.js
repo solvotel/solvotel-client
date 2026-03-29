@@ -9,6 +9,7 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material';
+import { useEffect } from 'react';
 
 const TransferOrder = ({
   auth,
@@ -46,21 +47,21 @@ const TransferOrder = ({
 
       const total_rate = selectedRow.food_items.reduce(
         (acc, item) => acc + item.rate * item.qty,
-        0
+        0,
       );
 
       // recalc before save
 
       const total_amount = selectedRow.food_items.reduce(
         (acc, item) => acc + item.amount,
-        0
+        0,
       );
 
       const total_gst = total_amount - total_rate;
 
       // ✅ Clean menu_items (remove id/documentId/etc.)
       const cleanedMenuItems = selectedRow.food_items.map(
-        ({ id, documentId, room, ...rest }) => rest
+        ({ id, documentId, room, ...rest }) => rest,
       );
       const prevFood = booking?.food_tokens || [];
       await UpdateData({
@@ -96,6 +97,14 @@ const TransferOrder = ({
       return;
     }
   };
+
+  useEffect(() => {
+    const booking_id = selectedRow?.temp_room_no?.split('|')[0] || null;
+    const roomNo = selectedRow?.temp_room_no?.split('|')[1] || '';
+    setSelectedBooking(booking_id);
+    setSelectedRoom(roomNo);
+  }, [selectedRow, setSelectedBooking, setSelectedRoom]);
+
   return (
     <>
       <Dialog

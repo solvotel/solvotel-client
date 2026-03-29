@@ -30,6 +30,7 @@ const CreateNewOrder = ({
   selectedItem,
   setSelectedItem,
   handleSave,
+  activeRooms,
 }) => {
   const handleItemSelect = () => {
     if (!selectedItem) return;
@@ -94,28 +95,55 @@ const CreateNewOrder = ({
       >
         <DialogTitle>{editing ? 'Edit Order' : 'Create Order'}</DialogTitle>
         <DialogContent dividers>
-          <Box sx={{ mb: 2, width: '250px' }}>
-            <TextField
-              select
-              margin="dense"
-              label="Select Table"
-              size="small"
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              value={formData.table || ''}
-              onChange={(e) =>
-                setFormData({ ...formData, table: e.target.value })
-              }
-              SelectProps={{ native: true }}
-            >
-              <option value="">-- Select --</option>
-              {tables?.map((table) => (
-                <option key={table.documentId} value={table.documentId}>
-                  {table?.table_no}
-                </option>
-              ))}
-            </TextField>
-          </Box>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                select
+                margin="dense"
+                label="Select Table"
+                size="small"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                value={formData.table || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, table: e.target.value })
+                }
+                SelectProps={{ native: true }}
+              >
+                <option value="">-- Select --</option>
+                {tables?.map((table) => (
+                  <option key={table.documentId} value={table.documentId}>
+                    {table?.table_no}
+                  </option>
+                ))}
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                select
+                margin="dense"
+                label="Select Room No"
+                size="small"
+                fullWidth
+                InputLabelProps={{ shrink: true }}
+                value={formData.temp_room_no || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, temp_room_no: e.target.value })
+                }
+                SelectProps={{ native: true }}
+              >
+                <option value="">-- Select --</option>
+                {activeRooms?.map((room, index) => (
+                  <option
+                    key={index}
+                    value={`${room.booking_id}|${room.room_no}`}
+                  >
+                    {room.room_no}
+                  </option>
+                ))}
+              </TextField>
+            </Grid>
+          </Grid>
 
           {/* Items Section */}
           <Typography variant="h6" gutterBottom>

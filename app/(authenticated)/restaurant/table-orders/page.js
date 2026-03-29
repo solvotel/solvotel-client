@@ -350,6 +350,7 @@ const Page = () => {
         selectedItem={selectedItem}
         setSelectedItem={setSelectedItem}
         handleSave={handleSave}
+        activeRooms={activeRooms}
       />
 
       {/* Transfer Dialog */}
