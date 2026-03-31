@@ -458,6 +458,7 @@ const Page = () => {
                       })
                     }
                   >
+                    <MenuItem value="all">All</MenuItem>
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="frontoffice">Frontoffice</MenuItem>
                     <MenuItem value="property">Property</MenuItem>
@@ -484,6 +485,7 @@ const Page = () => {
                       })
                     }
                   >
+                    <MenuItem value="all">All</MenuItem>
                     <MenuItem value="read">Read</MenuItem>
                     <MenuItem value="write">Write</MenuItem>
                     <MenuItem value="update">Update</MenuItem>

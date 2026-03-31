@@ -72,7 +72,7 @@ const Page = () => {
       gst: null,
       total: 0,
       base_adults: 1,
-      base_child: 0,
+      base_child: null,
       max_adults: 1,
       max_child: 0,
       max_capacity: 1,
@@ -286,8 +286,6 @@ const Page = () => {
                     <TableCell>{row.tariff}</TableCell>
                     <TableCell>{row.gst || 'nil'}</TableCell>
                     <TableCell>{row.total}</TableCell>
-                    <TableCell>{row.user_created}</TableCell>
-                    <TableCell>{row.user_updated}</TableCell>
                     <TableCell>
                       {row.active === 'Yes' || row.active === true ? (
                         <Chip label="Active" color="success" size="small" />
@@ -295,6 +293,9 @@ const Page = () => {
                         <Chip label="Inactive" color="error" size="small" />
                       )}
                     </TableCell>
+                    <TableCell>{row.user_created}</TableCell>
+                    <TableCell>{row.user_updated}</TableCell>
+
                     <TableCell sx={{ width: '100px' }}>
                       <Tooltip title="Edit">
                         <IconButton
@@ -505,17 +506,24 @@ const Page = () => {
                   <TextField
                     margin="dense"
                     label="Base Adults"
-                    type="number"
                     fullWidth
-                    value={formData.base_adults}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        base_adults: parseInt(e.target.value),
-                      })
-                    }
+                    value={formData.base_adults ?? ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // Allow only positive integers
+                      if (/^\d*$/.test(value)) {
+                        setFormData({
+                          ...formData,
+                          base_adults: value === '' ? '' : parseInt(value),
+                        });
+                      }
+                    }}
                     error={!!formErrors.base_adults}
                     helperText={formErrors.base_adults}
+                    inputProps={{
+                      inputMode: 'numeric',
+                    }}
                   />
                 </Grid>
 
@@ -523,15 +531,22 @@ const Page = () => {
                   <TextField
                     margin="dense"
                     label="Base Child"
-                    type="number"
                     fullWidth
-                    value={formData.base_child}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        base_child: parseInt(e.target.value),
-                      })
-                    }
+                    value={formData.base_child ?? ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // Allow only positive integers
+                      if (/^\d*$/.test(value)) {
+                        setFormData({
+                          ...formData,
+                          base_child: value === '' ? '' : parseInt(value),
+                        });
+                      }
+                    }}
+                    inputProps={{
+                      inputMode: 'numeric',
+                    }}
                   />
                 </Grid>
 

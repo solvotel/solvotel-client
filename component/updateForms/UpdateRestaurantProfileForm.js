@@ -35,7 +35,20 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let formattedValue = value;
+
+    if (name === 'res_mobile' || name === 'res_alt_mobile') {
+      formattedValue = formattedValue.replace(/\D/g, '');
+      formattedValue = formattedValue.slice(0, 10);
+    }
+
+    if (name === 'res_pincode') {
+      formattedValue = formattedValue.replace(/\D/g, '');
+      formattedValue = formattedValue.slice(0, 6);
+    }
+
+    setFormData({ ...formData, [name]: formattedValue });
   };
 
   const validate = () => {
@@ -89,7 +102,14 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
 
     try {
       setLoading(true);
-      const payload = { data: formData };
+      const payload = {
+        data: {
+          ...formData,
+          res_email: formData.res_email?.trim()
+            ? formData.res_email.trim()
+            : null,
+        },
+      };
       await UpdateData({
         auth,
         endPoint: 'hotels',
@@ -160,6 +180,11 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.res_mobile}
                 helperText={errors.res_mobile}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
 
@@ -186,6 +211,11 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.res_alt_mobile}
                 helperText={errors.res_alt_mobile}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
 
@@ -288,6 +318,11 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 type="number"
                 error={!!errors.res_pincode}
                 helperText={errors.res_pincode}
+                inputProps={{
+                  maxLength: 6,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>

@@ -95,7 +95,7 @@ const Page = () => {
     return data.some(
       (item) =>
         item.room_no?.trim().toLowerCase() === room_no.trim().toLowerCase() &&
-        item.documentId !== id
+        item.documentId !== id,
     );
   };
 
@@ -109,7 +109,7 @@ const Page = () => {
     // 🔍 NEW: Check duplicate category name before save
     const duplicate = isDuplicateName(
       formData.room_no,
-      editing ? formData.documentId : null
+      editing ? formData.documentId : null,
     );
 
     if (duplicate) {
@@ -124,9 +124,9 @@ const Page = () => {
         publishedAt,
         updatedAt,
         createdAt,
+        room_bookings,
         ...updateBody
       } = formData;
-
       await UpdateData({
         auth,
         endPoint: 'rooms',
@@ -151,7 +151,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.room_no?.toLowerCase().includes(search.toLowerCase())
+      item.room_no?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 

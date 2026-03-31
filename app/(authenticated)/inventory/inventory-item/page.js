@@ -73,7 +73,7 @@ const Page = () => {
       group: '',
       name: '',
       auditable: 'No',
-      tax: '',
+      tax: null,
       unit: 'Pcs',
       category: null,
       hotel_id: auth?.user?.hotel_id || '',
@@ -96,8 +96,6 @@ const Page = () => {
     if (!formData.name.trim()) errors.name = 'Name is required';
     if (!formData.category) errors.category = 'Category is required';
     if (!formData.unit) errors.unit = 'Unit is required';
-    if (formData.tax === '' || isNaN(formData.tax))
-      errors.tax = 'GST must be a valid number';
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -129,9 +127,10 @@ const Page = () => {
         publishedAt,
         updatedAt,
         createdAt,
+        inventory_purchases,
+        inventory_sales,
         ...updateBody
       } = formData;
-
       await UpdateData({
         auth,
         endPoint: 'inventory-items',
@@ -250,7 +249,7 @@ const Page = () => {
                     <TableCell>{row.unit}</TableCell>
                     <TableCell>{row.group}</TableCell>
                     <TableCell>{row.auditable}</TableCell>
-                    <TableCell>{row.tax}</TableCell>
+                    <TableCell>{row.tax || 'Nil'}</TableCell>
                     <TableCell>{row.user_created}</TableCell>
                     <TableCell>{row.user_updated}</TableCell>
                     <TableCell sx={{ width: '100px' }}>

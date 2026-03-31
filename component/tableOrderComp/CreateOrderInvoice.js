@@ -308,12 +308,20 @@ const CreateOrderInvoice = ({
                 size="small"
                 fullWidth
                 value={formData.customer_phone}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const cleaned = e.target.value
+                    .replace(/\D/g, '')
+                    .slice(0, 10);
                   setFormData({
                     ...formData,
-                    customer_phone: e.target.value,
-                  })
-                }
+                    customer_phone: cleaned,
+                  });
+                }}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6 }}>

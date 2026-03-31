@@ -96,7 +96,6 @@ const Page = () => {
                     'Alt Phone',
                     'Address',
                     'GSTIN',
-                    'Created By',
                     'Updated By',
                     'Actions',
                   ].map((item, index) => (
@@ -118,7 +117,7 @@ const Page = () => {
                     </TableCell>
                     <TableCell>{row.gst_no}</TableCell>
 
-                    <TableCell>{row.user_created}</TableCell>
+                    {/* <TableCell>{row.user_created}</TableCell> */}
                     <TableCell>{row.user_updated || '-'}</TableCell>
                     <TableCell sx={{ width: '100px' }}>
                       <Tooltip title="Edit">

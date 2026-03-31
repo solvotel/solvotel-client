@@ -148,13 +148,13 @@ const Page = () => {
         room_bookings,
         ...body
       } = formData;
-      console.log(body);
+
       await UpdateData({
         auth,
         endPoint: 'customers',
         id: formData.documentId,
         payload: {
-          data: { ...body },
+          data: { ...body, user_updated: auth?.user?.username },
         },
       });
       SuccessToast('Guest updated successfully');

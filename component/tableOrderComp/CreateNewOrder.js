@@ -261,12 +261,19 @@ const CreateNewOrder = ({
                       {/* Total (Editable for reverse calc) */}
                       <TableCell>
                         <TextField
-                          type="number"
                           size="small"
-                          value={item.amount}
-                          onChange={(e) =>
-                            handleItemChange(idx, 'amount', e.target.value)
-                          }
+                          value={item.amount ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+
+                            // Allow only positive numbers with optional decimal
+                            if (/^\d*\.?\d*$/.test(value)) {
+                              handleItemChange(idx, 'amount', value);
+                            }
+                          }}
+                          inputProps={{
+                            inputMode: 'decimal',
+                          }}
                           sx={{ width: 100 }}
                         />
                       </TableCell>

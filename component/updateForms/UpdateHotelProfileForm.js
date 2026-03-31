@@ -37,7 +37,20 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let formattedValue = value;
+
+    if (name === 'hotel_mobile' || name === 'hotel_alt_mobile') {
+      formattedValue = formattedValue.replace(/\D/g, '');
+      formattedValue = formattedValue.slice(0, 10);
+    }
+
+    if (name === 'hotel_pincode') {
+      formattedValue = formattedValue.replace(/\D/g, '');
+      formattedValue = formattedValue.slice(0, 6);
+    }
+
+    setFormData({ ...formData, [name]: formattedValue });
   };
 
   // ✅ Validation function
@@ -95,7 +108,14 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
 
     try {
       setLoading(true);
-      const payload = { data: formData };
+      const payload = {
+        data: {
+          ...formData,
+          hotel_email: formData.hotel_email?.trim()
+            ? formData.hotel_email.trim()
+            : null,
+        },
+      };
       await UpdateData({
         auth,
         endPoint: 'hotels',
@@ -140,28 +160,111 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
 
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            {[
-              { name: 'hotel_name', label: 'Hotel Name' },
-              { name: 'hotel_mobile', label: 'Mobile No' },
-              { name: 'hotel_email', label: 'Email' },
-              { name: 'hotel_alt_mobile', label: 'Alt Mobile' },
-              { name: 'hotel_gst_no', label: 'GST No' },
-              { name: 'hotel_website', label: 'Website' },
-              { name: 'hotel_address_line1', label: 'Address Line 1' },
-              { name: 'hotel_address_line2', label: 'Address Line 2' },
-            ].map((field) => (
-              <Grid item key={field.name} size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label={field.label}
-                  name={field.name}
-                  value={formData[field.name]}
-                  onChange={handleChange}
-                  error={!!errors[field.name]}
-                  helperText={errors[field.name] || ''}
-                />
-              </Grid>
-            ))}
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Hotel Name"
+                name="hotel_name"
+                value={formData.hotel_name}
+                onChange={handleChange}
+                error={!!errors.hotel_name}
+                helperText={errors.hotel_name || ''}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Mobile No"
+                name="hotel_mobile"
+                value={formData.hotel_mobile}
+                onChange={handleChange}
+                error={!!errors.hotel_mobile}
+                helperText={errors.hotel_mobile || ''}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Email"
+                name="hotel_email"
+                value={formData.hotel_email}
+                onChange={handleChange}
+                error={!!errors.hotel_email}
+                helperText={errors.hotel_email || ''}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Alt Mobile"
+                name="hotel_alt_mobile"
+                value={formData.hotel_alt_mobile}
+                onChange={handleChange}
+                error={!!errors.hotel_alt_mobile}
+                helperText={errors.hotel_alt_mobile || ''}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="GST No"
+                name="hotel_gst_no"
+                value={formData.hotel_gst_no}
+                onChange={handleChange}
+                error={!!errors.hotel_gst_no}
+                helperText={errors.hotel_gst_no || ''}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Website"
+                name="hotel_website"
+                value={formData.hotel_website}
+                onChange={handleChange}
+                error={!!errors.hotel_website}
+                helperText={errors.hotel_website || ''}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Address Line 1"
+                name="hotel_address_line1"
+                value={formData.hotel_address_line1}
+                onChange={handleChange}
+                error={!!errors.hotel_address_line1}
+                helperText={errors.hotel_address_line1 || ''}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Address Line 2"
+                name="hotel_address_line2"
+                value={formData.hotel_address_line2}
+                onChange={handleChange}
+                error={!!errors.hotel_address_line2}
+                helperText={errors.hotel_address_line2 || ''}
+              />
+            </Grid>
 
             <Grid size={{ xs: 12, md: 4 }}>
               <TextField

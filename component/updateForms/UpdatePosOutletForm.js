@@ -35,7 +35,20 @@ const UpdatePosOutletForm = ({ data, auth }) => {
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let formattedValue = value;
+
+    if (name === 'phone' || name === 'alt_phone') {
+      formattedValue = formattedValue.replace(/\D/g, '');
+      formattedValue = formattedValue.slice(0, 10);
+    }
+
+    if (name === 'pincode') {
+      formattedValue = formattedValue.replace(/\D/g, '');
+      formattedValue = formattedValue.slice(0, 6);
+    }
+
+    setFormData({ ...formData, [name]: formattedValue });
   };
 
   const validate = () => {
@@ -83,7 +96,13 @@ const UpdatePosOutletForm = ({ data, auth }) => {
 
     try {
       setLoading(true);
-      const payload = { data: formData };
+      const payload = {
+        data: {
+          ...formData,
+          email: formData.email?.trim() ? formData.email.trim() : null,
+          user_updated: auth?.user?.username || '',
+        },
+      };
       await UpdateData({
         auth,
         endPoint: 'pos-outlets',
@@ -155,6 +174,11 @@ const UpdatePosOutletForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.phone}
                 helperText={errors.phone}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
 
@@ -183,6 +207,11 @@ const UpdatePosOutletForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.alt_phone}
                 helperText={errors.alt_phone}
+                inputProps={{
+                  maxLength: 10,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
 
@@ -291,6 +320,11 @@ const UpdatePosOutletForm = ({ data, auth }) => {
                 type="number"
                 error={!!errors.pincode}
                 helperText={errors.pincode}
+                inputProps={{
+                  maxLength: 6,
+                  inputMode: 'numeric',
+                  pattern: '[0-9]*',
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>

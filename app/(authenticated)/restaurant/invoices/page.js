@@ -249,6 +249,13 @@ const Page = () => {
     setFormOpen(true);
   };
 
+  const handleClose = () => {
+    setFormOpen(false);
+    setFormErrors({});
+    setSelectedItem('');
+    setFormErrors({});
+  };
+
   const validateForm = (formData) => {
     const errors = {};
 
@@ -570,12 +577,7 @@ const Page = () => {
           </Dialog>
 
           {/* Create/Edit Dialog */}
-          <Dialog
-            open={formOpen}
-            onClose={() => setFormOpen(false)}
-            maxWidth="md"
-            fullWidth
-          >
+          <Dialog open={formOpen} onClose={handleClose} maxWidth="md" fullWidth>
             <DialogTitle>
               {editing ? 'Edit Invoice' : 'Create Invoice'}
             </DialogTitle>
@@ -627,12 +629,20 @@ const Page = () => {
                     size="small"
                     fullWidth
                     value={formData.customer_phone}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const cleaned = e.target.value
+                        .replace(/\D/g, '')
+                        .slice(0, 10);
                       setFormData({
                         ...formData,
-                        customer_phone: e.target.value,
-                      })
-                    }
+                        customer_phone: cleaned,
+                      });
+                    }}
+                    inputProps={{
+                      maxLength: 10,
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*',
+                    }}
                   />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 6 }}>
@@ -853,26 +863,37 @@ const Page = () => {
                           {/* Amount Field (reverse calculation) */}
                           <TableCell>
                             <TextField
-                              type="number"
                               size="small"
-                              value={item.amount}
+                              value={item.amount ?? ''}
                               onChange={(e) => {
-                                const newAmount =
-                                  parseFloat(e.target.value) || 0;
-                                const updated = [...formData.menu_items];
-                                const gst = updated[idx].gst || 0;
-                                const qty = updated[idx].qty || 1;
-                                updated[idx].amount = newAmount;
-                                // Reverse calculate base rate excluding GST
-                                updated[idx].rate = +(
-                                  newAmount /
-                                  qty /
-                                  (1 + gst / 100)
-                                ).toFixed(2);
-                                setFormData({
-                                  ...formData,
-                                  menu_items: updated,
-                                });
+                                const value = e.target.value;
+
+                                // Allow only positive numbers with optional decimal
+                                if (/^\d*\.?\d*$/.test(value)) {
+                                  const newAmount =
+                                    value === '' ? 0 : parseFloat(value);
+
+                                  const updated = [...formData.menu_items];
+                                  const gst = updated[idx].gst || 0;
+                                  const qty = updated[idx].qty || 1;
+
+                                  updated[idx].amount = newAmount;
+
+                                  // Reverse calculate base rate excluding GST
+                                  updated[idx].rate = +(
+                                    newAmount /
+                                    qty /
+                                    (1 + gst / 100)
+                                  ).toFixed(2);
+
+                                  setFormData({
+                                    ...formData,
+                                    menu_items: updated,
+                                  });
+                                }
+                              }}
+                              inputProps={{
+                                inputMode: 'decimal',
                               }}
                               sx={{ width: 100 }}
                             />
@@ -1096,7 +1117,7 @@ const Page = () => {
               })()}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setFormOpen(false)}>Cancel</Button>
+              <Button onClick={handleClose}>Cancel</Button>
               <Button
                 onClick={handleSave}
                 variant="contained"
