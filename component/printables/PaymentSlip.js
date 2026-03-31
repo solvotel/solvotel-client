@@ -93,8 +93,8 @@ const PaymentSlip = React.forwardRef((props, ref) => {
             </Typography>
           </Grid>
           <Grid size={5} textAlign="right">
-            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-              Booking Slip
+            <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+              Payment Receipt
             </Typography>
             <Typography>Booking ID: {booking.booking_id}</Typography>
             <Typography>

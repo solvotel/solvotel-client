@@ -38,8 +38,7 @@ const Page = () => {
     auth,
     endPoint: 'room-invoices',
   });
-
-  console.log('data', data);
+  console.log('🚀 ~ file: page.js:28 ~ Page ~ data:', data);
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
@@ -65,8 +64,8 @@ const Page = () => {
       return {
         'Invoice No': row.invoice_no,
         'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
-        Checkin: `${GetCustomDate(row.room_booking.checkin_date)}`,
-        Checkout: `${GetCustomDate(row.room_booking.checkin_out)}`,
+        Checkin: `${GetCustomDate(row.checkin_date)}`,
+        Checkout: `${GetCustomDate(row.checkout_date)}`,
         'Customer Name': row?.customer_name,
         GSTIN: row?.customer_gst,
         'Taxable Amount': row.total_amount.toFixed(2),
@@ -204,10 +203,10 @@ const Page = () => {
                           {GetCustomDate(row.date)}&nbsp;{row.time}
                         </TableCell>
                         <TableCell>
-                          {GetCustomDate(row.room_booking.checkin_date) || '-'}
+                          {GetCustomDate(row.checkin_date) || '-'}
                         </TableCell>
                         <TableCell>
-                          {GetCustomDate(row.room_booking.checkin_out) || '-'}
+                          {GetCustomDate(row.checkout_date) || '-'}
                         </TableCell>
                         <TableCell>{row?.customer_name || 'NA'}</TableCell>
                         <TableCell>{row?.customer_gst || 'NA'}</TableCell>

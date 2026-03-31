@@ -88,7 +88,7 @@ export default function ManageFood({
     for (let f of foods) {
       if (!f.item || !f.rate || !f.qty) {
         WarningToast(
-          'Please fill Item, Rate, and Qty for all rows before saving.'
+          'Please fill Item, Rate, and Qty for all rows before saving.',
         );
         return;
       }
@@ -104,7 +104,7 @@ export default function ManageFood({
 
     const total_amount = foods.reduce(
       (acc, item) => acc + (parseFloat(item.amount) || 0),
-      0
+      0,
     );
 
     // Compute total GST accurately
@@ -241,7 +241,7 @@ export default function ManageFood({
                         value={food.item}
                         onChange={(e) => {
                           const item = menuItems.find(
-                            (m) => m.item === e.target.value
+                            (m) => m.item === e.target.value,
                           );
                           if (item) {
                             handleInlineChange(index, 'item', item.item);
@@ -277,12 +277,15 @@ export default function ManageFood({
                     {/* Rate */}
                     <TableCell>
                       <TextField
-                        type="number"
                         size="small"
-                        value={food.rate}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'rate', e.target.value)
-                        }
+                        value={food.rate ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            handleInlineChange(index, 'rate', value);
+                          }
+                        }}
+                        inputProps={{ inputMode: 'decimal' }}
                         fullWidth
                       />
                     </TableCell>
@@ -290,12 +293,15 @@ export default function ManageFood({
                     {/* Qty */}
                     <TableCell>
                       <TextField
-                        type="number"
                         size="small"
-                        value={food.qty}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'qty', e.target.value)
-                        }
+                        value={food.qty ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*$/.test(value)) {
+                            handleInlineChange(index, 'qty', value);
+                          }
+                        }}
+                        inputProps={{ inputMode: 'numeric' }}
                         fullWidth
                       />
                     </TableCell>
@@ -303,25 +309,31 @@ export default function ManageFood({
                     {/* GST */}
                     <TableCell>
                       <TextField
-                        type="number"
                         size="small"
-                        value={food.gst}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'gst', e.target.value)
-                        }
+                        value={food.gst ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            handleInlineChange(index, 'gst', value);
+                          }
+                        }}
+                        inputProps={{ inputMode: 'decimal' }}
                         fullWidth
                       />
                     </TableCell>
 
-                    {/* Amount (editable) */}
+                    {/* Amount */}
                     <TableCell>
                       <TextField
-                        type="number"
                         size="small"
-                        value={food.amount}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'amount', e.target.value)
-                        }
+                        value={food.amount ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            handleInlineChange(index, 'amount', value);
+                          }
+                        }}
+                        inputProps={{ inputMode: 'decimal' }}
                         fullWidth
                       />
                     </TableCell>

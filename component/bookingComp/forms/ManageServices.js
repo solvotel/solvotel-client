@@ -52,20 +52,33 @@ export default function ManageServices({
     let amount =
       updated[index].amount === '' ? null : parseFloat(updated[index].amount);
 
-    // 🔹 Rate + GST → Calculate Amount (GST can be 0)
-    if (field === 'rate' || field === 'gst') {
-      if (rate !== null && gst !== null) {
-        amount = +(rate + (rate * gst) / 100).toFixed(2);
-        updated[index].amount = amount;
-      }
-    }
+    // Keep GST optional, treat missing GST as 0 for calc
+    const gstVal = gst !== null ? gst : 0;
 
-    // 🔹 Amount + GST → Calculate Rate (GST can be 0)
-    if (field === 'amount') {
-      if (amount !== null && gst !== null) {
+    if (field === 'rate' || field === 'gst') {
+      if (rate !== null) {
+        amount = +(rate + (rate * gstVal) / 100).toFixed(2);
+        updated[index].amount = amount;
+      } else if (amount !== null && gst !== null) {
         rate = +(amount / (1 + gst / 100)).toFixed(2);
         updated[index].rate = rate;
       }
+    }
+
+    if (field === 'amount') {
+      if (amount !== null) {
+        if (gst !== null) {
+          rate = +(amount / (1 + gst / 100)).toFixed(2);
+        } else {
+          rate = +amount.toFixed(2);
+        }
+        updated[index].rate = rate;
+      }
+    }
+
+    // If GST gets cleared but we have rate, keep amount in sync
+    if (field === 'gst' && gst === null && rate !== null) {
+      updated[index].amount = +rate.toFixed(2);
     }
 
     setServices(updated);
@@ -80,14 +93,6 @@ export default function ManageServices({
   };
 
   const handleSaveAll = () => {
-    for (let s of services) {
-      if (!s.item || !s.rate || !s.gst) {
-        WarningToast(
-          'Please fill Room, Item, and Rate for all rows before saving.',
-        );
-        return;
-      }
-    }
     if (!room) {
       WarningToast('Select Room No');
       return;
@@ -97,13 +102,65 @@ export default function ManageServices({
       return;
     }
 
-    const total_gst = services.reduce((acc, item) => {
+    let normalizedServices;
+
+    try {
+      normalizedServices = services.map((service) => {
+        const item = service.item?.trim();
+        if (!item) {
+          throw new Error('Item name is required for every service row.');
+        }
+
+        let rate =
+          service.rate === '' || service.rate === null
+            ? null
+            : parseFloat(service.rate);
+        let gst =
+          service.gst === '' || service.gst === null
+            ? 0
+            : parseFloat(service.gst);
+        let amount =
+          service.amount === '' || service.amount === null
+            ? null
+            : parseFloat(service.amount);
+
+        if (rate === null && amount === null) {
+          throw new Error('Rate or Amount is required for every service row.');
+        }
+
+        if (amount === null && rate !== null) {
+          amount = +(rate + (rate * gst) / 100).toFixed(2);
+        }
+
+        if (rate === null && amount !== null) {
+          if (gst === 0) {
+            rate = +amount.toFixed(2);
+          } else {
+            rate = +(amount / (1 + gst / 100)).toFixed(2);
+          }
+        }
+
+        return {
+          ...service,
+          item,
+          hsn: service.hsn || '',
+          rate: +(rate || 0).toFixed(2),
+          gst: +(gst || 0).toFixed(2),
+          amount: +(amount || 0).toFixed(2),
+        };
+      });
+    } catch (err) {
+      WarningToast(err.message);
+      return;
+    }
+
+    const total_gst = normalizedServices.reduce((acc, item) => {
       const baseRate = parseFloat(item.rate) || 0;
       const gstAmount = (baseRate * (parseFloat(item.gst) || 0)) / 100;
       return acc + gstAmount;
     }, 0);
 
-    const total_amount = services.reduce(
+    const total_amount = normalizedServices.reduce(
       (acc, item) => acc + (parseFloat(item.amount) || 0),
       0,
     );
@@ -114,7 +171,7 @@ export default function ManageServices({
       total_gst: total_gst || 0,
       total_amount: total_amount || 0,
       invoice: false,
-      items: services,
+      items: normalizedServices,
     };
 
     handleManageService(payload);

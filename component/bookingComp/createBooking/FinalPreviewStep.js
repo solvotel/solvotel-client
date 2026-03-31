@@ -18,9 +18,12 @@ import {
   MenuItem,
   FormControlLabel,
   Checkbox,
+  Button,
+  IconButton,
 } from '@mui/material';
 import { CalculateDays } from '@/utils/CalculateDays';
 import { GetCustomDate } from '@/utils/DateFetcher';
+import { AccountBalanceWallet, Add, Delete } from '@mui/icons-material';
 
 const FinalPreviewStep = ({
   selectedGuest,
@@ -28,8 +31,8 @@ const FinalPreviewStep = ({
   selectedRooms,
   roomTokens,
   setRoomTokens,
-  paymentDetails,
-  setPaymentDetails,
+  advancePayment,
+  setAdvancePayment,
   paymentMethods,
 }) => {
   const [useBulkPrice, setUseBulkPrice] = useState(false);
@@ -95,7 +98,7 @@ const FinalPreviewStep = ({
   };
 
   const handleAdvanceChange = (field, value) => {
-    setPaymentDetails((prev) => ({
+    setAdvancePayment((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -122,55 +125,51 @@ const FinalPreviewStep = ({
               {selectedGuest.name}
             </Typography>
             <Grid container spacing={1}>
-              <Grid item xs={6} sm={4}>
+              <Grid size={{ xs: 6, sm: 4 }}>
                 📞 {selectedGuest.mobile || '-'}
               </Grid>
-              <Grid item xs={6} sm={4}>
+              <Grid size={{ xs: 6, sm: 4 }}>
                 ✉️ {selectedGuest.email || '-'}
               </Grid>
-              <Grid item xs={6} sm={4}>
+              <Grid size={{ xs: 6, sm: 4 }}>
                 🏢 {selectedGuest.company_name || '-'}
               </Grid>
-              <Grid item xs={6} sm={4}>
+              <Grid size={{ xs: 6, sm: 4 }}>
                 🧾 GST: {selectedGuest.gst_no || '-'}
               </Grid>
               {selectedGuest.dob && (
-                <Grid item xs={6} sm={4}>
-                  🎂 DOB: {selectedGuest.dob}
-                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>🎂 DOB: {selectedGuest.dob}</Grid>
               )}
               {selectedGuest.doa && (
-                <Grid item xs={6} sm={4}>
-                  💍 DOA: {selectedGuest.doa}
-                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>💍 DOA: {selectedGuest.doa}</Grid>
               )}
               {selectedGuest.id_type && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   🪪 {selectedGuest.id_type}: {selectedGuest.id_number || '-'}
                 </Grid>
               )}
               {selectedGuest.passport_issue_date && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   📘 Passport Issue: {selectedGuest.passport_issue_date}
                 </Grid>
               )}
               {selectedGuest.passport_exp_date && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   📘 Passport Expiry: {selectedGuest.passport_exp_date}
                 </Grid>
               )}
               {selectedGuest.visa_number && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   🛂 Visa No: {selectedGuest.visa_number}
                 </Grid>
               )}
               {selectedGuest.visa_issue_date && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   🛂 Visa Issue: {selectedGuest.visa_issue_date}
                 </Grid>
               )}
               {selectedGuest.visa_exp_date && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 6, sm: 4 }}>
                   🛂 Visa Expiry: {selectedGuest.visa_exp_date}
                 </Grid>
               )}
@@ -231,7 +230,7 @@ const FinalPreviewStep = ({
               </Grid>
             )}
             {bookingDetails.remarks && (
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant="body2">
                   📝 Remarks: {bookingDetails.remarks}
                 </Typography>
@@ -379,58 +378,119 @@ const FinalPreviewStep = ({
         sx={{
           my: 2,
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #fff8e1, #fff3e0)',
+          boxShadow: 2,
+          background: 'linear-gradient(135deg, #fffdf7, #fff3e0)',
         }}
       >
         <CardContent>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            Advance Payment
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                select
-                label="Mode"
-                size="small"
-                fullWidth
-                value={paymentDetails.mode}
-                onChange={(e) => handleAdvanceChange('mode', e.target.value)}
-              >
-                <MenuItem value="">--- Select ---</MenuItem>
-                {paymentMethods?.map((cat) => (
-                  <MenuItem key={cat.documentId} value={cat.name}>
-                    {cat?.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                label="Amount"
-                size="small"
-                fullWidth
-                value={paymentDetails.amount ?? ''}
-                inputProps={{ inputMode: 'decimal' }}
-                onChange={(e) => {
-                  const value = e.target.value;
+          {/* Header */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AccountBalanceWallet color="warning" />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Advance Payment
+              </Typography>
+            </Box>
 
-                  // allow only positive numbers with max 2 decimal places
-                  if (/^\d*\.?\d{0,2}$/.test(value)) {
-                    handleAdvanceChange('amount', value);
-                  }
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                label="Remark"
+            {advancePayment && (
+              <IconButton
                 size="small"
-                fullWidth
-                value={paymentDetails.remark}
-                onChange={(e) => handleAdvanceChange('remark', e.target.value)}
-              />
+                color="error"
+                onClick={() => setAdvancePayment(null)}
+                sx={{
+                  background: '#ffebee',
+                  '&:hover': { background: '#ffcdd2' },
+                }}
+              >
+                <Delete />
+              </IconButton>
+            )}
+          </Box>
+
+          {advancePayment ? (
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  select
+                  label="Payment Mode"
+                  size="small"
+                  fullWidth
+                  value={advancePayment.mode}
+                  onChange={(e) => handleAdvanceChange('mode', e.target.value)}
+                >
+                  <MenuItem value="">--- Select ---</MenuItem>
+                  {paymentMethods?.map((cat) => (
+                    <MenuItem key={cat.documentId} value={cat.name}>
+                      {cat?.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  label="Amount"
+                  size="small"
+                  fullWidth
+                  value={advancePayment.amount ?? ''}
+                  inputProps={{ inputMode: 'decimal' }}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    if (/^\d*\.?\d{0,2}$/.test(value)) {
+                      handleAdvanceChange('amount', value);
+                    }
+                  }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  label="Remark"
+                  size="small"
+                  fullWidth
+                  value={advancePayment.remark}
+                  onChange={(e) =>
+                    handleAdvanceChange('remark', e.target.value)
+                  }
+                />
+              </Grid>
             </Grid>
-          </Grid>
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                py: 2,
+              }}
+            >
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                sx={{
+                  borderRadius: 2,
+                  px: 3,
+                }}
+                onClick={() =>
+                  setAdvancePayment({
+                    date: new Date().toISOString().split('T')[0],
+                    mode: '',
+                    amount: '',
+                    remark: '',
+                  })
+                }
+              >
+                Add Advance Payment
+              </Button>
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Box>

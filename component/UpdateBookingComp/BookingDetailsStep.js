@@ -149,20 +149,31 @@ export default function BookingDetailsStep({
       </Grid>
       <Grid size={{ xs: 12, sm: 4 }}>
         <TextField
-          type="number"
           label="Adults"
           fullWidth
-          value={bookingDetails.adult || ''}
-          onChange={(e) => handleChange('adult', e.target.value)}
+          value={bookingDetails.adult ?? ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (/^\d*$/.test(value)) {
+              handleChange('adult', value);
+            }
+          }}
+          inputProps={{ inputMode: 'numeric' }}
         />
       </Grid>
+
       <Grid size={{ xs: 12, sm: 4 }}>
         <TextField
-          type="number"
           label="Children"
           fullWidth
-          value={bookingDetails.children || ''}
-          onChange={(e) => handleChange('children', e.target.value)}
+          value={bookingDetails.children ?? ''}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (/^\d*$/.test(value)) {
+              handleChange('children', value);
+            }
+          }}
+          inputProps={{ inputMode: 'numeric' }}
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>

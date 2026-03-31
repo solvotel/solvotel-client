@@ -85,7 +85,7 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
                     {GetCustomDate(row.room_booking.checkin_date) || '-'}
                   </BodyCell>
                   <BodyCell>
-                    {GetCustomDate(row.room_booking.checkin_out) || '-'}
+                    {GetCustomDate(row.room_booking.checkout_date) || '-'}
                   </BodyCell>
                   <BodyCell>{row.customer_name || 'NA'}</BodyCell>
                   <BodyCell>{row.customer_gst || 'NA'}</BodyCell>

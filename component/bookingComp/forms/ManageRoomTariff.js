@@ -153,33 +153,44 @@ export default function ManageRoomTariff({
                     <TableCell>
                       <TextField
                         size="small"
-                        type="number"
-                        value={room.rate}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'rate', e.target.value)
-                        }
+                        value={room.rate ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            handleInlineChange(index, 'rate', value);
+                          }
+                        }}
+                        inputProps={{ inputMode: 'decimal' }}
                         fullWidth
                       />
                     </TableCell>
+
                     <TableCell>
                       <TextField
                         size="small"
-                        type="number"
-                        value={room.gst}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'gst', e.target.value)
-                        }
+                        value={room.gst ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            handleInlineChange(index, 'gst', value);
+                          }
+                        }}
+                        inputProps={{ inputMode: 'decimal' }}
                         fullWidth
                       />
                     </TableCell>
+
                     <TableCell>
                       <TextField
                         size="small"
-                        type="number"
-                        value={room.amount}
-                        onChange={(e) =>
-                          handleInlineChange(index, 'amount', e.target.value)
-                        }
+                        value={room.amount ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*\.?\d*$/.test(value)) {
+                            handleInlineChange(index, 'amount', value);
+                          }
+                        }}
+                        inputProps={{ inputMode: 'decimal' }}
                         fullWidth
                       />
                     </TableCell>

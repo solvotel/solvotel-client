@@ -92,12 +92,7 @@ export default function BookingForm() {
 
   const [selectedRooms, setSelectedRooms] = useState([]);
   const [roomTokens, setRoomTokens] = useState([]);
-  const [paymentDetails, setPaymentDetails] = useState({
-    date: formatDate(todaysdate),
-    mode: '',
-    amount: 0,
-    remark: '',
-  });
+  const [advancePayment, setAdvancePayment] = useState(null);
   const [error, setError] = useState('');
 
   const validateStep = () => {
@@ -159,7 +154,7 @@ export default function BookingForm() {
     const uniqueRoomIds = [...new Set(selectedRooms.map((r) => r.documentId))];
     const rooms = uniqueRoomIds;
 
-    if (paymentDetails.amount > totalAmount) {
+    if (advancePayment && advancePayment.amount > totalAmount) {
       setError('Advance payment cannot be more than total amount.');
       return;
     }
@@ -172,11 +167,11 @@ export default function BookingForm() {
         ...bookingDetails,
         rooms: rooms,
         room_tokens: roomTokens,
-        advance_payment: paymentDetails,
+        advance_payment: advancePayment,
         hotel_id: auth?.user?.hotel_id || '',
         user_created: auth?.user?.username,
       };
-      console.log('Booking payload:', payload);
+
       const res = await CreateNewData({
         auth,
         endPoint: 'room-bookings',
@@ -283,8 +278,8 @@ export default function BookingForm() {
                   <FinalPreviewStep
                     selectedGuest={selectedGuest}
                     bookingDetails={bookingDetails}
-                    paymentDetails={paymentDetails}
-                    setPaymentDetails={setPaymentDetails}
+                    advancePayment={advancePayment}
+                    setAdvancePayment={setAdvancePayment}
                     onSubmit={handleSubmitBooking}
                     selectedRooms={selectedRooms}
                     roomTokens={roomTokens}

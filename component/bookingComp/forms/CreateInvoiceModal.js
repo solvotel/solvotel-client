@@ -193,6 +193,9 @@ export default function CreateInvoiceModal({
           payable_amount: payableAmount,
           tax: totalGst,
           total_amount: payableAmount - totalGst,
+          checkin_date: booking.checkin_date,
+          checkout_date: booking.checkout_date,
+          user_created: auth?.user?.username,
         },
       };
 
@@ -294,12 +297,21 @@ export default function CreateInvoiceModal({
                 size="small"
                 fullWidth
                 value={customerData[field.key]}
-                onChange={(e) =>
+                inputProps={
+                  field.key === 'customer_phone'
+                    ? { inputMode: 'numeric', pattern: '[0-9]*', maxLength: 10 }
+                    : undefined
+                }
+                onChange={(e) => {
+                  let value = e.target.value;
+                  if (field.key === 'customer_phone') {
+                    value = value.replace(/\D/g, '').slice(0, 10);
+                  }
                   setCustomerData({
                     ...customerData,
-                    [field.key]: e.target.value,
-                  })
-                }
+                    [field.key]: value,
+                  });
+                }}
               />
             </Grid>
           ))}

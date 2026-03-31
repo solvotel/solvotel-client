@@ -117,7 +117,7 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
     });
 
     SuccessToast('Guest created successfully');
-    setSelectedGuest(res?.data);
+    setSelectedGuest(res?.data?.data);
 
     setFormOpen(false);
     setFormData(initialForm());

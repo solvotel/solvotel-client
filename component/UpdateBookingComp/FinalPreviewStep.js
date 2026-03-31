@@ -18,18 +18,21 @@ import {
   MenuItem,
   FormControlLabel,
   Checkbox,
+  Button,
+  IconButton,
 } from '@mui/material';
 import { CalculateDays } from '@/utils/CalculateDays';
 import { GetCustomDate } from '@/utils/DateFetcher';
+import { AccountBalanceWallet, Add } from '@mui/icons-material';
+import { Delete } from 'lucide-react';
 
 const FinalPreviewStep = ({
   selectedGuest,
   bookingDetails,
-  selectedRooms,
   roomTokens,
   setRoomTokens,
-  paymentDetails,
-  setPaymentDetails,
+  advancePayment,
+  setAdvancePayment,
   paymentMethods,
 }) => {
   const totalDays = CalculateDays({
@@ -44,21 +47,24 @@ const FinalPreviewStep = ({
   const handleChange = (index, field, value) => {
     const updated = [...roomTokens];
     const room = { ...updated[index] };
-    const numericValue = parseFloat(value) || 0;
+    const numericValue = value === '' ? null : parseFloat(value);
 
     room[field] = numericValue;
 
     const rate = parseFloat(room.rate) || 0;
-    const gst = parseFloat(room.gst) || 0;
+    const gst =
+      room.gst === null || room.gst === undefined
+        ? 0
+        : parseFloat(room.gst) || 0;
     const days = parseFloat(room.days) || totalDays;
     const amount = parseFloat(room.amount) || 0;
 
     if (field === 'rate' || field === 'gst') {
-      // Forward calc
+      // Forward calc (GST blank treated as 0)
       const newAmount = (rate + (rate * gst) / 100) * days;
       room.amount = parseFloat(newAmount.toFixed(2));
     } else if (field === 'amount') {
-      // Reverse calc
+      // Reverse calc (GST blank treated as 0)
       const base = amount / days;
       const newRate = base / (1 + gst / 100);
       room.rate = parseFloat(newRate.toFixed(2));
@@ -73,7 +79,7 @@ const FinalPreviewStep = ({
   };
 
   const handleAdvanceChange = (field, value) => {
-    setPaymentDetails((prev) => ({
+    setAdvancePayment((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -246,13 +252,21 @@ const FinalPreviewStep = ({
               />
               {useBulkPrice && (
                 <TextField
-                  type="number"
                   label="Enter price for all rooms"
-                  value={bulkPrice}
-                  onChange={(e) => handleBulkPriceChange(e.target.value)}
+                  value={bulkPrice ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    // Allow only positive numbers with 2 decimal places
+                    if (/^\d*\.?\d{0,2}$/.test(value)) {
+                      handleBulkPriceChange(value);
+                    }
+                  }}
                   size="small"
                   sx={{ width: 250 }}
-                  inputProps={{ step: '0.01', min: '0' }}
+                  inputProps={{
+                    inputMode: 'decimal',
+                  }}
                 />
               )}
             </Box>
@@ -289,23 +303,41 @@ const FinalPreviewStep = ({
 
                 <TableCell sx={{ width: '150px' }}>
                   <TextField
-                    type="number"
-                    value={room.rate}
-                    onChange={(e) =>
-                      handleChange(index, 'rate', e.target.value)
-                    }
+                    value={room.rate ?? ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // Allow only positive numbers with optional decimal
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        handleChange(index, 'rate', value);
+                      }
+                    }}
                     size="small"
                     variant="outlined"
+                    inputProps={{
+                      inputMode: 'decimal',
+                    }}
                   />
                 </TableCell>
                 <TableCell>{room.days}</TableCell>
                 <TableCell sx={{ width: '120px' }}>
                   <TextField
-                    type="number"
-                    value={room.gst}
-                    onChange={(e) => handleChange(index, 'gst', e.target.value)}
+                    value={
+                      room.gst === 0 || room.gst === '0' ? '' : (room.gst ?? '')
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+
+                      // Allow only positive numbers with optional decimal
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        handleChange(index, 'gst', value);
+                      }
+                    }}
                     size="small"
                     variant="outlined"
+                    inputProps={{
+                      inputMode: 'decimal',
+                    }}
                   />
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>{room.amount}</TableCell>
@@ -322,55 +354,125 @@ const FinalPreviewStep = ({
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Advance Payment */}
       <Card
         sx={{
           my: 2,
           borderRadius: 3,
-          background: 'linear-gradient(135deg, #fff8e1, #fff3e0)',
+          boxShadow: 2,
+          background: 'linear-gradient(135deg, #fffdf7, #fff3e0)',
         }}
       >
         <CardContent>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            Advance Payment
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                select
-                label="Mode"
+          {/* Header */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AccountBalanceWallet color="warning" />
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Advance Payment
+              </Typography>
+            </Box>
+
+            {advancePayment && (
+              <IconButton
                 size="small"
-                fullWidth
-                value={paymentDetails.mode}
-                onChange={(e) => handleAdvanceChange('mode', e.target.value)}
+                color="error"
+                onClick={() => setAdvancePayment(null)}
+                sx={{
+                  background: '#ffebee',
+                  '&:hover': { background: '#ffcdd2' },
+                }}
               >
-                <MenuItem value="">--- Select ---</MenuItem>
-                {paymentMethods?.map((cat) => (
-                  <MenuItem key={cat.documentId} value={cat.name}>
-                    {cat?.name}
-                  </MenuItem>
-                ))}
-              </TextField>
+                <Delete />
+              </IconButton>
+            )}
+          </Box>
+
+          {advancePayment ? (
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  select
+                  label="Payment Mode"
+                  size="small"
+                  fullWidth
+                  value={advancePayment.mode}
+                  onChange={(e) => handleAdvanceChange('mode', e.target.value)}
+                >
+                  <MenuItem value="">--- Select ---</MenuItem>
+                  {paymentMethods?.map((cat) => (
+                    <MenuItem key={cat.documentId} value={cat.name}>
+                      {cat?.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  label="Amount"
+                  size="small"
+                  fullWidth
+                  value={advancePayment.amount ?? ''}
+                  inputProps={{ inputMode: 'decimal' }}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    if (/^\d*\.?\d{0,2}$/.test(value)) {
+                      handleAdvanceChange('amount', value);
+                    }
+                  }}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <TextField
+                  label="Remark"
+                  size="small"
+                  fullWidth
+                  value={advancePayment.remark}
+                  onChange={(e) =>
+                    handleAdvanceChange('remark', e.target.value)
+                  }
+                />
+              </Grid>
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                label="Amount"
-                type="number"
-                size="small"
-                fullWidth
-                value={paymentDetails.amount}
-                onChange={(e) => handleAdvanceChange('amount', e.target.value)}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                label="Remark"
-                size="small"
-                fullWidth
-                value={paymentDetails.remark}
-                onChange={(e) => handleAdvanceChange('remark', e.target.value)}
-              />
-            </Grid>
-          </Grid>
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                py: 2,
+              }}
+            >
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                sx={{
+                  borderRadius: 2,
+                  px: 3,
+                }}
+                onClick={() =>
+                  setAdvancePayment({
+                    date: new Date().toISOString().split('T')[0],
+                    mode: '',
+                    amount: '',
+                    remark: '',
+                  })
+                }
+              >
+                Add Advance Payment
+              </Button>
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Box>

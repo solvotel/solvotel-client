@@ -111,12 +111,9 @@ const UpdateBookingForm = ({
   const [selectedRooms, setSelectedRooms] = useState(initializeSelectedRooms());
   const cleanedTokens = bookingData.room_tokens.map(({ id, ...rest }) => rest);
   const [roomTokens, setRoomTokens] = useState([...cleanedTokens]);
-  const [paymentDetails, setPaymentDetails] = useState({
-    date: bookingData?.advance_payment?.date,
-    mode: bookingData?.advance_payment?.mode || '',
-    amount: bookingData?.advance_payment?.amount || 0,
-    remark: bookingData?.advance_payment?.remark || '',
-  });
+  const [advancePayment, setAdvancePayment] = useState(
+    bookingData?.advance_payment || null,
+  );
   const [error, setError] = useState('');
 
   const validateStep = () => {
@@ -165,7 +162,7 @@ const UpdateBookingForm = ({
         ...bookingDetails,
         rooms: rooms,
         room_tokens: roomTokens,
-        advance_payment: paymentDetails,
+        advance_payment: advancePayment,
         user_updated: auth?.user?.username,
       };
 
@@ -268,8 +265,8 @@ const UpdateBookingForm = ({
               <FinalPreviewStep
                 selectedGuest={selectedGuest}
                 bookingDetails={bookingDetails}
-                paymentDetails={paymentDetails}
-                setPaymentDetails={setPaymentDetails}
+                advancePayment={advancePayment}
+                setAdvancePayment={setAdvancePayment}
                 onSubmit={handleSubmitBooking}
                 selectedRooms={selectedRooms}
                 roomTokens={roomTokens}
