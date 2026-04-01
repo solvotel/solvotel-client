@@ -70,9 +70,9 @@ const RoomBookingCalculator = (booking) => {
   const dueAmount = grandTotal - amountPayed;
 
   return {
-    grandTotal: parseFloat(grandTotal.toFixed(2)),
-    amountPayed: parseFloat(amountPayed.toFixed(2)),
-    dueAmount: parseFloat(dueAmount.toFixed(2)),
+    grandTotal: parseFloat(grandTotal),
+    amountPayed: parseFloat(amountPayed),
+    dueAmount: parseFloat(dueAmount),
   };
 };
 
@@ -141,8 +141,6 @@ const Page = () => {
       ...(restructuredRoomData || []),
       ...(restructuredRestaurantData || []),
     ];
-
-    console.log('All Invoices:', allInvoices);
 
     // Filter invoices with due amount > 0 and within date range
     const filteredInvoices = allInvoices.filter((inv) => {

@@ -98,7 +98,7 @@ const Page = () => {
           totalServiceAmount +
           totalFoodAmount
         ).toFixed(2),
-        'Total Paid': (totalPaidAmount + advanceAmount).toFixed(2),
+        'Total Paid': totalPaidAmount + advanceAmount,
         'Due Payment': (
           totalRoomAmount +
           totalServiceAmount +
@@ -274,7 +274,9 @@ const Page = () => {
                         <TableCell>{totalServiceAmount.toFixed(2)}</TableCell>
                         <TableCell>{totalFoodAmount.toFixed(2)}</TableCell>
                         <TableCell>{grandTotal.toFixed(2)}</TableCell>
-                        <TableCell>{amountPayed.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {parseFloat(amountPayed).toFixed(2)}
+                        </TableCell>
                         <TableCell>{dueAmount.toFixed(2)}</TableCell>
                       </TableRow>
                     );

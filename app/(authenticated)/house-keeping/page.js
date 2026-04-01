@@ -21,33 +21,64 @@ import { useAuth } from '@/context';
 import { GetDataList } from '@/utils/ApiFunctions';
 import { Loader } from '@/component/common';
 import { useState } from 'react';
+import { GetTodaysDate } from '@/utils/DateFetcher';
 
 const Page = () => {
   const { auth } = useAuth();
+  const todaysDate = GetTodaysDate().dateString;
+
   const rooms = GetDataList({ auth, endPoint: 'rooms' });
 
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(todaysDate);
 
   if (!rooms) return <Loader />;
 
-  // ✅ Check if room is available on a given date
-  const isRoomAvailable = (room) => {
-    if (!room.room_bookings || room.room_bookings.length === 0) return true;
+  // ✅ Determine status per room (from dashboard logic)
+  const getRoomStatus = (room) => {
+    const date = new Date(selectedDate);
 
-    return !room.room_bookings.some((booking) => {
+    if (!room.room_bookings || room.room_bookings.length === 0)
+      return 'Available';
+
+    const bookingsForDate = room.room_bookings.filter((booking) => {
       const checkin = new Date(booking.checkin_date);
       const checkout = new Date(booking.checkout_date);
-      const date = new Date(selectedDate);
+      const isSameDay = checkin.toDateString() === checkout.toDateString();
 
-      return (
-        booking.checked_in === true &&
-        booking.checked_out === false &&
-        date >= checkin &&
-        date <= checkout
-      );
+      const bookingAppliesToDate =
+        (date >= checkin && date < checkout) ||
+        (isSameDay && date.toDateString() === checkin.toDateString());
+
+      return bookingAppliesToDate;
     });
+
+    if (
+      bookingsForDate.some(
+        (booking) =>
+          booking.checked_in === true && booking.checked_out !== true,
+      )
+    ) {
+      return 'Checked In';
+    }
+
+    if (
+      bookingsForDate.some((booking) => booking.booking_status === 'Blocked')
+    ) {
+      return 'Blocked';
+    }
+
+    if (
+      bookingsForDate.some(
+        (booking) =>
+          booking.checked_in !== true &&
+          booking.checked_out !== true &&
+          booking.booking_status === 'Confirmed',
+      )
+    ) {
+      return 'Confirmed';
+    }
+
+    return 'Available';
   };
 
   // ✅ Group rooms by floor
@@ -122,10 +153,20 @@ const Page = () => {
       <Box sx={{ p: 3 }}>
         {Object.keys(roomsByFloor).map((floor) => {
           const floorRooms = roomsByFloor[floor];
-          const availableCount = floorRooms.filter((room) =>
-            isRoomAvailable(room)
-          ).length;
-          const occupiedCount = floorRooms.length - availableCount;
+
+          const statusCounts = floorRooms.reduce(
+            (acc, room) => {
+              const status = getRoomStatus(room);
+              acc[status] = (acc[status] || 0) + 1;
+              return acc;
+            },
+            {
+              Available: 0,
+              'Checked In': 0,
+              Confirmed: 0,
+              Blocked: 0,
+            },
+          );
 
           return (
             <Box key={floor} sx={{ mb: 5 }}>
@@ -150,13 +191,25 @@ const Page = () => {
                   variant="outlined"
                 />
                 <Chip
-                  label={`✅ ${availableCount} vacant`}
+                  label={`✅ ${statusCounts.Available} Available`}
                   color="success"
                   size="small"
                   variant="outlined"
                 />
                 <Chip
-                  label={`❌ ${occupiedCount} Occupied`}
+                  label={`🟢 ${statusCounts['Checked In']} Checked In`}
+                  color="info"
+                  size="small"
+                  variant="outlined"
+                />
+                <Chip
+                  label={`🟡 ${statusCounts.Confirmed} Confirmed`}
+                  color="warning"
+                  size="small"
+                  variant="outlined"
+                />
+                <Chip
+                  label={`🔴 ${statusCounts.Blocked} Blocked`}
                   color="error"
                   size="small"
                   variant="outlined"
@@ -166,7 +219,18 @@ const Page = () => {
               {/* Rooms */}
               <Grid container spacing={3}>
                 {floorRooms.map((room) => {
-                  const available = isRoomAvailable(room);
+                  const status = getRoomStatus(room);
+                  const statusColor =
+                    status === 'Available'
+                      ? 'success'
+                      : status === 'Checked In'
+                        ? 'info'
+                        : status === 'Confirmed'
+                          ? 'warning'
+                          : status === 'Blocked'
+                            ? 'error'
+                            : 'default';
+
                   return (
                     <Grid size={{ xs: 12, sm: 6, md: 3 }} key={room.id}>
                       <Card
@@ -204,8 +268,9 @@ const Page = () => {
                             </Box>
                             <Chip
                               size="small"
-                              label={available ? 'Vacant' : 'Occupied'}
-                              color={available ? 'success' : 'error'}
+                              label={status}
+                              color={statusColor}
+                              variant="outlined"
                             />
                           </Box>
 
