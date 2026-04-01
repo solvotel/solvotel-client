@@ -51,30 +51,32 @@ const Page = () => {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
+  const [searchText, setSearchText] = useState('');
   const [filteredData, setfilteredData] = useState([]);
   const [dataToExport, setDataToExport] = useState([]);
 
   const handleSearch = () => {
-    if (!startDate || !endDate) return;
+    if ((!startDate || !endDate) && !searchText.trim()) return;
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    // Normalize to ignore time part
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
-    // Filter purchases within date range
+    const hasDateRange = Boolean(startDate && endDate);
+    let start;
+    let end;
+    if (hasDateRange) {
+      start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+    }
+
+    const filterByDate = (dateValue) => {
+      if (!hasDateRange) return true;
+      const d = new Date(dateValue);
+      return d >= start && d <= end;
+    };
+
     const filteredPurchases =
-      purchases?.filter((pur) => {
-        const d = new Date(pur.date);
-        return d >= start && d <= end;
-      }) || [];
-
-    // Filter sales within date range
-    const filteredSales =
-      sales?.filter((sal) => {
-        const d = new Date(sal.date);
-        return d >= start && d <= end;
-      }) || [];
+      purchases?.filter((pur) => filterByDate(pur.date)) || [];
+    const filteredSales = sales?.filter((sal) => filterByDate(sal.date)) || [];
 
     // Helper to group and sum with extra inventory_item fields
     const groupTotals = (data) => {
@@ -120,12 +122,29 @@ const Page = () => {
         unit: purchase.unit || sales.unit,
         purchaseQty: purchase.totalQty || 0,
         salesQty: sales.totalQty || 0,
-        availableQty: purchase.totalQty - sales.totalQty || 0,
+        availableQty: (purchase.totalQty || 0) - (sales.totalQty || 0),
       };
     });
 
-    setDataToExport(summary);
-    setfilteredData(summary);
+    const keyword = searchText.trim().toLowerCase();
+    const filteredSummary = keyword
+      ? summary.filter((item) =>
+          [item.code, item.name, item.group, item.unit]
+            .filter(Boolean)
+            .some((field) => String(field).toLowerCase().includes(keyword)),
+        )
+      : summary;
+
+    setDataToExport(filteredSummary);
+    setfilteredData(filteredSummary);
+  };
+
+  const handleReset = () => {
+    setSearchText('');
+    setStartDate('');
+    setEndDate(todaysDate);
+    setfilteredData([]);
+    setDataToExport([]);
   };
 
   const componentRef = useRef(null);
@@ -167,6 +186,14 @@ const Page = () => {
               <Box display="flex" alignItems="center" mb={2}>
                 <TextField
                   size="small"
+                  label="Search (Code/Name/Group/Unit)"
+                  variant="outlined"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  sx={{ mr: 1, minWidth: 230 }}
+                />
+                <TextField
+                  size="small"
                   label="Start Date"
                   variant="outlined"
                   type="date"
@@ -191,8 +218,16 @@ const Page = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleSearch}
+                  sx={{ mr: 1 }}
                 >
                   Search
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleReset}
+                >
+                  Reset
                 </Button>
               </Box>
               <Box>

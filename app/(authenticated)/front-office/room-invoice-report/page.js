@@ -42,22 +42,44 @@ const Page = () => {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
+  const [searchText, setSearchText] = useState('');
   const [filteredData, setfilteredData] = useState([]);
   const [dataToExport, setDataToExport] = useState([]);
 
   const handleSearch = () => {
-    if (!startDate || !endDate) return;
+    if (!startDate && !endDate && !searchText.trim()) return;
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    // Normalize to ignore time part
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
-    // Filter purchases within date range
+    const hasDateRange = Boolean(startDate && endDate);
+    let start, end;
+    if (hasDateRange) {
+      start = new Date(startDate);
+      end = new Date(endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    }
+
+    const keyword = searchText?.trim().toLowerCase();
+
     const filteredInvoices =
       data?.filter((pur) => {
-        const d = new Date(pur.date);
-        return d >= start && d <= end;
+        const invoiceDate = new Date(pur.date);
+        const dateMatches = hasDateRange
+          ? invoiceDate >= start && invoiceDate <= end
+          : true;
+
+        const searchMatches = !keyword
+          ? true
+          : [
+              pur.invoice_no,
+              pur.customer_name,
+              pur.customer_gst,
+              pur.date,
+              pur.time,
+            ]
+              .filter(Boolean)
+              .some((field) => String(field).toLowerCase().includes(keyword));
+
+        return dateMatches && searchMatches;
       }) || [];
 
     const dataToExport = filteredInvoices.map((row) => {
@@ -78,6 +100,14 @@ const Page = () => {
 
     setfilteredData(filteredInvoices);
     setDataToExport(dataToExport);
+  };
+
+  const handleReset = () => {
+    setStartDate('');
+    setEndDate(todaysDate);
+    setSearchText('');
+    setfilteredData([]);
+    setDataToExport([]);
   };
 
   const componentRef = useRef(null);
@@ -118,6 +148,14 @@ const Page = () => {
               <Box display="flex" alignItems="center" mb={2}>
                 <TextField
                   size="small"
+                  label="Search (Invoice/Customer/GSTIN/Date)"
+                  variant="outlined"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  sx={{ mr: 1, minWidth: 250 }}
+                />
+                <TextField
+                  size="small"
                   label="Start Date"
                   variant="outlined"
                   type="date"
@@ -142,8 +180,16 @@ const Page = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleSearch}
+                  sx={{ mr: 1 }}
                 >
                   Search
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleReset}
+                >
+                  Reset
                 </Button>
               </Box>
               <Box>

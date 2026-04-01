@@ -39,23 +39,45 @@ const Page = () => {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
+  const [searchText, setSearchText] = useState('');
   const [filteredData, setfilteredData] = useState([]);
   const [dataToExport, setDataToExport] = useState([]);
 
   const handleSearch = () => {
-    if (!startDate || !endDate) return;
+    if ((!startDate || !endDate) && !searchText.trim()) return;
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    // Normalize to ignore time part
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
 
-    // Filter purchases within date range
+    if (start) start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(23, 59, 59, 999);
+
+    const searchKey = searchText.trim().toLowerCase();
+
     const filteredInvoices =
       data?.filter((pur) => {
-        const d = new Date(pur.date);
-        return d >= start && d <= end;
+        const matchesDate =
+          start && end
+            ? (() => {
+                const d = new Date(pur.date);
+                return d >= start && d <= end;
+              })()
+            : true;
+
+        const matchesSearch = searchKey
+          ? [
+              pur.invoice_no?.toString(),
+              pur.customer_name,
+              pur.customer_gst,
+              `${pur.date} ${pur.time}`,
+            ]
+              .filter(Boolean)
+              .some((value) =>
+                value.toString().toLowerCase().includes(searchKey),
+              )
+          : true;
+
+        return matchesDate && matchesSearch;
       }) || [];
 
     const dataToExport = filteredInvoices.map((row) => ({
@@ -71,6 +93,14 @@ const Page = () => {
 
     setfilteredData(filteredInvoices);
     setDataToExport(dataToExport);
+  };
+
+  const handleReset = () => {
+    setSearchText('');
+    setStartDate('');
+    setEndDate(todaysDate);
+    setfilteredData([]);
+    setDataToExport([]);
   };
 
   const componentRef = useRef(null);
@@ -113,6 +143,14 @@ const Page = () => {
               <Box display="flex" alignItems="center" mb={2}>
                 <TextField
                   size="small"
+                  label="Search (Invoice/Customer/GSTIN/Date)"
+                  variant="outlined"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  sx={{ mr: 1, minWidth: 220 }}
+                />
+                <TextField
+                  size="small"
                   label="Start Date"
                   variant="outlined"
                   type="date"
@@ -137,8 +175,16 @@ const Page = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleSearch}
+                  sx={{ mr: 1 }}
                 >
                   Search
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleReset}
+                >
+                  Reset
                 </Button>
               </Box>
               <Box>
@@ -202,7 +248,7 @@ const Page = () => {
                   ))}
                   {filteredData?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} align="center">
+                      <TableCell colSpan={8} align="center">
                         No invoice found
                       </TableCell>
                     </TableRow>

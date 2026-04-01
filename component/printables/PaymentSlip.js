@@ -48,33 +48,36 @@ const PaymentSlip = React.forwardRef((props, ref) => {
       {/* Header */}
       <HeaderBox>
         <Grid container>
-          <Grid size={2.5}>
-            <Box
-              sx={{
-                width: 130,
-                height: 130,
-                borderRadius: 2,
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <img
-                src={
-                  hotel?.hotel_logo?.url ||
-                  'https://res.cloudinary.com/deyxdpnom/image/upload/v1760012402/demo_hpzblb.png'
-                } // fallback image
-                alt="Hotel Logo"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover', // ensures it's always a perfect square crop
+          {hotel?.hotel_logo?.url && (
+            <Grid size={2.5}>
+              <Box
+                sx={{
+                  width: 130,
+                  height: 130,
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
-              />
-            </Box>
-          </Grid>
-          <Grid size={4.5}>
+              >
+                <img
+                  src={
+                    hotel?.hotel_logo?.url ||
+                    'https://res.cloudinary.com/deyxdpnom/image/upload/v1760012402/demo_hpzblb.png'
+                  } // fallback image
+                  alt="Hotel Logo"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover', // ensures it's always a perfect square crop
+                  }}
+                />
+              </Box>
+            </Grid>
+          )}
+
+          <Grid size={hotel?.hotel_logo?.url ? 4.5 : 7}>
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
               {hotel?.hotel_name}
             </Typography>
