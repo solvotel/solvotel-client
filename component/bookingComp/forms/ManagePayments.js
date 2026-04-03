@@ -91,7 +91,12 @@ export default function ManagePayments({
     setErrorMessage('');
 
     // Save
-    handleManagePayments(form);
+    handleManagePayments({
+      date: form.date,
+      mode: form.mode,
+      amount: parseFloat(form.amount),
+      remark: form.remark,
+    });
     SuccessToast('Payments added successfully');
     setForm({
       date: todaysDate,

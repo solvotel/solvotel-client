@@ -35,6 +35,7 @@ import {
 } from '@mui/icons-material';
 import { Loader } from '@/component/common';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
 // Helper functions remain the same
 function safeGetCreatedAt(item) {
@@ -193,11 +194,13 @@ const InvoiceRow = ({ invoice }) => {
 export default function Page() {
   const { auth } = useAuth();
   const theme = useTheme();
+  const searchParams = useSearchParams();
+  const outletIdFromParams = searchParams.get('outlet_id');
 
   const posOutlet = GetSingleData({
     auth,
     endPoint: 'pos-outlets',
-    id: auth?.user?.pos_outlet_id,
+    id: auth?.user?.pos_outlet_id || outletIdFromParams,
   });
 
   const _posItems = GetPosDataList({ auth, endPoint: 'pos-items' });

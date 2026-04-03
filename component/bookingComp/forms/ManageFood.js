@@ -121,8 +121,8 @@ export default function ManageFood({
       room_no: room,
       type: 'Room Service',
       orderId: null,
-      total_gst: total_gst.toFixed(2),
-      total_amount: total_amount.toFixed(2),
+      total_gst: parseFloat(total_gst.toFixed(2)),
+      total_amount: parseFloat(total_amount.toFixed(2)),
       invoice: false,
       items: foods,
     };

@@ -162,7 +162,12 @@ const UpdateBookingForm = ({
         ...bookingDetails,
         rooms: rooms,
         room_tokens: roomTokens,
-        advance_payment: advancePayment,
+        advance_payment: {
+          amount: parseFloat(advancePayment?.amount) || 0,
+          date: advancePayment?.date || null,
+          mode: advancePayment?.mode || '',
+          remark: advancePayment?.remark || '',
+        },
         user_updated: auth?.user?.username,
       };
 
