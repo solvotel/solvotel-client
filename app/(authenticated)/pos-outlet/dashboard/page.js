@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { useAuth } from '@/context';
 import { GetPosDataList, GetSingleData } from '@/utils/ApiFunctions';
 import {
@@ -191,7 +191,7 @@ const InvoiceRow = ({ invoice }) => {
   );
 };
 
-export default function Page() {
+const Dashboard = () => {
   const { auth } = useAuth();
   const theme = useTheme();
   const searchParams = useSearchParams();
@@ -594,4 +594,13 @@ export default function Page() {
       </Box>
     </>
   );
-}
+};
+
+const Page = () => {
+  return (
+    <Suspense>
+      <Dashboard />
+    </Suspense>
+  );
+};
+export default Page;
