@@ -219,7 +219,12 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 </CustomTableCell>
               </TableRow>
               <TableRow>
-                <CustomTableCell rowSpan={3} colSpan={2}>
+                <CustomTableCell
+                  rowSpan={3}
+                  colSpan={2}
+                  align="left"
+                  sx={{ textAlign: 'left !important' }}
+                >
                   <Typography variant="caption">Bill to</Typography>
                   <Typography variant="body2">
                     Guest Name: {data?.customer_name || 'N/A'}
@@ -280,7 +285,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
             </TableHead>
             <TableBody>
               <TableRow>
-                <CustomTableCell align="center">
+                <CustomTableCell sx={{ textAlign: 'left !important' }}>
                   <Typography fontWeight={600}>
                     Description of Services
                   </Typography>
@@ -309,10 +314,12 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
               {allTokens?.map((token, index) => (
                 <TableRow key={index}>
                   <CustomTableCell
+                    align="left"
                     sx={{
                       borderBottom: '1px solid #cecece',
                       borderTop: 'none',
                       py: 0.3,
+                      textAlign: 'left !important',
                     }}
                   >
                     {token?.item}

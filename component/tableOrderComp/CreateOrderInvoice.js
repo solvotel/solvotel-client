@@ -200,6 +200,8 @@ const CreateOrderInvoice = ({
       payments: cleanedPayments,
       due,
       menu_items: cleanedMenuItems,
+      hotel_id: auth?.user?.hotel_id || '',
+      user_created: auth?.user?.username,
     };
 
     const res = await CreateNewData({

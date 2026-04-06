@@ -8,10 +8,10 @@ import {
 } from '@mui/material';
 import React from 'react';
 
-const CheckoutDialog = ({ open, setopen, handleSave }) => {
+const CheckoutDialog = ({ open, setOpen, handleSave }) => {
   return (
     <>
-      <Dialog open={open} onClose={() => setopen(false)}>
+      <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>Mark Check Out</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -19,7 +19,7 @@ const CheckoutDialog = ({ open, setopen, handleSave }) => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setopen(false)} color="inherit">
+          <Button onClick={() => setOpen(false)} color="inherit">
             No
           </Button>
           <Button onClick={handleSave} color="error" variant="contained">

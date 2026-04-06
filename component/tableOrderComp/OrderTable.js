@@ -154,7 +154,10 @@ const OrderTable = ({
                       color="primary"
                       size="small"
                       onClick={() => handleEdit(order)}
-                      disabled={!permissions.canUpdate}
+                      disabled={
+                        !permissions.canUpdate ||
+                        order.token_status === 'Closed'
+                      }
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
@@ -165,7 +168,10 @@ const OrderTable = ({
                         setSelectedRow(order);
                         setDeleteOpen(true);
                       }}
-                      disabled={!permissions.canDelete}
+                      disabled={
+                        !permissions.canDelete ||
+                        order.token_status === 'Closed'
+                      }
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>

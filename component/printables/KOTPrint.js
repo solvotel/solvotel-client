@@ -1,8 +1,22 @@
 'use client';
 import { GetCustomDate } from '@/utils/DateFetcher';
+import {
+  styled,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+} from '@mui/material';
 import React from 'react';
 
 // styles
+const CustomTableCell = styled(TableCell)`
+  border: 0px solid white;
+  padding: 1px;
+  font-size: 12px;
+`;
 
 // forwardRef is required for react-to-print
 const KOTPrint = React.forwardRef((props, ref) => {
@@ -23,7 +37,7 @@ const KOTPrint = React.forwardRef((props, ref) => {
     <div
       ref={ref}
       style={{
-        width: size, // "58mm" or "80mm"
+        width: '58mm', // "58mm" or "80mm"
         fontFamily: 'monospace',
         fontSize: '12px',
         padding: '5px',
@@ -34,40 +48,53 @@ const KOTPrint = React.forwardRef((props, ref) => {
       <p>Table No: {tableNo || 'N/A'}</p>
       <p>Date & Time: {updatedAt}</p>
 
-      <p style={{ margin: '2px 0' }}>-------------------------------</p>
+      <p style={{ margin: '3px 0' }}>---------------------------------</p>
 
-      <table style={{ width: '100%' }}>
-        <thead>
-          <tr>
-            <th align="left">Item</th>
-            <th align="right">Qty</th>
-          </tr>
-        </thead>
-        <tbody>
-          {kotData?.items?.map((item, index) => {
-            const itemName =
-              item.name ||
-              item.item ||
-              item.itemName ||
-              (item.menu_item && item.menu_item.item) ||
-              String(item);
-            const qtyRaw = item.qty ?? item.quantity ?? item.qtyString ?? '';
-            const qtyDisplay =
-              qtyRaw === 0 || qtyRaw === '0'
-                ? 'Cancel'
-                : typeof qtyRaw === 'string'
-                  ? qtyRaw
-                  : `+${qtyRaw}`;
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <CustomTableCell
+                sx={{ fontWeight: 600, textAlign: 'left !important' }}
+              >
+                Item
+              </CustomTableCell>
+              <CustomTableCell align="right" sx={{ fontWeight: 600 }}>
+                Qty
+              </CustomTableCell>
+            </TableRow>
+          </TableHead>
 
-            return (
-              <tr key={index}>
-                <td>{itemName}</td>
-                <td align="right">{qtyDisplay}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+          <TableBody>
+            {kotData?.items?.map((item, index) => {
+              const itemName =
+                item.name ||
+                item.item ||
+                item.itemName ||
+                (item.menu_item && item.menu_item.item) ||
+                String(item);
+
+              const qtyRaw = item.qty ?? item.quantity ?? item.qtyString ?? '';
+
+              const qtyDisplay =
+                qtyRaw === 0 || qtyRaw === '0'
+                  ? 'Cancel'
+                  : typeof qtyRaw === 'string'
+                    ? qtyRaw
+                    : `+${qtyRaw}`;
+
+              return (
+                <TableRow key={index}>
+                  <CustomTableCell sx={{ textAlign: 'left !important' }}>
+                    {itemName}
+                  </CustomTableCell>
+                  <CustomTableCell align="right">{qtyDisplay}</CustomTableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 });

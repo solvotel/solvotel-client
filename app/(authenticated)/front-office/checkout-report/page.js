@@ -23,8 +23,9 @@ import {
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { Loader } from '@/component/common';
-import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
+import { GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { RoomBookingReportPrint } from '@/component/printables/RoomBookingReportPrint';
 import { exportToExcel } from '@/utils/exportToExcel';
@@ -41,19 +42,36 @@ const Page = () => {
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setfilteredData] = useState([]);
   const [dataToExport, setDataToExport] = useState([]);
+  const [searchBookingId, setSearchBookingId] = useState('');
 
   const handleSearch = () => {
-    if (!startDate || !endDate) return;
+    if (!startDate || !endDate) {
+      // If no dates, but booking ID is set, proceed
+      if (!searchBookingId) return;
+    }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    let filteredInvoices = data || [];
 
-    // Normalize times to cover the whole days
-    start.setHours(0, 0, 0, 0);
-    end.setHours(23, 59, 59, 999);
+    // 🔹 BOOKING ID FILTER
+    if (searchBookingId) {
+      filteredInvoices = filteredInvoices.filter((booking) =>
+        booking.booking_id
+          ?.toString()
+          .toLowerCase()
+          .includes(searchBookingId.toLowerCase()),
+      );
+    }
 
-    const filteredInvoices =
-      data?.filter((booking) => {
+    // 🔹 DATE FILTER
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      // Normalize times to cover the whole days
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+
+      filteredInvoices = filteredInvoices.filter((booking) => {
         const checkout = booking.checkout_date
           ? new Date(booking.checkout_date)
           : null;
@@ -62,7 +80,8 @@ const Page = () => {
           checkout && checkout >= start && checkout <= end;
 
         return isCheckoutInRange;
-      }) || [];
+      });
+    }
 
     const dataToExport = filteredInvoices.map((row) => {
       const foodTokens = row?.food_tokens || [];
@@ -119,6 +138,14 @@ const Page = () => {
     documentTitle: 'checkout-report',
   });
 
+  const handleReset = () => {
+    setStartDate('');
+    setEndDate(todaysDate);
+    setSearchBookingId('');
+    setfilteredData([]);
+    setDataToExport([]);
+  };
+
   const handleExport = () => {
     exportToExcel(dataToExport, 'checkout_report');
   };
@@ -171,12 +198,29 @@ const Page = () => {
                   sx={{ mr: 1 }}
                   InputLabelProps={{ shrink: true }} // 👈 fixes label overlap
                 />
+                <TextField
+                  size="small"
+                  label="Search Booking ID"
+                  variant="outlined"
+                  value={searchBookingId}
+                  onChange={(e) => setSearchBookingId(e.target.value)}
+                  sx={{ mr: 1 }}
+                />
                 <Button
                   variant="contained"
                   color="primary"
                   onClick={handleSearch}
+                  sx={{ mr: 1 }}
                 >
                   Search
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  startIcon={<RestartAltIcon />}
+                  onClick={handleReset}
+                >
+                  Reset
                 </Button>
               </Box>
               <Box>

@@ -50,6 +50,7 @@ const BookingListPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
   const [bookingStatus, setBookingStatus] = useState('');
+  const [searchBookingId, setSearchBookingId] = useState('');
   const data = GetDataList({
     auth,
     endPoint: 'room-bookings',
@@ -57,8 +58,6 @@ const BookingListPage = () => {
   useEffect(() => {
     setBookingStatus(paramsStatus || '');
   }, [paramsStatus]);
-
-  console.log(bookingStatus);
 
   // filter data by name
   const filteredData = useMemo(() => {
@@ -71,6 +70,18 @@ const BookingListPage = () => {
     if (end) end.setHours(23, 59, 59, 999);
 
     return data.filter((booking) => {
+      // 🔹 BOOKING ID FILTER
+      if (searchBookingId) {
+        if (
+          !booking.booking_id
+            ?.toString()
+            .toLowerCase()
+            .includes(searchBookingId.toLowerCase())
+        ) {
+          return false;
+        }
+      }
+
       // 🔹 STATUS FILTER (custom rules)
       if (bookingStatus) {
         switch (bookingStatus) {
@@ -117,7 +128,7 @@ const BookingListPage = () => {
 
       return isInRange(createdAt) || isInRange(checkin) || isInRange(checkout);
     });
-  }, [data, startDate, endDate, bookingStatus]);
+  }, [data, startDate, endDate, bookingStatus, searchBookingId]);
 
   const getStatus = (booking) => {
     // Destructure for easier reading
@@ -195,13 +206,22 @@ const BookingListPage = () => {
                 InputLabelProps={{ shrink: true }} // 👈 fixes label overlap
                 inputProps={{ max: todaysDate }} // 👈 move `max` inside inputProps
               />
+              <TextField
+                size="small"
+                label="Search Booking ID"
+                variant="outlined"
+                value={searchBookingId}
+                onChange={(e) => setSearchBookingId(e.target.value)}
+                sx={{ mr: 1 }}
+              />
 
-              {startDate || endDate !== todaysDate ? (
+              {startDate || endDate !== todaysDate || searchBookingId ? (
                 <Tooltip title="Reset Dates">
                   <IconButton
                     onClick={() => {
                       setStartDate('');
                       setEndDate(todaysDate);
+                      setSearchBookingId('');
                     }}
                     size="small"
                     color="error"
@@ -263,7 +283,7 @@ const BookingListPage = () => {
                       hover
                       onClick={() =>
                         router.push(
-                          `/front-office/room-booking/${row.documentId}`
+                          `/front-office/room-booking/${row.documentId}`,
                         )
                       }
                       sx={{
@@ -349,7 +369,7 @@ const BookingListPage = () => {
                           <IconButton
                             onClick={() =>
                               router.push(
-                                `/front-office/room-booking/${row.documentId}`
+                                `/front-office/room-booking/${row.documentId}`,
                               )
                             }
                             size="small"

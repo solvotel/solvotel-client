@@ -207,7 +207,7 @@ const HotelNav = ({ auth, logout }) => {
                       {
                         href: '/front-office/room-booking',
                         icon: <BookOpen size={16} />,
-                        label: 'Room Booking',
+                        label: 'Booking',
                       },
                       {
                         href: '/front-office/room-invoice',

@@ -167,12 +167,14 @@ export default function BookingForm() {
         ...bookingDetails,
         rooms: rooms,
         room_tokens: roomTokens,
-        advance_payment: {
-          date: advancePayment.date,
-          mode: advancePayment.mode,
-          amount: parseFloat(advancePayment.amount),
-          remark: advancePayment.remark,
-        },
+        advance_payment: advancePayment
+          ? {
+              date: advancePayment.date,
+              mode: advancePayment.mode,
+              amount: parseFloat(advancePayment.amount),
+              remark: advancePayment.remark,
+            }
+          : null,
         hotel_id: auth?.user?.hotel_id || '',
         user_created: auth?.user?.username,
       };

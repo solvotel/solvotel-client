@@ -1,8 +1,25 @@
 'use client';
 import { GetCustomDate } from '@/utils/DateFetcher';
-import { Box } from 'lucide-react';
+import {
+  Paper,
+  styled,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from '@mui/material';
+
 import { QRCodeCanvas } from 'qrcode.react';
 import React from 'react';
+
+const CustomTableCell = styled(TableCell)`
+  border: 0px solid white;
+  padding: 1px;
+  font-size: 12px;
+`;
 
 // forwardRef is required for react-to-print
 const RestaurantPosInvoice = React.forwardRef((props, ref) => {
@@ -29,7 +46,7 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       }}
     >
       <div style={{ textAlign: 'center' }}>
-        <h3 style={{ margin: 0 }}>{profile.res_name}</h3>
+        <h3 style={{ margin: 0, fontWeight: 'bold' }}>{profile.res_name}</h3>
         <p style={{ margin: 0 }}>
           {profile.res_address_line1}, {profile.res_address_line2}
         </p>
@@ -40,44 +57,64 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
           <p style={{ margin: 0 }}>GST: {profile.res_gst_no}</p>
         )}
       </div>
-      <p style={{ margin: '5px 0' }}>-------------------------------</p>
+      <p style={{ margin: '5px 0' }}>---------------------------------</p>
       <p>Invoice No: {invoice.invoice_no}</p>
       <p>
         Date: {GetCustomDate(invoice.date)} | Time: {invoice.time}
       </p>
       {invoice.customer_name && <p>Customer: {invoice.customer_name}</p>}
       {invoice.customer_phone && <p>Phone: {invoice.customer_phone}</p>}
+      {invoice.customer_gst && <p>GST: {invoice.customer_gst}</p>}
+      <p style={{ margin: '5px 0' }}>---------------------------------</p>
 
-      <p style={{ margin: '5px 0' }}>-------------------------------</p>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <CustomTableCell
+                sx={{ fontWeight: 600, textAlign: 'left !important' }}
+              >
+                Item
+              </CustomTableCell>
+              <CustomTableCell align="right" sx={{ fontWeight: 600 }}>
+                Qty
+              </CustomTableCell>
+              <CustomTableCell align="right" sx={{ fontWeight: 600 }}>
+                Rate
+              </CustomTableCell>
+              <CustomTableCell align="right" sx={{ fontWeight: 600 }}>
+                Amt
+              </CustomTableCell>
+            </TableRow>
+          </TableHead>
 
-      <table style={{ width: '100%' }}>
-        <thead>
-          <tr>
-            <th align="left">Item</th>
-            <th align="right">Qty</th>
-            <th align="right">Rate</th>
-            <th align="right">Amt</th>
-          </tr>
-        </thead>
-        <tbody>
-          {invoice?.menu_items?.map((item, index) => (
-            <tr key={index}>
-              <td>
-                {item.item}
-                <br />
-                <span style={{ fontSize: 9 }}>
-                  SGST:{item?.gst / 2}%, CGST:{item?.gst / 2}%
-                </span>
-              </td>
-              <td align="right">{item.qty}</td>
-              <td align="right">{item.rate}</td>
-              <td align="right">{item.amount}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          <TableBody>
+            {invoice?.menu_items?.map((item, index) => (
+              <TableRow key={index}>
+                <CustomTableCell sx={{ textAlign: 'left !important' }}>
+                  {item.item}
 
-      <p style={{ margin: '5px 0' }}>-------------------------------</p>
+                  {item?.gst > 0 && (
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      sx={{ fontSize: 9 }}
+                    >
+                      SGST: {item?.gst / 2}%, CGST: {item?.gst / 2}%
+                    </Typography>
+                  )}
+                </CustomTableCell>
+
+                <CustomTableCell align="right">{item.qty}</CustomTableCell>
+                <CustomTableCell align="right">{item.rate}</CustomTableCell>
+                <CustomTableCell align="right">{item.amount}</CustomTableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <p style={{ margin: '5px 0' }}>---------------------------------</p>
 
       <div style={{ textAlign: 'right' }}>
         <p>Subtotal: ₹{invoice?.total_amount}</p>
@@ -86,7 +123,7 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
         <p style={{ fontWeight: 'bold' }}>Total: ₹{invoice?.payable_amount}</p>
       </div>
 
-      <p style={{ margin: '5px 0' }}>-------------------------------</p>
+      <p style={{ margin: '5px 0' }}>---------------------------------</p>
       {isUpiValid && (
         <div style={{ textAlign: 'center' }}>
           <QRCodeCanvas value={upiUrl} size={100} level="H" />
