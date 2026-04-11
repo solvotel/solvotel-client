@@ -46,6 +46,8 @@ const CollectionReportPage = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setFilteredData] = useState([]);
+  const [allPayments, setAllPayments] = useState([]);
+  const [selectedMop, setSelectedMop] = useState('');
   const [dataToExport, setDataToExport] = useState([]);
   const [stats, setStats] = useState({});
 
@@ -150,18 +152,18 @@ const CollectionReportPage = () => {
 
     // 📤 EXPORT DATA
     const dataToExport = allPayments.map((p) => ({
-      Type: p.type,
-      ID: p.uid || '',
-      'Customer Name': p.customer_name,
-      'Payment Method': p.mop,
-      'Amount ₹': p.amount,
       'Date & Time': new Date(p.time_stamp).toLocaleString('en-IN', {
         timeZone: 'Asia/Kolkata',
       }),
+      Type: ` ${p.type} - ${p.uid}`,
+      'Customer Name': p.customer_name,
+      'Payment Method': p.mop,
+      'Amount ₹': p.amount,
     }));
 
     // ✅ SET STATE
     setFilteredData(allPayments);
+    setAllPayments(allPayments);
     setDataToExport(dataToExport);
     setStats({
       mopStats,
@@ -172,6 +174,18 @@ const CollectionReportPage = () => {
     });
   };
 
+  const handleMopFilter = (mop) => {
+    setSelectedMop((current) => (current === mop ? '' : mop));
+  };
+
+  const displayData = selectedMop
+    ? filteredData.filter((payment) => payment.mop === selectedMop)
+    : filteredData;
+
+  const exportData = selectedMop
+    ? dataToExport.filter((row) => row['Payment Method'] === selectedMop)
+    : dataToExport;
+
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -179,7 +193,7 @@ const CollectionReportPage = () => {
   });
 
   const handleExport = () => {
-    exportToExcel(dataToExport, 'collection_report');
+    exportToExcel(exportData, 'collection_report');
   };
 
   return (
@@ -244,7 +258,7 @@ const CollectionReportPage = () => {
                   variant="contained"
                   color="error"
                   startIcon={<PrintIcon />}
-                  disabled={filteredData.length === 0}
+                  disabled={displayData.length === 0}
                   onClick={handlePrint}
                   sx={{ mr: 1 }}
                 >
@@ -252,7 +266,7 @@ const CollectionReportPage = () => {
                 </Button>
                 <Button
                   onClick={handleExport}
-                  disabled={filteredData.length === 0}
+                  disabled={displayData.length === 0}
                   variant="contained"
                   color="success"
                   startIcon={<FileDownloadIcon />}
@@ -290,15 +304,41 @@ const CollectionReportPage = () => {
                   Payment Method Breakdown:
                 </Typography>
                 <Box display="flex" gap={2} flexWrap="wrap">
+                  <Paper
+                    onClick={() => setSelectedMop('')}
+                    sx={{
+                      p: 2,
+                      minWidth: 150,
+                      cursor: 'pointer',
+                      bgcolor: selectedMop === '' ? 'primary.light' : 'grey.50',
+                      border: '1px solid',
+                      borderColor:
+                        selectedMop === '' ? 'primary.main' : 'grey.300',
+                    }}
+                  >
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      All
+                    </Typography>
+                    <Typography variant="body2">
+                      Payments: {stats.totalPayments || 0}
+                    </Typography>
+                    <Typography variant="body2">
+                      Amount: ₹{stats.totalAmount?.toFixed(2) || '0.00'}
+                    </Typography>
+                  </Paper>
                   {Object.entries(stats.mopStats || {}).map(([mop, data]) => (
                     <Paper
                       key={mop}
+                      onClick={() => handleMopFilter(mop)}
                       sx={{
                         p: 2,
                         minWidth: 150,
-                        bgcolor: 'grey.50',
+                        cursor: 'pointer',
+                        bgcolor:
+                          selectedMop === mop ? 'primary.light' : 'grey.50',
                         border: '1px solid',
-                        borderColor: 'grey.300',
+                        borderColor:
+                          selectedMop === mop ? 'primary.main' : 'grey.300',
                       }}
                     >
                       <Typography variant="subtitle2" fontWeight="bold">
@@ -317,17 +357,24 @@ const CollectionReportPage = () => {
             )}
 
             {/* Data Table */}
+            {selectedMop && (
+              <Box mb={2}>
+                <Typography variant="subtitle2">
+                  Showing payments filtered by <strong>{selectedMop}</strong>.
+                  Click the same payment method again to clear the filter.
+                </Typography>
+              </Box>
+            )}
             <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: 'grey.100' }}>
                     {[
-                      'ID',
+                      'Date & Time',
                       'Source',
                       'Customer Name',
                       'Payment Method',
                       'Amount ₹',
-                      'Timestamp',
                     ].map((item, index) => (
                       <TableCell
                         align="center"
@@ -340,21 +387,28 @@ const CollectionReportPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredData?.map((payment, index) => (
+                  {displayData?.map((payment, index) => (
                     <TableRow key={index}>
                       <TableCell align="center">
+                        {new Date(payment.time_stamp).toLocaleString()}
+                      </TableCell>
+
+                      <TableCell align="center">
+                        {payment.type}&nbsp;
                         <Link
                           href={
                             payment.type === 'Room'
                               ? `/front-office/room-booking/${payment.documentId}`
                               : `/restaurant/invoices/${payment.documentId}`
                           }
-                          style={{ textDecoration: 'none' }}
+                          style={{
+                            textDecoration: 'none',
+                            fontSize: '0.875em',
+                          }}
                         >
                           {payment.uid}
                         </Link>
                       </TableCell>
-                      <TableCell align="center">{payment.type}</TableCell>
                       <TableCell align="center">
                         {payment.customer_name}
                       </TableCell>
@@ -364,12 +418,9 @@ const CollectionReportPage = () => {
                           ₹{payment.amount.toFixed(2)}
                         </Typography>
                       </TableCell>
-                      <TableCell align="center">
-                        {new Date(payment.time_stamp).toLocaleString()}
-                      </TableCell>
                     </TableRow>
                   ))}
-                  {filteredData?.length === 0 && (
+                  {displayData?.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} align="center">
                         No collection data found for the selected date range
@@ -382,11 +433,12 @@ const CollectionReportPage = () => {
           </Box>
           <Box sx={{ display: 'none' }}>
             <CollectionReportPrint
-              filteredData={filteredData}
+              filteredData={displayData}
               ref={componentRef}
               startDate={startDate}
               endDate={endDate}
               stats={stats}
+              selectedMop={selectedMop}
             />
           </Box>
         </>

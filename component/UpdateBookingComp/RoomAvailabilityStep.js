@@ -9,6 +9,8 @@ import {
   Chip,
   Card,
   CardContent,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material';
 import { useAuth } from '@/context';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -197,6 +199,124 @@ const RoomAvailabilityStep = ({
   const generateRoomTokenId = () =>
     `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
 
+  const buildRoomTokens = (selections) => {
+    const groupedByRoom = selections.reduce((acc, selection) => {
+      if (!acc[selection.room_no]) {
+        acc[selection.room_no] = {
+          room: selection,
+          dates: [],
+        };
+      }
+      acc[selection.room_no].dates.push(selection.date);
+      return acc;
+    }, {});
+
+    return Object.values(groupedByRoom).map(({ room, dates }) => {
+      const uniqueDates = [...new Set(dates)].sort();
+      const rate = room.category?.tariff || 0;
+      const gst = room.category?.gst || 0;
+      const baseAmount = rate;
+      const gstAmount = (baseAmount * gst) / 100;
+      const totalAmountPerNight = baseAmount + gstAmount;
+      const inDate = uniqueDates[0];
+      const outDateObj = new Date(uniqueDates[uniqueDates.length - 1]);
+      outDateObj.setDate(outDateObj.getDate() + 1);
+      const out_date = outDateObj.toISOString().split('T')[0];
+
+      return {
+        id: `${room.room_no}-${inDate}-${out_date}`,
+        room: room.room_no,
+        hsn: room.category?.hsn || '',
+        item: room.category?.name || '',
+        rate,
+        gst,
+        amount: totalAmountPerNight * uniqueDates.length,
+        days: uniqueDates.length,
+        invoice: false,
+        in_date: inDate,
+        out_date,
+      };
+    });
+  };
+
+  const getAvailableRoomsForDate = (date) => {
+    return Object.values(roomsByCategory).flatMap((catData) =>
+      catData.rooms.filter((room) => isRoomAvailableForDate(room, date)),
+    );
+  };
+
+  const isRoomSelectedForDate = (roomNo, date) => {
+    return selectedRooms.some((r) => r.room_no === roomNo && r.date === date);
+  };
+
+  const isDateFullySelected = (date) => {
+    const availableRooms = getAvailableRoomsForDate(date);
+    return (
+      availableRooms.length > 0 &&
+      availableRooms.every((room) => isRoomSelectedForDate(room.room_no, date))
+    );
+  };
+
+  const isAllSelected = () => {
+    return dateRange.every((date) => {
+      const availableRooms = getAvailableRoomsForDate(date);
+      return (
+        availableRooms.length === 0 ||
+        availableRooms.every((room) => isRoomSelectedForDate(room.room_no, date))
+      );
+    });
+  };
+
+  const handleToggleDateSelection = (date) => {
+    const availableRooms = getAvailableRoomsForDate(date);
+    const currentlySelected = isDateFullySelected(date);
+
+    let updatedSelectedRooms = selectedRooms;
+
+    if (currentlySelected) {
+      updatedSelectedRooms = selectedRooms.filter((r) => r.date !== date);
+    } else {
+      const newSelections = availableRooms.reduce((acc, room) => {
+        const exists = selectedRooms.some(
+          (r) => r.room_no === room.room_no && r.date === date,
+        );
+        if (!exists) {
+          acc.push({
+            key: getRoomDateKey(room.room_no, date),
+            ...room,
+            date,
+          });
+        }
+        return acc;
+      }, []);
+      updatedSelectedRooms = [...selectedRooms, ...newSelections];
+    }
+
+    setSelectedRooms(updatedSelectedRooms);
+    setRoomTokens(buildRoomTokens(updatedSelectedRooms));
+  };
+
+  const handleToggleAllRooms = () => {
+    const currentlyAllSelected = isAllSelected();
+
+    if (currentlyAllSelected) {
+      setSelectedRooms([]);
+      setRoomTokens([]);
+      return;
+    }
+
+    const allSelections = dateRange.flatMap((date) =>
+      getAvailableRoomsForDate(date).map((room) => ({
+        key: getRoomDateKey(room.room_no, date),
+        ...room,
+        date,
+      })),
+    );
+
+    setSelectedRooms(allSelections);
+    setRoomTokens(buildRoomTokens(allSelections));
+  };
+
   // Handle room + date selection
   const handleRoomDateSelection = (room, date) => {
     const key = getRoomDateKey(room.room_no, date);
@@ -309,11 +429,6 @@ const RoomAvailabilityStep = ({
     }
   };
 
-  // Check if room is selected for a specific date
-  const isRoomSelectedForDate = (roomNo, date) => {
-    return selectedRooms.some((r) => r.room_no === roomNo && r.date === date);
-  };
-
   // Remove a specific selection (remove all dates for that room)
   const removeSelection = (key) => {
     const roomNo = key.split('-')[0];
@@ -328,6 +443,24 @@ const RoomAvailabilityStep = ({
 
   return (
     <Box sx={{ width: '100%' }}>
+      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isAllSelected()}
+              onChange={handleToggleAllRooms}
+              color="primary"
+            />
+          }
+          label="Select all rooms"
+          sx={{
+            '.MuiFormControlLabel-label': {
+              fontWeight: 600,
+              color: '#424242',
+            },
+          }}
+        />
+      </Box>
       {/* Date Rows */}
       <AnimatePresence mode="popLayout">
         {dateRange.map((date, dateIndex) => {
@@ -371,6 +504,28 @@ const RoomAvailabilityStep = ({
                   >
                     {formattedDate}
                   </Typography>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={isDateFullySelected(date)}
+                        onChange={() => handleToggleDateSelection(date)}
+                        sx={{
+                          color: 'white',
+                          '&.Mui-checked': {
+                            color: 'white',
+                          },
+                        }}
+                      />
+                    }
+                    label="All"
+                    sx={{
+                      color: 'white',
+                      '.MuiFormControlLabel-label': {
+                        color: 'white',
+                        fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                      },
+                    }}
+                  />
                   <Typography
                     variant="caption"
                     sx={{

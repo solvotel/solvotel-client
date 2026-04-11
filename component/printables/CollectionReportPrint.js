@@ -32,7 +32,43 @@ const CustomTableContainer = styled(TableContainer)``;
 
 // forwardRef is required for react-to-print
 const CollectionReportPrint = React.forwardRef((props, ref) => {
-  const { filteredData, startDate, endDate, stats } = props;
+  const { filteredData, startDate, endDate, stats, selectedMop } = props;
+
+  const totalAmount = filteredData?.reduce(
+    (sum, payment) => sum + (Number(payment.amount) || 0),
+    0,
+  );
+  const totalRoomCollection = filteredData?.reduce(
+    (sum, payment) =>
+      sum + (payment.type === 'Room' ? Number(payment.amount) || 0 : 0),
+    0,
+  );
+  const totalRestaurantCollection = filteredData?.reduce(
+    (sum, payment) =>
+      sum + (payment.type === 'Restaurant' ? Number(payment.amount) || 0 : 0),
+    0,
+  );
+  const totalPayments = filteredData?.length || 0;
+
+  const printStats = selectedMop
+    ? {
+        ...stats,
+        totalAmount,
+        totalRoomCollection,
+        totalRestaurantCollection,
+        totalPayments,
+        mopStats: {
+          [selectedMop]: {
+            count: totalPayments,
+            amount: totalAmount,
+          },
+        },
+      }
+    : stats;
+
+  const displayedMopStats = selectedMop
+    ? printStats?.mopStats
+    : stats?.mopStats;
 
   return (
     <Box
@@ -61,27 +97,34 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
         <Typography variant="subtitle1" fontWeight={600} mb={1}>
           Collection Summary
         </Typography>
+        {selectedMop && (
+          <Typography variant="body2" mb={1}>
+            Filtered by payment method: <strong>{selectedMop}</strong>
+          </Typography>
+        )}
         <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
           <Typography>
             Total Payments:{' '}
-            <span style={{ fontWeight: 600 }}>{stats?.totalPayments || 0}</span>
+            <span style={{ fontWeight: 600 }}>
+              {printStats?.totalPayments || 0}
+            </span>
           </Typography>
           <Typography>
             Total Amount Collected:{' '}
             <span style={{ fontWeight: 600 }}>
-              ₹{stats?.totalAmount?.toFixed(2) || '0.00'}
+              ₹{printStats?.totalAmount?.toFixed(2) || '0.00'}
             </span>
           </Typography>
           <Typography>
             Room Collection:{' '}
             <span style={{ fontWeight: 600 }}>
-              ₹{stats?.totalRoomCollection?.toFixed(2) || '0.00'}
+              ₹{printStats?.totalRoomCollection?.toFixed(2) || '0.00'}
             </span>
           </Typography>
           <Typography>
             Restaurant Collection:{' '}
             <span style={{ fontWeight: 600 }}>
-              ₹{stats?.totalRestaurantCollection?.toFixed(2) || '0.00'}
+              ₹{printStats?.totalRestaurantCollection?.toFixed(2) || '0.00'}
             </span>
           </Typography>
         </Box>
@@ -91,8 +134,8 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
           Payment Method Breakdown:
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          {stats?.mopStats &&
-            Object.entries(stats.mopStats).map(([mop, data]) => (
+          {displayedMopStats &&
+            Object.entries(displayedMopStats).map(([mop, data]) => (
               <Box
                 key={mop}
                 sx={{
@@ -120,12 +163,12 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
           <TableBody>
             <TableRow>
               {[
-                'ID',
+                'Date & Time',
+
                 'Source',
                 'Customer Name',
                 'Payment Method',
                 'Amount ₹',
-                'Timestamp',
               ].map((item, index) => (
                 <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>
                   {item}
@@ -134,20 +177,23 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
             </TableRow>
             {filteredData?.map((payment, index) => (
               <TableRow key={index}>
-                <BodyCell>{payment.uid}</BodyCell>
-                <BodyCell>{payment.type}</BodyCell>
-                <BodyCell>{payment.customer_name || 'N/A'}</BodyCell>
-                <BodyCell>{payment.mop}</BodyCell>
-                <BodyCell align="right">₹{payment.amount.toFixed(2)}</BodyCell>
                 <BodyCell>
                   {new Date(payment.time_stamp).toLocaleString()}
                 </BodyCell>
+
+                <BodyCell>
+                  {payment.type}{' '}
+                  <span style={{ fontSize: '0.875em' }}>{payment.uid}</span>
+                </BodyCell>
+                <BodyCell>{payment.customer_name || 'N/A'}</BodyCell>
+                <BodyCell>{payment.mop}</BodyCell>
+                <BodyCell align="right">₹{payment.amount.toFixed(2)}</BodyCell>
               </TableRow>
             ))}
             {/* Totals Row */}
             <TableRow>
               <HeadingCell
-                colSpan={5}
+                colSpan={4}
                 sx={{ textAlign: 'center', fontWeight: 'bold' }}
               >
                 TOTAL
