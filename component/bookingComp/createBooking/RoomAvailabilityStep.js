@@ -207,7 +207,9 @@ const RoomAvailabilityStep = ({
       const availableRooms = getAvailableRoomsForDate(date);
       return (
         availableRooms.length === 0 ||
-        availableRooms.every((room) => isRoomSelectedForDate(room.room_no, date))
+        availableRooms.every((room) =>
+          isRoomSelectedForDate(room.room_no, date),
+        )
       );
     });
   };
@@ -389,7 +391,9 @@ const RoomAvailabilityStep = ({
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+      <Box
+        sx={{ mb: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}
+      >
         <FormControlLabel
           control={
             <Checkbox
