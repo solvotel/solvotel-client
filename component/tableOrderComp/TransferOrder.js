@@ -110,7 +110,7 @@ const TransferOrder = ({
       <Dialog
         open={transferOpen}
         onClose={() => {
-          setDeleteOpen(false);
+          setTransferOpen(false);
           setSelectedRow(null);
         }}
         aria-labelledby="transfer-dialog-title"

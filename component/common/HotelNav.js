@@ -48,6 +48,7 @@ import {
 } from 'lucide-react';
 import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutlined';
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
+import { SoupKitchen } from '@mui/icons-material';
 
 const HotelNav = ({ auth, logout }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -100,7 +101,6 @@ const HotelNav = ({ auth, logout }) => {
               alignItems: 'center',
             }}
           >
-            {' '}
             {/* ========== Admin ========== */}
             {(hasAllAccess || access.includes('admin')) && (
               <Box
@@ -309,6 +309,11 @@ const HotelNav = ({ auth, logout }) => {
                         icon: <FileText size={16} />,
                         label: 'Invoice Report',
                       },
+                      // {
+                      //   href: '/restaurant/kot',
+                      //   icon: <SoupKitchen sx={{ fontSize: '17px' }} />,
+                      //   label: 'KOT',
+                      // },
                     ]}
                   />
                 )}

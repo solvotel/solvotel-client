@@ -78,12 +78,21 @@ const Page = () => {
   });
 
   // Step 2: Flatten all rooms from those active bookings
+  const today = new Date().toISOString().split('T')[0];
+
   const activeRooms = activeBookings?.flatMap(
     (bk) =>
-      bk.rooms?.map((room) => ({
-        booking_id: bk.documentId,
-        room_no: room.room_no,
-      })) || [],
+      bk.room_tokens
+        ?.filter((room) => {
+          const checkIn = new Date(room.in_date).toISOString().split('T')[0];
+          const checkOut = new Date(room.out_date).toISOString().split('T')[0];
+
+          return today >= checkIn && today <= checkOut;
+        })
+        ?.map((room) => ({
+          booking_id: bk.documentId,
+          room_no: room.room,
+        })) || [],
   );
 
   const [viewOpen, setViewOpen] = useState(false);
