@@ -173,13 +173,15 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
         </DialogActions>
       </Dialog>
 
-      <KOTPrint
-        ref={printRef}
-        kotData={selectedKot}
-        tableNo={tableNo}
-        typeLabel={typeLabel}
-        size="80mm"
-      />
+      <Box sx={{ display: 'none' }}>
+        <KOTPrint
+          ref={printRef}
+          kotData={selectedKot}
+          tableNo={tableNo}
+          typeLabel={typeLabel}
+          size="80mm"
+        />
+      </Box>
     </>
   );
 };

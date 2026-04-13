@@ -25,6 +25,7 @@ import {
 } from '@/component/tableOrderComp';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 import { generateKOTChanges } from '@/utils/generateKOTChanges';
+import ViewTableOrder from '@/component/tableOrderComp/ViewTableOrder';
 
 const generateNextOrderNo = (orders) => {
   if (!orders || orders.length === 0) {
@@ -85,6 +86,7 @@ const Page = () => {
       })) || [],
   );
 
+  const [viewOpen, setViewOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -314,6 +316,8 @@ const Page = () => {
               permissions={permissions}
               setKotOpen={setKotOpen}
               setSelectedKot={setSelectedKot}
+              setViewOpen={setViewOpen}
+              setSelectedRow={setSelectedRow}
             />
           </Grid>
 
@@ -329,6 +333,14 @@ const Page = () => {
           </Grid>
         </Grid>
       </Box>
+
+      {/* create Invoice */}
+      <ViewTableOrder
+        open={viewOpen}
+        setOpen={setViewOpen}
+        selectedRow={selectedRow}
+        setSelectedRow={setSelectedRow}
+      />
       {/* Delete Confirmation Dialog */}
       <DeleteDialog
         deleteOpen={deleteOpen}
