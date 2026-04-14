@@ -31,8 +31,8 @@ const FinalPreviewStep = ({
   selectedRooms,
   roomTokens,
   setRoomTokens,
-  advancePayment,
-  setAdvancePayment,
+  advancePayments,
+  setAdvancePayments,
   paymentMethods,
 }) => {
   const [useBulkPrice, setUseBulkPrice] = useState(false);
@@ -97,11 +97,31 @@ const FinalPreviewStep = ({
     }
   };
 
-  const handleAdvanceChange = (field, value) => {
-    setAdvancePayment((prev) => ({
+  const handleAdvanceChange = (index, field, value) => {
+    setAdvancePayments((prev) => {
+      const updated = [...prev];
+      updated[index] = {
+        ...updated[index],
+        [field]: value,
+      };
+      return updated;
+    });
+  };
+
+  const handleAddAdvance = () => {
+    setAdvancePayments((prev) => [
       ...prev,
-      [field]: value,
-    }));
+      {
+        date: new Date().toISOString().split('T')[0],
+        mode: '',
+        amount: '',
+        remark: '',
+      },
+    ]);
+  };
+
+  const handleRemoveAdvance = (index) => {
+    setAdvancePayments((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const totalAmount = roomTokens.reduce(
@@ -395,74 +415,86 @@ const FinalPreviewStep = ({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <AccountBalanceWallet color="warning" />
               <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Advance Payment
+                Advance Payments
               </Typography>
             </Box>
 
-            {advancePayment && (
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => setAdvancePayment(null)}
-                sx={{
-                  background: '#ffebee',
-                  '&:hover': { background: '#ffcdd2' },
-                }}
-              >
-                <Delete />
-              </IconButton>
-            )}
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<Add />}
+              onClick={handleAddAdvance}
+              sx={{ borderRadius: 2, px: 2 }}
+            >
+              Add Advance Payment
+            </Button>
           </Box>
 
-          {advancePayment ? (
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField
-                  select
-                  label="Payment Mode"
-                  size="small"
-                  fullWidth
-                  value={advancePayment.mode}
-                  onChange={(e) => handleAdvanceChange('mode', e.target.value)}
-                >
-                  <MenuItem value="">--- Select ---</MenuItem>
-                  {paymentMethods?.map((cat) => (
-                    <MenuItem key={cat.documentId} value={cat.name}>
-                      {cat?.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
+          {advancePayments.length > 0 ? (
+            advancePayments.map((payment, index) => (
+              <Box key={`advance-${index}`} sx={{ mb: 2 }}>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      select
+                      label="Payment Mode"
+                      size="small"
+                      fullWidth
+                      value={payment.mode}
+                      onChange={(e) =>
+                        handleAdvanceChange(index, 'mode', e.target.value)
+                      }
+                    >
+                      <MenuItem value="">--- Select ---</MenuItem>
+                      {paymentMethods?.map((cat) => (
+                        <MenuItem key={cat.documentId} value={cat.name}>
+                          {cat?.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
 
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField
-                  label="Amount"
-                  size="small"
-                  fullWidth
-                  value={advancePayment.amount ?? ''}
-                  inputProps={{ inputMode: 'decimal' }}
-                  onChange={(e) => {
-                    const value = e.target.value;
+                  <Grid size={{ xs: 12, sm: 3 }}>
+                    <TextField
+                      label="Amount"
+                      size="small"
+                      fullWidth
+                      value={payment.amount ?? ''}
+                      inputProps={{ inputMode: 'decimal' }}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*\.?\d{0,2}$/.test(value)) {
+                          handleAdvanceChange(index, 'amount', value);
+                        }
+                      }}
+                    />
+                  </Grid>
 
-                    if (/^\d*\.?\d{0,2}$/.test(value)) {
-                      handleAdvanceChange('amount', value);
-                    }
-                  }}
-                />
-              </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <TextField
+                      label="Remark"
+                      size="small"
+                      fullWidth
+                      value={payment.remark}
+                      onChange={(e) =>
+                        handleAdvanceChange(index, 'remark', e.target.value)
+                      }
+                    />
+                  </Grid>
 
-              <Grid size={{ xs: 12, sm: 4 }}>
-                <TextField
-                  label="Remark"
-                  size="small"
-                  fullWidth
-                  value={advancePayment.remark}
-                  onChange={(e) =>
-                    handleAdvanceChange('remark', e.target.value)
-                  }
-                />
-              </Grid>
-            </Grid>
+                  <Grid size={{ xs: 12, sm: 1 }}>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleRemoveAdvance(index)}
+                      sx={{ mt: 1.3 }}
+                    >
+                      <Delete />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+              </Box>
+            ))
           ) : (
             <Box
               sx={{
@@ -471,24 +503,9 @@ const FinalPreviewStep = ({
                 py: 2,
               }}
             >
-              <Button
-                variant="contained"
-                startIcon={<Add />}
-                sx={{
-                  borderRadius: 2,
-                  px: 3,
-                }}
-                onClick={() =>
-                  setAdvancePayment({
-                    date: new Date().toISOString().split('T')[0],
-                    mode: '',
-                    amount: null,
-                    remark: '',
-                  })
-                }
-              >
-                Add Advance Payment
-              </Button>
+              <Typography variant="body2" color="textSecondary">
+                No advance payments added.
+              </Typography>
             </Box>
           )}
         </CardContent>

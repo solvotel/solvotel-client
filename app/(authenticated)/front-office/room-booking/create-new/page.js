@@ -92,7 +92,7 @@ export default function BookingForm() {
 
   const [selectedRooms, setSelectedRooms] = useState([]);
   const [roomTokens, setRoomTokens] = useState([]);
-  const [advancePayment, setAdvancePayment] = useState(null);
+  const [advancePayments, setAdvancePayments] = useState([]);
   const [error, setError] = useState('');
 
   const validateStep = () => {
@@ -154,7 +154,27 @@ export default function BookingForm() {
     const uniqueRoomIds = [...new Set(selectedRooms.map((r) => r.documentId))];
     const rooms = uniqueRoomIds;
 
-    if (advancePayment && advancePayment.amount > totalAmount) {
+    const invalidAdvancePayment = advancePayments.find(
+      (payment) =>
+        !payment.mode?.toString().trim() || !payment.amount?.toString().trim(),
+    );
+
+    if (invalidAdvancePayment) {
+      setError('Every advance payment must have a payment method and amount.');
+      return;
+    }
+
+    const totalAdvanceAmount = advancePayments.reduce(
+      (sum, payment) => sum + (parseFloat(payment.amount) || 0),
+      0,
+    );
+
+    if (advancePayments.length > 0 && totalAdvanceAmount === 0) {
+      setError('Advance payment amount must be greater than zero.');
+      return;
+    }
+
+    if (totalAdvanceAmount > totalAmount) {
       setError('Advance payment cannot be more than total amount.');
       return;
     }
@@ -167,13 +187,13 @@ export default function BookingForm() {
         ...bookingDetails,
         rooms: rooms,
         room_tokens: roomTokens,
-        advance_payment: advancePayment
-          ? {
-              date: advancePayment.date,
-              mode: advancePayment.mode,
-              amount: parseFloat(advancePayment.amount),
-              remark: advancePayment.remark,
-            }
+        advance_payment: advancePayments.length
+          ? advancePayments.map((payment) => ({
+              date: payment.date,
+              mode: payment.mode,
+              amount: parseFloat(payment.amount) || 0,
+              remark: payment.remark,
+            }))
           : null,
         hotel_id: auth?.user?.hotel_id || '',
         user_created: auth?.user?.username,
@@ -285,8 +305,8 @@ export default function BookingForm() {
                   <FinalPreviewStep
                     selectedGuest={selectedGuest}
                     bookingDetails={bookingDetails}
-                    advancePayment={advancePayment}
-                    setAdvancePayment={setAdvancePayment}
+                    advancePayments={advancePayments}
+                    setAdvancePayments={setAdvancePayments}
                     onSubmit={handleSubmitBooking}
                     selectedRooms={selectedRooms}
                     roomTokens={roomTokens}

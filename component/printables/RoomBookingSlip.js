@@ -61,6 +61,14 @@ const BookingSlip = React.forwardRef((props, ref) => {
       return acc;
     }, {}),
   );
+  const advancePaymentsRaw = booking?.advance_payment || [];
+  const advancePayments = Array.isArray(advancePaymentsRaw)
+    ? advancePaymentsRaw
+    : [advancePaymentsRaw];
+  const advanceAmount = advancePayments.reduce(
+    (sum, p) => sum + (parseFloat(p?.amount) || 0),
+    0,
+  );
 
   return (
     <Box
@@ -212,9 +220,8 @@ const BookingSlip = React.forwardRef((props, ref) => {
             {amountToWords(totalRoomAmount)})
           </Typography>
           <Typography>
-            <b>Advance Paid:</b>{' '}
-            <Highlight>₹{booking.advance_payment?.amount || 0}/‑</Highlight>(
-            {amountToWords(booking.advance_payment?.amount || 0)})
+            <b>Advance Paid:</b> <Highlight>₹{advanceAmount}/‑</Highlight>(
+            {amountToWords(advanceAmount)})
           </Typography>
         </Box>
         <Box sx={{ flex: 1, border: '1px solid #747474ff', p: 2 }}>

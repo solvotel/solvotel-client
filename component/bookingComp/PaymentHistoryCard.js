@@ -46,8 +46,14 @@ export default function PaymentHistoryCard({ booking, hotel, auth }) {
     (sum, p) => sum + (Number(p.amount) || 0),
     0,
   );
-  const advancePayment = booking?.advance_payment || null;
-  const advanceAmount = advancePayment?.amount || 0;
+  const advancePaymentsRaw = booking?.advance_payment || [];
+  const advancePayments = Array.isArray(advancePaymentsRaw)
+    ? advancePaymentsRaw
+    : [advancePaymentsRaw];
+  const advanceAmount = advancePayments.reduce(
+    (sum, p) => sum + (parseFloat(p?.amount) || 0),
+    0,
+  );
   const totalRoomAmount = roomTokens.reduce(
     (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
     0,
@@ -198,95 +204,102 @@ export default function PaymentHistoryCard({ booking, hotel, auth }) {
 
         {/* Payment Cards */}
         <Grid container spacing={2}>
-          {advancePayment && (
-            <Grid size={{ xs: 12 }}>
-              <Card
-                elevation={3}
-                sx={{
-                  borderRadius: 3,
-                  background: 'linear-gradient(135deg, #fff3e0, #ffffff)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  transition: '0.3s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6,
-                  },
-                }}
-              >
-                <CardContent sx={{ p: 2.5 }}>
-                  {/* Top Row */}
-                  <Box display="flex" alignItems="center" gap={1.2}>
-                    <PaymentIcon color="warning" />
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      Advance Payment
-                    </Typography>
-                  </Box>
+          {advancePayments.length > 0 &&
+            advancePayments.map((advancePayment, index) => (
+              <Grid size={{ xs: 12, md: 6 }} key={`advance-payment-${index}`}>
+                <Card
+                  elevation={3}
+                  sx={{
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #fff3e0, #ffffff)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    transition: '0.3s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 6,
+                    },
+                  }}
+                >
+                  <CardContent sx={{ p: 1.5 }}>
+                    {/* Top Row */}
+                    <Box display="flex" alignItems="center" gap={1.2}>
+                      <PaymentIcon color="warning" />
+                      <Typography variant="subtitle1" fontWeight="bold">
+                        Advance Payment{' '}
+                        {advancePayments.length > 1 ? `#${index + 1}` : ''}
+                      </Typography>
+                    </Box>
 
-                  <Divider />
+                    <Divider />
 
-                  {/* Amount */}
-                  <Box
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    mb={1.5}
-                  >
-                    <Typography variant="body2" color="text.secondary">
-                      Amount
-                    </Typography>
+                    {/* Amount */}
                     <Box
                       display="flex"
                       alignItems="center"
-                      color="warning.main"
-                      fontWeight="bold"
+                      justifyContent="space-between"
+                      mb={1.5}
                     >
-                      <RupeeIcon fontSize="small" sx={{ mr: 0.5 }} />
-                      <Typography variant="h6" fontWeight="bold">
-                        {advancePayment.amount}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    {/* Date */}
-                    <Box display="flex" alignItems="center" gap={1} mb={1}>
-                      <CalendarTodayOutlined fontSize="small" color="action" />
                       <Typography variant="body2" color="text.secondary">
-                        {GetCustomDate(advancePayment.date) || '—'}
+                        Amount
                       </Typography>
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        color="warning.main"
+                        fontWeight="bold"
+                      >
+                        <RupeeIcon fontSize="small" sx={{ mr: 0.5 }} />
+                        <Typography variant="h6" fontWeight="bold">
+                          {advancePayment?.amount}
+                        </Typography>
+                      </Box>
                     </Box>
 
-                    {/* Mode */}
-                    {advancePayment.mode && (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: 1,
+                      }}
+                    >
+                      {/* Date */}
                       <Box display="flex" alignItems="center" gap={1} mb={1}>
-                        <PaymentIcon fontSize="small" color="action" />
+                        <CalendarTodayOutlined
+                          fontSize="small"
+                          color="action"
+                        />
                         <Typography variant="body2" color="text.secondary">
-                          {advancePayment.mode}
+                          {GetCustomDate(advancePayment?.date) || '—'}
                         </Typography>
                       </Box>
-                    )}
 
-                    {/* Note */}
-                    {advancePayment.remark && (
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <NotesIcon fontSize="small" color="action" />
-                        <Typography variant="body2" color="text.secondary">
-                          {advancePayment.remark}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          )}
+                      {/* Mode */}
+                      {advancePayment?.mode && (
+                        <Box display="flex" alignItems="center" gap={1} mb={1}>
+                          <PaymentIcon fontSize="small" color="action" />
+                          <Typography variant="body2" color="text.secondary">
+                            {advancePayment.mode}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {/* Note */}
+                      {advancePayment?.remark && (
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <NotesIcon fontSize="small" color="action" />
+                          <Typography variant="body2" color="text.secondary">
+                            {advancePayment.remark}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
           {payments?.length > 0 ? (
             payments.map((p, index) => (
               <Grid size={{ xs: 12, sm: 6 }} key={index}>

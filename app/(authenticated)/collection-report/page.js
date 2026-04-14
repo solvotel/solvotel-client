@@ -81,10 +81,16 @@ const CollectionReportPage = () => {
         }
       });
 
-      // advance_payment
-      if (booking.advance_payment) {
-        const ap = booking.advance_payment;
-        const date = new Date(ap.date);
+      // advance_payment support for single object or multiple entries
+      const advancePayments = Array.isArray(booking.advance_payment)
+        ? booking.advance_payment
+        : booking.advance_payment
+          ? [booking.advance_payment]
+          : [];
+
+      advancePayments.forEach((ap) => {
+        const date = new Date(ap?.date);
+        if (!ap || !ap.date || isNaN(date.getTime())) return;
 
         if (date >= start && date <= end) {
           allPayments.push({
@@ -97,7 +103,7 @@ const CollectionReportPage = () => {
             amount: Number(ap.amount) || 0,
           });
         }
-      }
+      });
     });
 
     // 🟡 RESTAURANT INVOICES

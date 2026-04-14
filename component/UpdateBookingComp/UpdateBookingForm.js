@@ -111,10 +111,16 @@ const UpdateBookingForm = ({
   const [selectedRooms, setSelectedRooms] = useState(initializeSelectedRooms());
   const cleanedTokens = bookingData.room_tokens.map(({ id, ...rest }) => rest);
   const [roomTokens, setRoomTokens] = useState([...cleanedTokens]);
-  const [advancePayment, setAdvancePayment] = useState(
-    bookingData?.advance_payment || null,
+  const normalizeAdvancePayments = () => {
+    const payments = bookingData?.advance_payment;
+    if (!payments) return [];
+    return Array.isArray(payments) ? payments : [payments];
+  };
+  const [advancePayments, setAdvancePayments] = useState(
+    normalizeAdvancePayments(),
   );
   const [error, setError] = useState('');
+  const totalAmount = roomTokens.reduce((sum, r) => sum + (r.amount || 0), 0);
 
   const validateStep = () => {
     setError(''); // clear previous errors
@@ -154,6 +160,31 @@ const UpdateBookingForm = ({
     const uniqueRoomIds = [...new Set(selectedRooms.map((r) => r.documentId))];
     const rooms = uniqueRoomIds;
 
+    const invalidAdvancePayment = advancePayments.find(
+      (payment) =>
+        !payment.mode?.toString().trim() || !payment.amount?.toString().trim(),
+    );
+
+    if (invalidAdvancePayment) {
+      setError('Every advance payment must have a payment method and amount.');
+      return;
+    }
+
+    const totalAdvanceAmount = advancePayments.reduce(
+      (sum, payment) => sum + (parseFloat(payment.amount) || 0),
+      0,
+    );
+
+    if (advancePayments.length > 0 && totalAdvanceAmount === 0) {
+      setError('Advance payment amount must be greater than zero.');
+      return;
+    }
+
+    if (totalAdvanceAmount > totalAmount) {
+      setError('Advance payment cannot be more than total amount.');
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -162,13 +193,13 @@ const UpdateBookingForm = ({
         ...bookingDetails,
         rooms: rooms,
         room_tokens: roomTokens,
-        advance_payment: advancePayment
-          ? {
-              amount: parseFloat(advancePayment?.amount) || 0,
-              date: advancePayment?.date || null,
-              mode: advancePayment?.mode || '',
-              remark: advancePayment?.remark || '',
-            }
+        advance_payment: advancePayments.length
+          ? advancePayments.map((payment) => ({
+              date: payment.date || new Date().toISOString().split('T')[0],
+              mode: payment.mode,
+              amount: parseFloat(payment.amount) || 0,
+              remark: payment.remark,
+            }))
           : null,
         user_updated: auth?.user?.username,
       };
@@ -272,8 +303,8 @@ const UpdateBookingForm = ({
               <FinalPreviewStep
                 selectedGuest={selectedGuest}
                 bookingDetails={bookingDetails}
-                advancePayment={advancePayment}
-                setAdvancePayment={setAdvancePayment}
+                advancePayments={advancePayments}
+                setAdvancePayments={setAdvancePayments}
                 onSubmit={handleSubmitBooking}
                 selectedRooms={selectedRooms}
                 roomTokens={roomTokens}
