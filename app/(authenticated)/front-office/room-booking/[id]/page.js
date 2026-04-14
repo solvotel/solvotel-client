@@ -35,6 +35,10 @@ export default function RoomBookings({ params }) {
     auth: auth,
     id: auth?.user?.hotel_id,
   });
+  const allBookings = GetDataList({
+    auth,
+    endPoint: 'room-bookings',
+  });
 
   const data = GetSingleData({
     endPoint: 'room-bookings',
@@ -100,6 +104,7 @@ export default function RoomBookings({ params }) {
                   menuItems={menuItems}
                   handlePrintBookingSlip={handlePrintBookingSlip}
                   roomInvoices={roomInvoices}
+                  allBookings={allBookings}
                 />
                 <PaymentHistoryCard booking={data} hotel={hotel} auth={auth} />
                 <InvoiceListCard

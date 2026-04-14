@@ -6,6 +6,7 @@ import CancelBookingDialog from './CancelBookingDialog';
 import CheckinDialog from './CheckinDialog';
 import CheckoutDialog from './CheckoutDialog';
 import InvoiceListCard from './InvoiceListCard';
+import BookingConflictDialog from './BookingConflictDialog';
 export {
   BookingDetailsCard,
   BookingServiceActionsCard,
@@ -15,4 +16,5 @@ export {
   CheckinDialog,
   CheckoutDialog,
   InvoiceListCard,
+  BookingConflictDialog,
 };

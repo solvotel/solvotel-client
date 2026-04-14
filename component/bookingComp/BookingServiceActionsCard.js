@@ -1,7 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Paper, Typography, Grid, Button } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import {
+  Paper,
+  Typography,
+  Grid,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Box,
+} from '@mui/material';
 
 import {
   Print as PrintIcon,
@@ -29,6 +41,7 @@ import CancelBookingDialog from './CancelBookingDialog';
 import { SuccessToast } from '@/utils/GenerateToast';
 import CheckoutDialog from './CheckoutDialog';
 import CheckinDialog from './CheckinDialog';
+import BookingConflictDialog from './BookingConflictDialog';
 
 export default function BookingServiceActionsCard({
   booking,
@@ -37,7 +50,9 @@ export default function BookingServiceActionsCard({
   menuItems,
   handlePrintBookingSlip,
   roomInvoices,
+  allBookings,
 }) {
+  const router = useRouter();
   const [invoiceModel, setInvoiceModel] = useState(false);
   const [serviceModel, setServiceModel] = useState(false);
   const [paymentModel, setPaymentModel] = useState(false);
@@ -46,6 +61,8 @@ export default function BookingServiceActionsCard({
   const [cancelDialog, setCancelDialog] = useState(false);
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+  const [conflictingBookings, setConflictingBookings] = useState([]);
 
   // update service tokens
   const handleManageService = async (service) => {
@@ -130,6 +147,46 @@ export default function BookingServiceActionsCard({
     setCheckinDialogOpen(false);
     SuccessToast('Checked In Successfully');
   };
+
+  const findConflictingBookings = () => {
+    const currentRoomIds = booking?.room_tokens
+      ?.map((room) => room.room_no || room.room || '')
+      .filter(Boolean);
+    if (!currentRoomIds?.length) return [];
+
+    return (allBookings || [])
+      .filter(
+        (otherBooking) =>
+          otherBooking?.documentId !== booking?.documentId &&
+          otherBooking?.checked_in === true &&
+          otherBooking?.checked_out !== true &&
+          otherBooking?.booking_status !== 'Cancelled' &&
+          otherBooking?.room_tokens?.some((token) =>
+            currentRoomIds.includes(token.room_no || token.room || ''),
+          ),
+      )
+      .map((conflict) => ({
+        documentId: conflict?.documentId,
+        booking_id: conflict?.booking_id,
+      }));
+  };
+
+  const handleCheckinClick = () => {
+    const conflicts = findConflictingBookings();
+    if (conflicts.length > 0) {
+      setConflictingBookings(conflicts);
+      setConflictDialogOpen(true);
+      return;
+    }
+
+    setCheckinDialogOpen(true);
+  };
+
+  const handleNavigateToBooking = (bookingId) => {
+    setConflictDialogOpen(false);
+    router.push(`/front-office/room-booking/${bookingId}`);
+  };
+
   const handleCheckout = async () => {
     await UpdateData({
       endPoint: 'room-bookings',
@@ -206,7 +263,7 @@ export default function BookingServiceActionsCard({
                   booking.booking_status === 'Cancelled' ||
                   booking.booking_status === 'Blocked'
                 }
-                onClick={() => setCheckinDialogOpen(true)}
+                onClick={handleCheckinClick}
               >
                 Mark Check-In
               </Button>
@@ -391,6 +448,12 @@ export default function BookingServiceActionsCard({
         open={checkoutDialogOpen}
         setOpen={setCheckoutDialogOpen}
         handleSave={handleCheckout}
+      />
+      <BookingConflictDialog
+        conflictDialogOpen={conflictDialogOpen}
+        setConflictDialogOpen={setConflictDialogOpen}
+        conflictingBookings={conflictingBookings}
+        handleNavigateToBooking={handleNavigateToBooking}
       />
     </>
   );
