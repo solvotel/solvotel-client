@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/context';
-import { GetDataList, CreateNewData } from '@/utils/ApiFunctions';
+import { GetDataList, CreateNewData, UpdateData } from '@/utils/ApiFunctions';
 import { SuccessToast } from '@/utils/GenerateToast';
 import {
   Box,
@@ -18,9 +18,16 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
+  Tooltip,
   Divider,
 } from '@mui/material';
-import { PersonAdd, CheckCircle, Cancel, Search } from '@mui/icons-material';
+import {
+  PersonAdd,
+  CheckCircle,
+  Cancel,
+  Search,
+  Edit,
+} from '@mui/icons-material';
 
 export default function GuestStep({ selectedGuest, setSelectedGuest }) {
   const { auth } = useAuth();
@@ -34,6 +41,8 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
   const [formOpen, setFormOpen] = useState(false);
   const [formData, setFormData] = useState(initialForm());
   const [errors, setErrors] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingGuest, setEditingGuest] = useState(null);
 
   function initialForm() {
     return {
@@ -117,9 +126,56 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
     });
 
     SuccessToast('Guest created successfully');
-    setSelectedGuest(res?.data);
+    setSelectedGuest(res?.data?.data);
 
     setFormOpen(false);
+    setFormData(initialForm());
+  };
+
+  const handleEditGuest = (guest) => {
+    setIsEditing(true);
+    setEditingGuest(guest);
+    setErrors({});
+    setFormData({
+      name: guest.name || '',
+      mobile: guest.mobile || '',
+      email: guest.email || '',
+      address: guest.address || '',
+      dob: guest.dob || null,
+      doa: guest.doa || null,
+      company_name: guest.company_name || '',
+      gst_no: guest.gst_no || '',
+      id_type: guest.id_type || '',
+      id_number: guest.id_number || '',
+      passport_issue_date: guest.passport_issue_date || null,
+      passport_exp_date: guest.passport_exp_date || null,
+      visa_number: guest.visa_number || '',
+      visa_issue_date: guest.visa_issue_date || null,
+      visa_exp_date: guest.visa_exp_date || null,
+      hotel_id: guest.hotel_id || auth?.user?.hotel_id || '',
+    });
+    setFormOpen(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!validate()) return;
+
+    const res = await UpdateData({
+      auth,
+      endPoint: 'customers',
+      id: editingGuest?.documentId,
+      payload: { data: formData },
+    });
+
+    SuccessToast('Guest updated successfully');
+
+    if (selectedGuest?.documentId === editingGuest?.documentId) {
+      setSelectedGuest(res?.data?.data);
+    }
+
+    setFormOpen(false);
+    setIsEditing(false);
+    setEditingGuest(null);
     setFormData(initialForm());
   };
 
@@ -161,7 +217,13 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
             variant="outlined"
             startIcon={<PersonAdd />}
             fullWidth
-            onClick={() => setFormOpen(true)}
+            onClick={() => {
+              setIsEditing(false);
+              setEditingGuest(null);
+              setFormData(initialForm());
+              setErrors({});
+              setFormOpen(true);
+            }}
             sx={{
               borderRadius: 3,
               py: 1.2,
@@ -211,6 +273,26 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
                       onClick={() => setSelectedGuest(guest)}
                     >
                       <CardContent>
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            bottom: 10,
+                            right: 10,
+                            zIndex: 1,
+                          }}
+                        >
+                          <Tooltip title="Edit Guest">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditGuest(guest);
+                              }}
+                            >
+                              <Edit sx={{ color: '#6a11cb' }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                         {/* Name & Mobile */}
                         <Typography
                           variant="h6"
@@ -333,12 +415,16 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
       {/* Create Guest Dialog */}
       <Dialog
         open={formOpen}
-        onClose={() => setFormOpen(false)}
+        onClose={() => {
+          setFormOpen(false);
+          setIsEditing(false);
+          setEditingGuest(null);
+        }}
         maxWidth="sm"
         fullWidth
       >
         <DialogTitle sx={{ fontWeight: 600, color: '#6a11cb' }}>
-          Create New Guest
+          {isEditing ? 'Edit Guest' : 'Create New Guest'}
         </DialogTitle>
         <Divider />
         <DialogContent>
@@ -561,17 +647,25 @@ export default function GuestStep({ selectedGuest, setSelectedGuest }) {
           </Grid>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setFormOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => {
+              setFormOpen(false);
+              setIsEditing(false);
+              setEditingGuest(null);
+            }}
+          >
+            Cancel
+          </Button>
           <Button
             variant="contained"
-            onClick={handleSave}
+            onClick={isEditing ? handleUpdate : handleSave}
             sx={{
               borderRadius: 3,
               bgcolor: '#6a11cb',
               '&:hover': { bgcolor: '#2575fc' },
             }}
           >
-            Save Guest
+            {isEditing ? 'Update Guest' : 'Save Guest'}
           </Button>
         </DialogActions>
       </Dialog>

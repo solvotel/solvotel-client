@@ -40,11 +40,28 @@ const BookingSlip = React.forwardRef((props, ref) => {
     (sum, r) => sum + (r.amount || 0),
     0,
   );
+  const groupedRoomTokens = Object.values(
+    roomTokens.reduce((acc, token) => {
+      const key = `${token.item}-${token.days}-${token.rate}-${token.gst}`;
 
-  const totalDays = CalculateDays({
-    checkin: booking?.checkin_date,
-    checkout: booking?.checkout_date,
-  });
+      if (!acc[key]) {
+        acc[key] = {
+          room: token.room,
+          item: token.item,
+          days: token.days,
+          tariff: token.rate,
+          gst: token.gst,
+          amount: token.amount,
+        };
+      } else {
+        acc[key].room += `, ${token.room}`;
+        acc[key].amount += token.amount;
+      }
+
+      return acc;
+    }, {}),
+  );
+
   return (
     <Box
       ref={ref}
@@ -216,22 +233,25 @@ const BookingSlip = React.forwardRef((props, ref) => {
         >
           <TableHead>
             <TableRow sx={{ backgroundColor: TABLE_HEAD_BG }}>
-              <TableCell sx={{ fontWeight: 'bold' }}>Details</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Days</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Tariff</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>GST</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
+              {['Room', 'Category', 'Days', 'Tariff', 'GST', 'Amount'].map(
+                (header, index) => (
+                  <TableCell sx={{ fontWeight: 'bold' }} key={index}>
+                    {header}
+                  </TableCell>
+                ),
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
-            {roomTokens?.map((room, idx) => (
+            {groupedRoomTokens?.map((room, idx) => (
               <TableRow
                 key={idx}
                 sx={{ '&:nth-of-type(odd)': { backgroundColor: ROW_ODD_BG } }}
               >
+                <TableCell>{room?.room}</TableCell>
                 <TableCell>{room?.item}</TableCell>
-                <TableCell>{totalDays}</TableCell>
-                <TableCell>₹{room?.rate}</TableCell>
+                <TableCell>{room?.days}</TableCell>
+                <TableCell>₹{room?.tariff}</TableCell>
                 <TableCell>{room?.gst}%</TableCell>
                 <TableCell>₹{room?.amount}</TableCell>
               </TableRow>
