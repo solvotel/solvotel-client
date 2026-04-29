@@ -192,6 +192,32 @@ const CollectionReportPage = () => {
     ? dataToExport.filter((row) => row['Payment Method'] === selectedMop)
     : dataToExport;
 
+  const displayStats = displayData.reduce(
+    (acc, p) => {
+      const mop = p.mop || 'N/A';
+      acc.totalPayments += 1;
+      acc.totalAmount += p.amount;
+      if (p.type === 'Room') {
+        acc.totalRoomCollection += p.amount;
+      } else if (p.type === 'Restaurant') {
+        acc.totalRestaurantCollection += p.amount;
+      }
+      if (!acc.mopStats[mop]) {
+        acc.mopStats[mop] = { count: 0, amount: 0 };
+      }
+      acc.mopStats[mop].count += 1;
+      acc.mopStats[mop].amount += p.amount;
+      return acc;
+    },
+    {
+      totalPayments: 0,
+      totalAmount: 0,
+      totalRoomCollection: 0,
+      totalRestaurantCollection: 0,
+      mopStats: {},
+    },
+  );
+
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -290,19 +316,21 @@ const CollectionReportPage = () => {
                 </Typography>
                 <Box display="flex" gap={3} mb={2}>
                   <Typography>
-                    <strong>Total Payments:</strong> {stats.totalPayments || 0}
+                    <strong>Total Payments:</strong>{' '}
+                    {displayStats.totalPayments || 0}
                   </Typography>
                   <Typography>
                     <strong>Total Amount Collected:</strong> ₹
-                    {stats.totalAmount?.toFixed(2) || '0.00'}
+                    {displayStats.totalAmount?.toFixed(2) || '0.00'}
                   </Typography>
                   <Typography>
                     <strong>Room Collection:</strong> ₹
-                    {stats.totalRoomCollection?.toFixed(2) || '0.00'}
+                    {displayStats.totalRoomCollection?.toFixed(2) || '0.00'}
                   </Typography>
                   <Typography>
                     <strong>Restaurant Collection:</strong> ₹
-                    {stats.totalRestaurantCollection?.toFixed(2) || '0.00'}
+                    {displayStats.totalRestaurantCollection?.toFixed(2) ||
+                      '0.00'}
                   </Typography>
                 </Box>
 

@@ -118,12 +118,6 @@ const CreateOrderInvoice = ({
   };
 
   const validateForm = () => {
-    // Check if at least one payment exists
-    if (formData.payments.length === 0) {
-      ErrorToast('Please add at least one payment');
-      return false;
-    }
-
     // Check each payment has valid MOP and amount > 0
     for (let i = 0; i < formData.payments.length; i++) {
       const payment = formData.payments[i];
