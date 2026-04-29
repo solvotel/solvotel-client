@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { GetDataList } from '@/utils/ApiFunctions';
 import {
   Typography,
@@ -11,10 +11,12 @@ import {
   CardContent,
   Checkbox,
   FormControlLabel,
+  Collapse,
+  IconButton,
 } from '@mui/material';
 import { useAuth } from '@/context';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Building, Users } from 'lucide-react';
+import { Calendar, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import dayjs from 'dayjs';
 
 // Animation variants
@@ -70,6 +72,24 @@ const RoomAvailabilityStep = ({
 
     return dates;
   }, [bookingDetails.checkin_date, bookingDetails.checkout_date]);
+
+  const [expandedDates, setExpandedDates] = useState(() => new Set(dateRange));
+
+  useEffect(() => {
+    setExpandedDates(new Set(dateRange));
+  }, [dateRange]);
+
+  const toggleDateExpansion = (date) => {
+    setExpandedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) {
+        next.delete(date);
+      } else {
+        next.add(date);
+      }
+      return next;
+    });
+  };
 
   // Check if a room is available for a specific date (uses token/status logic)
   const isRoomAvailableForDate = (room, date) => {
@@ -468,7 +488,6 @@ const RoomAvailabilityStep = ({
       {/* Date Rows */}
       <AnimatePresence mode="popLayout">
         {dateRange.map((date, dateIndex) => {
-          const dateObj = new Date(date);
           const formattedDate = dayjs(date).format('ddd, MMM DD');
 
           return (
@@ -530,115 +549,138 @@ const RoomAvailabilityStep = ({
                       },
                     }}
                   />
-                  <Typography
-                    variant="caption"
+                  <IconButton
+                    onClick={() => toggleDateExpansion(date)}
                     sx={{
                       ml: 'auto',
-                      opacity: 0.85,
-                      fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                      color: 'white',
+                      p: 0.5,
                     }}
+                    aria-label={
+                      expandedDates.has(date)
+                        ? 'Collapse room list'
+                        : 'Expand room list'
+                    }
+                    size="small"
                   >
-                    Night
-                  </Typography>
+                    {expandedDates.has(date) ? (
+                      <ChevronUp size={18} />
+                    ) : (
+                      <ChevronDown size={18} />
+                    )}
+                  </IconButton>
                 </Box>
 
-                <CardContent sx={{ p: { xs: 1, sm: 1.5 } }}>
-                  {/* Rooms grouped by category */}
-                  <Box>
-                    {Object.entries(roomsByCategory).map(([catId, catData]) => {
-                      const availableRoomsForDate = catData.rooms.filter(
-                        (room) => isRoomAvailableForDate(room, date),
-                      );
+                <Collapse in={expandedDates.has(date)}>
+                  <CardContent sx={{ p: { xs: 1, sm: 1.5 } }}>
+                    {/* Rooms grouped by category */}
+                    <Box>
+                      {Object.entries(roomsByCategory).map(
+                        ([catId, catData]) => {
+                          const availableRoomsForDate = catData.rooms.filter(
+                            (room) => isRoomAvailableForDate(room, date),
+                          );
 
-                      if (availableRoomsForDate.length === 0) return null;
+                          if (availableRoomsForDate.length === 0) return null;
 
-                      return (
-                        <Box key={catId} mb={{ xs: 1.5, sm: 2 }}>
-                          {/* Category Label */}
-                          <Typography
-                            variant="caption"
-                            fontWeight="600"
-                            sx={{
-                              mb: 0.75,
-                              pb: 0.5,
-                              display: 'block',
-                              borderBottom: '1px solid #e0e0e0',
-                              color: '#424242',
-                              fontSize: { xs: '0.7rem', sm: '0.8rem' },
-                            }}
-                          >
-                            {catData.name}
-                          </Typography>
+                          return (
+                            <Box key={catId} mb={{ xs: 1.5, sm: 2 }}>
+                              {/* Category Label */}
+                              <Typography
+                                variant="caption"
+                                fontWeight="600"
+                                sx={{
+                                  mb: 0.75,
+                                  pb: 0.5,
+                                  display: 'block',
+                                  borderBottom: '1px solid #e0e0e0',
+                                  color: '#424242',
+                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                }}
+                              >
+                                {catData.name}
+                              </Typography>
 
-                          {/* Room Buttons */}
-                          <Box
-                            display="flex"
-                            flexWrap="wrap"
-                            gap={{ xs: 0.5, sm: 0.75 }}
-                          >
-                            <AnimatePresence mode="popLayout">
-                              {availableRoomsForDate.map((room) => {
-                                const isSelected = isRoomSelectedForDate(
-                                  room.room_no,
-                                  date,
-                                );
+                              {/* Room Buttons */}
+                              <Box
+                                display="flex"
+                                flexWrap="wrap"
+                                gap={{ xs: 0.5, sm: 0.75 }}
+                              >
+                                <AnimatePresence mode="popLayout">
+                                  {availableRoomsForDate.map((room) => {
+                                    const isSelected = isRoomSelectedForDate(
+                                      room.room_no,
+                                      date,
+                                    );
 
-                                return (
-                                  <motion.div
-                                    key={`${room.documentId}-${date}`}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit="hidden"
-                                    whileHover="hover"
-                                    variants={buttonAnimation}
-                                  >
-                                    <Button
-                                      onClick={() =>
-                                        handleRoomDateSelection(room, date)
-                                      }
-                                      variant={
-                                        isSelected ? 'contained' : 'outlined'
-                                      }
-                                      color={isSelected ? 'primary' : 'inherit'}
-                                      sx={{
-                                        px: { xs: 0.8, sm: 1.2 },
-                                        py: { xs: 0.4, sm: 0.6 },
-                                        minWidth: { xs: '36px', sm: '48px' },
-                                        fontWeight: 'bold',
-                                        fontSize: {
-                                          xs: '0.7rem',
-                                          sm: '0.85rem',
-                                        },
-                                        textTransform: 'uppercase',
-                                        borderRadius: 0.5,
-                                        border: isSelected
-                                          ? '2px solid #1976d2'
-                                          : '1px solid #bdbdbd',
-                                        transition: 'all 0.2s ease-in-out',
-                                        bgcolor: isSelected
-                                          ? '#1976d2'
-                                          : 'transparent',
-                                        color: isSelected ? 'white' : '#424242',
-                                        '&:hover': {
-                                          bgcolor: isSelected
-                                            ? '#1565c0'
-                                            : '#f5f5f5',
-                                          boxShadow: 1,
-                                        },
-                                      }}
-                                    >
-                                      {room.room_no}
-                                    </Button>
-                                  </motion.div>
-                                );
-                              })}
-                            </AnimatePresence>
-                          </Box>
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                </CardContent>
+                                    return (
+                                      <motion.div
+                                        key={`${room.documentId}-${date}`}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="hidden"
+                                        whileHover="hover"
+                                        variants={buttonAnimation}
+                                      >
+                                        <Button
+                                          onClick={() =>
+                                            handleRoomDateSelection(room, date)
+                                          }
+                                          variant={
+                                            isSelected
+                                              ? 'contained'
+                                              : 'outlined'
+                                          }
+                                          color={
+                                            isSelected ? 'primary' : 'inherit'
+                                          }
+                                          sx={{
+                                            px: { xs: 0.8, sm: 1.2 },
+                                            py: { xs: 0.4, sm: 0.6 },
+                                            minWidth: {
+                                              xs: '36px',
+                                              sm: '48px',
+                                            },
+                                            fontWeight: 'bold',
+                                            fontSize: {
+                                              xs: '0.7rem',
+                                              sm: '0.85rem',
+                                            },
+                                            textTransform: 'uppercase',
+                                            borderRadius: 0.5,
+                                            border: isSelected
+                                              ? '2px solid #1976d2'
+                                              : '1px solid #bdbdbd',
+                                            transition: 'all 0.2s ease-in-out',
+                                            bgcolor: isSelected
+                                              ? '#1976d2'
+                                              : 'transparent',
+                                            color: isSelected
+                                              ? 'white'
+                                              : '#424242',
+                                            '&:hover': {
+                                              bgcolor: isSelected
+                                                ? '#1565c0'
+                                                : '#f5f5f5',
+                                              boxShadow: 1,
+                                            },
+                                          }}
+                                        >
+                                          {room.room_no}
+                                        </Button>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </AnimatePresence>
+                              </Box>
+                            </Box>
+                          );
+                        },
+                      )}
+                    </Box>
+                  </CardContent>
+                </Collapse>
               </Card>
             </motion.div>
           );

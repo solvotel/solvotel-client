@@ -52,10 +52,12 @@ const BookingSlip = React.forwardRef((props, ref) => {
           tariff: token.rate,
           gst: token.gst,
           amount: token.amount,
+          roomCount: 1,
         };
       } else {
         acc[key].room += `, ${token.room}`;
         acc[key].amount += token.amount;
+        acc[key].roomCount += 1;
       }
 
       return acc;
@@ -240,7 +242,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
         >
           <TableHead>
             <TableRow sx={{ backgroundColor: TABLE_HEAD_BG }}>
-              {['Room', 'Category', 'Days', 'Tariff', 'GST', 'Amount'].map(
+              {['Category', 'Rooms', 'Tariff', 'Days', 'GST', 'Amount'].map(
                 (header, index) => (
                   <TableCell sx={{ fontWeight: 'bold' }} key={index}>
                     {header}
@@ -255,10 +257,10 @@ const BookingSlip = React.forwardRef((props, ref) => {
                 key={idx}
                 sx={{ '&:nth-of-type(odd)': { backgroundColor: ROW_ODD_BG } }}
               >
-                <TableCell>{room?.room}</TableCell>
                 <TableCell>{room?.item}</TableCell>
-                <TableCell>{room?.days}</TableCell>
+                <TableCell>{room?.roomCount}</TableCell>
                 <TableCell>₹{room?.tariff}</TableCell>
+                <TableCell>{room?.days}</TableCell>
                 <TableCell>{room?.gst}%</TableCell>
                 <TableCell>₹{room?.amount}</TableCell>
               </TableRow>

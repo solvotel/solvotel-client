@@ -42,8 +42,14 @@ const BookingList = ({ stayOver, expectedCheckin, expectedCheckout }) => {
             },
           }}
         >
-          <Typography variant="subtitle2" fontWeight="bold">
+          {/* <Typography variant="subtitle2" fontWeight="bold">
             Booking ID: {bk.booking_id}
+          </Typography> */}
+          <Typography variant="subtitle2" fontWeight="bold">
+            Guest Name: {bk.customer?.name || 'N/A'}
+          </Typography>
+          <Typography variant="subtitle2" fontWeight="bold">
+            Phone No: {bk.customer?.mobile || 'N/A'}
           </Typography>
           <Typography variant="body2">
             Rooms: {bk.rooms?.map((r) => r.room_no).join(', ') || '—'}

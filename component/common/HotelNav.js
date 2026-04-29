@@ -137,6 +137,11 @@ const HotelNav = ({ auth, logout }) => {
                         icon: <Users2 size={16} />,
                         label: 'POS Users',
                       },
+                      {
+                        href: '/customer-lead-sheet',
+                        icon: <ClipboardList size={16} />,
+                        label: 'Customer Lead Sheet',
+                      },
                     ]}
                   />
                 )}
@@ -416,11 +421,6 @@ const HotelNav = ({ auth, logout }) => {
                         icon: <Calculator size={16} />,
                         label: 'Collection Report',
                       },
-                      {
-                        href: '/customer-lead-sheet',
-                        icon: <ClipboardList size={16} />,
-                        label: 'Customer Lead Sheet',
-                      },
                     ]}
                   />
                 )}
@@ -512,6 +512,18 @@ const HotelNav = ({ auth, logout }) => {
                         <Users2 size={16} />
                       </ListItemIcon>
                       <ListItemText primary="POS Users" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href="/customer-lead-sheet"
+                      onClick={toggleDrawer(false)}
+                    >
+                      <ListItemIcon>
+                        <Calculator size={16} />
+                      </ListItemIcon>
+                      <ListItemText primary="Customer Lead Sheet" />
                     </ListItemButton>
                   </ListItem>
                 </List>
@@ -952,18 +964,6 @@ const HotelNav = ({ auth, logout }) => {
                         <Calculator size={16} />
                       </ListItemIcon>
                       <ListItemText primary="Collection Report" />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      component={Link}
-                      href="/customer-lead-sheet"
-                      onClick={toggleDrawer(false)}
-                    >
-                      <ListItemIcon>
-                        <Calculator size={16} />
-                      </ListItemIcon>
-                      <ListItemText primary="Customer Lead Sheet" />
                     </ListItemButton>
                   </ListItem>
                 </List>

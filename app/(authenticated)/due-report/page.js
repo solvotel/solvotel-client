@@ -76,7 +76,7 @@ const RoomBookingCalculator = (booking) => {
   };
 };
 
-const Page = () => {
+const DueReportPage = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
 
@@ -93,6 +93,7 @@ const Page = () => {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
+  const [searchQuery, setSearchQuery] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [dataToExport, setDataToExport] = useState([]);
 
@@ -142,12 +143,19 @@ const Page = () => {
       ...(restructuredRestaurantData || []),
     ];
 
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+
     // Filter invoices with due amount > 0 and within date range
     const filteredInvoices = allInvoices.filter((inv) => {
       const invoiceDate = new Date(inv.date);
       const hasDue = (inv.due || 0) > 0;
       const inDateRange = invoiceDate >= start && invoiceDate <= end;
-      return hasDue && inDateRange;
+      const matchesSearch = normalizedSearch
+        ? `${inv.invoice_no || ''} ${inv.customer_name || ''}`
+            .toLowerCase()
+            .includes(normalizedSearch)
+        : true;
+      return hasDue && inDateRange && matchesSearch;
     });
 
     // Prepare data for export
@@ -163,6 +171,14 @@ const Page = () => {
 
     setFilteredData(filteredInvoices);
     setDataToExport(dataToExport);
+  };
+
+  const handleReset = () => {
+    setStartDate('');
+    setEndDate(todaysDate);
+    setSearchQuery('');
+    setFilteredData([]);
+    setDataToExport([]);
   };
 
   const componentRef = useRef(null);
@@ -204,6 +220,15 @@ const Page = () => {
               <Box display="flex" alignItems="center" mb={2}>
                 <TextField
                   size="small"
+                  label="Customer / Invoice"
+                  variant="outlined"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by customer or invoice"
+                  sx={{ mr: 1, minWidth: 240 }}
+                />
+                <TextField
+                  size="small"
                   label="Start Date"
                   variant="outlined"
                   type="date"
@@ -228,8 +253,16 @@ const Page = () => {
                   variant="contained"
                   color="primary"
                   onClick={handleSearch}
+                  sx={{ mr: 1 }}
                 >
                   Search
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleReset}
+                >
+                  Reset
                 </Button>
               </Box>
               <Box>
@@ -377,4 +410,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default DueReportPage;

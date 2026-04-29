@@ -88,6 +88,7 @@ export default function BookingForm() {
     booking_status: 'Confirmed',
     checkin_date: formatDate(todaysdate),
     checkout_date: formatDate(tomorrow),
+    meal_plan: 'EP',
   });
 
   const [selectedRooms, setSelectedRooms] = useState([]);

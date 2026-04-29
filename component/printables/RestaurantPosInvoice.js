@@ -53,6 +53,12 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
         <p style={{ margin: 0 }}>
           {profile.res_district}, {profile.res_state}
         </p>
+
+        <p style={{ margin: 0 }}>
+          Phone: {profile.res_mobile}{' '}
+          {profile.res_alt_mobile && ` | ${profile.res_alt_mobile}`}
+        </p>
+
         {profile.res_gst_no && (
           <p style={{ margin: 0 }}>GST: {profile.res_gst_no}</p>
         )}
