@@ -9,7 +9,7 @@ import {
   GetUsers,
   GetUserList,
 } from '@/utils/ApiFunctions';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 
 import {
@@ -124,6 +124,14 @@ const Page = () => {
     if (!validate()) return;
 
     if (editing) {
+      await UpdateUser();
+    } else {
+      await CreateNewUser();
+    }
+  };
+
+  const UpdateUser = async () => {
+    try {
       let data = {
         permissions: formData.permissions,
         access: formData.access,
@@ -148,18 +156,32 @@ const Page = () => {
         payload: data,
       });
       SuccessToast('User updated successfully');
-    } else {
+      setSearch('');
+      setFormOpen(false);
+      setFormData(initialForm());
+      setPassword('');
+    } catch (err) {
+      console.log('Error updating user:', err);
+      ErrorToast(err.response.data.error.message || 'Failed to update user');
+    }
+  };
+
+  const CreateNewUser = async () => {
+    try {
       await CreateNewData({
         auth,
         endPoint: 'users',
         payload: { ...formData, password: password },
       });
       SuccessToast('User created successfully');
+      setSearch('');
+      setFormOpen(false);
+      setFormData(initialForm());
+      setPassword('');
+    } catch (err) {
+      console.log('Error creating user:', err);
+      ErrorToast(err.response.data.error.message || 'Failed to create user');
     }
-    setSearch('');
-    setFormOpen(false);
-    setFormData(initialForm());
-    setPassword('');
   };
 
   const handleDeleteClick = (row) => {

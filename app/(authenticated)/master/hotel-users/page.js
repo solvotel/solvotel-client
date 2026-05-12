@@ -9,7 +9,7 @@ import {
   GetUsers,
   GetUserList,
 } from '@/utils/ApiFunctions';
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 
 import {
@@ -44,7 +44,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useState, useMemo } from 'react';
 
-const Page = () => {
+const HotelUser = () => {
   const { auth } = useAuth();
 
   const data = GetUserList({
@@ -115,6 +115,14 @@ const Page = () => {
     if (!validate()) return;
 
     if (editing) {
+      await UpdateUser();
+    } else {
+      await CreateNewUser();
+    }
+  };
+
+  const UpdateUser = async () => {
+    try {
       let data = {
         permissions: formData.permissions,
         access: formData.access,
@@ -138,18 +146,30 @@ const Page = () => {
         payload: data,
       });
       SuccessToast('User updated successfully');
-    } else {
+      setFormOpen(false);
+      setFormData(initialForm());
+      setPassword('');
+    } catch (err) {
+      console.log(err);
+      ErrorToast(err.response.data.error.message || 'Failed to update user');
+    }
+  };
+
+  const CreateNewUser = async () => {
+    try {
       await CreateNewData({
         auth,
         endPoint: 'users',
         payload: { ...formData, password: password },
       });
       SuccessToast('User created successfully');
+      setFormOpen(false);
+      setFormData(initialForm());
+      setPassword('');
+    } catch (err) {
+      console.log(err);
+      ErrorToast(err.response.data.error.message || 'Failed to create user');
     }
-    setSearch('');
-    setFormOpen(false);
-    setFormData(initialForm());
-    setPassword('');
   };
 
   const handleDeleteClick = (row) => {
@@ -526,4 +546,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default HotelUser;

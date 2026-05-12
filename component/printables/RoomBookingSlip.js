@@ -242,13 +242,18 @@ const BookingSlip = React.forwardRef((props, ref) => {
         >
           <TableHead>
             <TableRow sx={{ backgroundColor: TABLE_HEAD_BG }}>
-              {['Category', 'Rooms', 'Tariff', 'Days', 'GST', 'Amount'].map(
-                (header, index) => (
-                  <TableCell sx={{ fontWeight: 'bold' }} key={index}>
-                    {header}
-                  </TableCell>
-                ),
-              )}
+              {[
+                'Category',
+                'Rooms',
+                'Tariff',
+                'Check-In/Out',
+                'GST',
+                'Amount',
+              ].map((header, index) => (
+                <TableCell sx={{ fontWeight: 'bold' }} key={index}>
+                  {header}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -260,7 +265,10 @@ const BookingSlip = React.forwardRef((props, ref) => {
                 <TableCell>{room?.item}</TableCell>
                 <TableCell>{room?.roomCount}</TableCell>
                 <TableCell>₹{room?.tariff}</TableCell>
-                <TableCell>{room?.days}</TableCell>
+                <TableCell>
+                  {GetCustomDate(booking?.checkin_date)} /{' '}
+                  {GetCustomDate(booking?.checkout_date)}
+                </TableCell>
                 <TableCell>{room?.gst}%</TableCell>
                 <TableCell>₹{room?.amount}</TableCell>
               </TableRow>

@@ -142,7 +142,7 @@ const Page = () => {
                               <TableCell key={h} sx={{ fontWeight: 'bold' }}>
                                 {h}
                               </TableCell>
-                            )
+                            ),
                           )}
                         </TableRow>
                       </TableHead>
@@ -194,7 +194,7 @@ const Page = () => {
                               <TableCell key={h} sx={{ fontWeight: 'bold' }}>
                                 {h}
                               </TableCell>
-                            )
+                            ),
                           )}
                         </TableRow>
                       </TableHead>

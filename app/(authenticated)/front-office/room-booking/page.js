@@ -70,14 +70,22 @@ const BookingListPage = () => {
     if (end) end.setHours(23, 59, 59, 999);
 
     return data.filter((booking) => {
-      // 🔹 BOOKING ID FILTER
+      // 🔹 SEARCH FILTER (Booking ID, Guest Name, or Phone)
       if (searchBookingId) {
-        if (
-          !booking.booking_id
-            ?.toString()
-            .toLowerCase()
-            .includes(searchBookingId.toLowerCase())
-        ) {
+        const searchTerm = searchBookingId.toLowerCase();
+        const matchesBookingId = booking.booking_id
+          ?.toString()
+          .toLowerCase()
+          .includes(searchTerm);
+        const matchesGuestName = booking?.customer?.name
+          ?.toLowerCase()
+          .includes(searchTerm);
+        const matchesPhoneNo = booking?.customer?.mobile
+          ?.toString()
+          .toLowerCase()
+          .includes(searchTerm);
+
+        if (!matchesBookingId && !matchesGuestName && !matchesPhoneNo) {
           return false;
         }
       }
@@ -208,7 +216,7 @@ const BookingListPage = () => {
               />
               <TextField
                 size="small"
-                label="Search Booking ID"
+                label="Search Booking ID, Guest Name, or Phone"
                 variant="outlined"
                 value={searchBookingId}
                 onChange={(e) => setSearchBookingId(e.target.value)}

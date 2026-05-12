@@ -45,7 +45,7 @@ import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 
-const Page = () => {
+const TablePage = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const data = GetDataList({
@@ -96,6 +96,18 @@ const Page = () => {
       ErrorToast('Table No Is required');
       return;
     }
+
+    // Check for duplicate table_no
+    const isDuplicate = data.some(
+      (item) =>
+        item.table_no?.toLowerCase() === formData.table_no?.toLowerCase() &&
+        item.documentId !== formData.documentId,
+    );
+    if (isDuplicate) {
+      ErrorToast('Table No already exists');
+      return;
+    }
+
     if (editing) {
       const {
         id,
@@ -310,4 +322,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default TablePage;

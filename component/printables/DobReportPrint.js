@@ -37,6 +37,15 @@ const DobReportPrint = React.forwardRef((props, ref) => {
     const date = new Date(year, month - 1);
     return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
   };
+
+  const currentYear = new Date().getFullYear();
+
+  const monthName = new Date(currentYear, selectedMonth - 1).toLocaleString(
+    'default',
+    {
+      month: 'long',
+    },
+  );
   return (
     <Box
       ref={ref}
@@ -50,11 +59,7 @@ const DobReportPrint = React.forwardRef((props, ref) => {
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
         <Typography>
-          Month:{' '}
-          <span style={{ fontWeight: 600 }}>
-            {' '}
-            {formatMonthYear(selectedMonth)}
-          </span>
+          Month: <span style={{ fontWeight: 600 }}> {monthName}</span>
         </Typography>
       </Box>
       <CustomTableContainer>
@@ -66,7 +71,7 @@ const DobReportPrint = React.forwardRef((props, ref) => {
                   <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>
                     {item}
                   </HeadingCell>
-                )
+                ),
               )}
             </TableRow>
             {filteredData?.map((row, index) => (
