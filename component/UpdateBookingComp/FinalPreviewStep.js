@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -41,6 +41,24 @@ const FinalPreviewStep = ({
 
   const [useBulkPrice, setUseBulkPrice] = useState(false);
   const [bulkPrice, setBulkPrice] = useState('');
+  const [bulkGst, setBulkGst] = useState('');
+
+  // Apply bulk changes when bulk mode is enabled
+  useEffect(() => {
+    if (useBulkPrice) {
+      applyBulkChanges(bulkPrice, bulkGst);
+    }
+  }, [useBulkPrice]);
+
+  // Handle bulk mode toggle
+  const handleBulkModeChange = (checked) => {
+    setUseBulkPrice(checked);
+    if (!checked) {
+      // Reset bulk values when disabling bulk mode
+      setBulkPrice('');
+      setBulkGst('');
+    }
+  };
 
   // ✅ Bidirectional handler
   const handleChange = (index, field, value) => {
@@ -106,15 +124,37 @@ const FinalPreviewStep = ({
 
   const handleBulkPriceChange = (value) => {
     setBulkPrice(value);
-    const numericPrice = parseFloat(value) || 0;
-    if (useBulkPrice && numericPrice > 0) {
+    applyBulkChanges(value, bulkGst);
+  };
+
+  // Handle bulk GST update
+  const handleBulkGstChange = (value) => {
+    setBulkGst(value);
+    applyBulkChanges(bulkPrice, value);
+  };
+
+  // Apply bulk changes to all rooms
+  const applyBulkChanges = (priceValue, gstValue) => {
+    const numericPrice = parseFloat(priceValue) || 0;
+    const numericGst = parseFloat(gstValue) || 0;
+    const hasPrice = priceValue !== '' && numericPrice >= 0;
+    const hasGst = gstValue !== '' && numericGst >= 0;
+
+    if (useBulkPrice && (hasPrice || hasGst)) {
+      // Update all room rates and/or GST with the bulk values
       const updated = roomTokens.map((room) => {
-        const gst = parseFloat(room.gst) || 0;
+        const currentRate = parseFloat(room.rate) || 0;
+        const currentGst = parseFloat(room.gst) || 0;
+
+        const rate = hasPrice ? numericPrice : currentRate;
+        const gst = hasGst ? numericGst : currentGst;
         const days = parseFloat(room.days) || totalDays;
-        const newAmount = (numericPrice + (numericPrice * gst) / 100) * days;
+        const newAmount = (rate + (rate * gst) / 100) * days;
+
         return {
           ...room,
-          rate: parseFloat(numericPrice.toFixed(2)),
+          rate: parseFloat(rate.toFixed(2)),
+          gst: parseFloat(gst.toFixed(2)),
           amount: parseFloat(newAmount.toFixed(2)),
         };
       });
@@ -259,17 +299,19 @@ const FinalPreviewStep = ({
       {roomTokens.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: 3, background: '#f5e6ff' }}>
           <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
               <FormControlLabel
                 control={
                   <Checkbox
                     checked={useBulkPrice}
-                    onChange={(e) => setUseBulkPrice(e.target.checked)}
+                    onChange={(e) => handleBulkModeChange(e.target.checked)}
                   />
                 }
-                label="Set bulk price"
+                label="Set bulk price and GST"
               />
-              {useBulkPrice && (
+            </Box>
+            {useBulkPrice && (
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 <TextField
                   label="Enter price for all rooms"
                   value={bulkPrice ?? ''}
@@ -287,8 +329,25 @@ const FinalPreviewStep = ({
                     inputMode: 'decimal',
                   }}
                 />
-              )}
-            </Box>
+                <TextField
+                  label="Enter GST % for all rooms"
+                  value={bulkGst ?? ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    // Allow only positive numbers with 2 decimal places and max 100
+                    if (/^\d*\.?\d{0,2}$/.test(value) && Number(value) <= 100) {
+                      handleBulkGstChange(value);
+                    }
+                  }}
+                  size="small"
+                  sx={{ width: 250 }}
+                  inputProps={{
+                    inputMode: 'decimal',
+                  }}
+                />
+              </Box>
+            )}
           </CardContent>
         </Card>
       )}

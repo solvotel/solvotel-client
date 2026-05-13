@@ -398,6 +398,78 @@ const RoomAvailabilityStep = ({
   };
 
   // Remove a specific selection (remove all dates for that room)
+  // Check if all rooms in a category are selected for a specific date
+  const isCategoryFullySelectedForDate = (catId, date) => {
+    const categoryRooms = roomsByCategory[catId]?.rooms || [];
+    const availableRoomsForDate = categoryRooms.filter((room) =>
+      isRoomAvailableForDate(room, date),
+    );
+
+    return (
+      availableRoomsForDate.length > 0 &&
+      availableRoomsForDate.every((room) =>
+        isRoomSelectedForDate(room.room_no, date),
+      )
+    );
+  };
+
+  // Check if any rooms in a category are selected for a specific date (for indeterminate state)
+  const isCategoryPartiallySelectedForDate = (catId, date) => {
+    const categoryRooms = roomsByCategory[catId]?.rooms || [];
+    const availableRoomsForDate = categoryRooms.filter((room) =>
+      isRoomAvailableForDate(room, date),
+    );
+
+    if (availableRoomsForDate.length === 0) return false;
+
+    const selectedCount = availableRoomsForDate.filter((room) =>
+      isRoomSelectedForDate(room.room_no, date),
+    ).length;
+
+    return selectedCount > 0 && selectedCount < availableRoomsForDate.length;
+  };
+
+  // Handle category checkbox toggle for a specific date
+  const handleToggleCategorySelection = (catId, date) => {
+    const categoryRooms = roomsByCategory[catId]?.rooms || [];
+    const availableRoomsForDate = categoryRooms.filter((room) =>
+      isRoomAvailableForDate(room, date),
+    );
+    const isFullySelected = isCategoryFullySelectedForDate(catId, date);
+
+    let updatedSelectedRooms = selectedRooms;
+
+    if (isFullySelected) {
+      // Remove all rooms in this category for this date
+      updatedSelectedRooms = selectedRooms.filter(
+        (r) =>
+          !(
+            r.date === date &&
+            categoryRooms.some((cr) => cr.room_no === r.room_no)
+          ),
+      );
+    } else {
+      // Add all available rooms in this category for this date
+      const newSelections = availableRoomsForDate.reduce((acc, room) => {
+        const exists = selectedRooms.some(
+          (r) => r.room_no === room.room_no && r.date === date,
+        );
+        if (!exists) {
+          acc.push({
+            key: getRoomDateKey(room.room_no, date),
+            ...room,
+            date,
+          });
+        }
+        return acc;
+      }, []);
+      updatedSelectedRooms = [...selectedRooms, ...newSelections];
+    }
+
+    setSelectedRooms(updatedSelectedRooms);
+    setRoomTokens(buildRoomTokens(updatedSelectedRooms));
+  };
+
   const removeSelection = (key) => {
     const roomNo = key.split('-')[0];
     // Remove all dates for this room
@@ -529,23 +601,46 @@ const RoomAvailabilityStep = ({
 
                           if (availableRoomsForDate.length === 0) return null;
 
+                          const isCategoryFullySelected =
+                            isCategoryFullySelectedForDate(catId, date);
+                          const isCategoryPartiallySelected =
+                            isCategoryPartiallySelectedForDate(catId, date);
+
                           return (
                             <Box key={catId} mb={{ xs: 1.5, sm: 2 }}>
-                              {/* Category Label */}
-                              <Typography
-                                variant="caption"
-                                fontWeight="600"
+                              {/* Category Label with Checkbox */}
+                              <Box
                                 sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.75,
                                   mb: 0.75,
                                   pb: 0.5,
-                                  display: 'block',
                                   borderBottom: '1px solid #e0e0e0',
-                                  color: '#424242',
-                                  fontSize: { xs: '0.7rem', sm: '0.8rem' },
                                 }}
                               >
-                                {catData.name}
-                              </Typography>
+                                <Checkbox
+                                  checked={isCategoryFullySelected}
+                                  indeterminate={isCategoryPartiallySelected}
+                                  onChange={() =>
+                                    handleToggleCategorySelection(catId, date)
+                                  }
+                                  size="small"
+                                  sx={{
+                                    p: '4px',
+                                  }}
+                                />
+                                <Typography
+                                  variant="caption"
+                                  fontWeight="600"
+                                  sx={{
+                                    color: '#424242',
+                                    fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                                  }}
+                                >
+                                  {catData.name}
+                                </Typography>
+                              </Box>
 
                               {/* Room Buttons */}
                               <Box

@@ -35,20 +35,21 @@ export default function ManageRoomTariff({
 
     let rate = parseFloat(updated[index].rate) || 0;
     let gst = parseFloat(updated[index].gst) || 0;
+    let days = parseFloat(updated[index].days) || 1;
     let amount = parseFloat(updated[index].amount) || 0;
 
-    // 🔹 If Rate and GST entered → calculate Amount
-    if (field === 'rate' || field === 'gst') {
-      if (rate && gst) {
-        amount = +(rate + (rate * gst) / 100).toFixed(2);
+    // 🔹 If Rate, GST, or Days entered → calculate Amount
+    if (field === 'rate' || field === 'gst' || field === 'days') {
+      if (rate && gst && days) {
+        amount = +((rate + (rate * gst) / 100) * days).toFixed(2);
         updated[index].amount = amount;
       }
     }
 
-    // 🔹 If Amount and GST entered → calculate Rate
-    if (field === 'amount' || field === 'gst') {
-      if (amount && gst && field === 'amount') {
-        rate = +(amount / (1 + gst / 100)).toFixed(2);
+    // 🔹 If Amount, GST, and Days entered → calculate Rate
+    if (field === 'amount' || field === 'gst' || field === 'days') {
+      if (amount && gst && days && field === 'amount') {
+        rate = +(amount / ((1 + gst / 100) * days)).toFixed(2);
         updated[index].rate = rate;
       }
     }
@@ -83,7 +84,7 @@ export default function ManageRoomTariff({
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: { xs: '95%', sm: 850 },
+          width: { xs: '95%', sm: 900 },
           bgcolor: 'background.paper',
           borderRadius: 3,
           p: 3,
@@ -123,6 +124,7 @@ export default function ManageRoomTariff({
                   'HSN',
                   'Rate (₹)',
                   'GST (%)',
+                  'Days',
                   'Amount (₹)',
                 ].map((header) => (
                   <TableCell
@@ -179,6 +181,8 @@ export default function ManageRoomTariff({
                         fullWidth
                       />
                     </TableCell>
+
+                    <TableCell>{room.days}</TableCell>
 
                     <TableCell>
                       <TextField

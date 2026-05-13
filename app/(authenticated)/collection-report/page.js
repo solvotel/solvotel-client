@@ -163,7 +163,7 @@ const CollectionReportPage = () => {
       }),
       Type: ` ${p.type} - ${p.uid}`,
       'Customer Name': p.customer_name,
-      'Payment Method': p.mop,
+      'Payment Method': `${p.mop}:${p.remarks || ''}`,
       'Amount ₹': p.amount,
     }));
 
