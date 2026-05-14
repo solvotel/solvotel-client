@@ -34,6 +34,21 @@ const CustomTableContainer = styled(TableContainer)``;
 const CollectionReportPrint = React.forwardRef((props, ref) => {
   const { filteredData, startDate, endDate, stats, selectedMop } = props;
 
+  const formatDateTime = (value, timeZone = 'Asia/Kolkata') => {
+    if (!value) return '';
+    return new Date(value)
+      .toLocaleString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone,
+      })
+      .replace(',', '');
+  };
+
   const totalAmount = filteredData?.reduce(
     (sum, payment) => sum + (Number(payment.amount) || 0),
     0,
@@ -164,7 +179,6 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
             <TableRow>
               {[
                 'Date & Time',
-
                 'Source',
                 'Customer Name',
                 'Payment Method',
@@ -177,16 +191,13 @@ const CollectionReportPrint = React.forwardRef((props, ref) => {
             </TableRow>
             {filteredData?.map((payment, index) => (
               <TableRow key={index}>
-                <BodyCell>
-                  {new Date(payment.time_stamp).toLocaleString()}
-                </BodyCell>
-
+                <BodyCell>{formatDateTime(payment.time_stamp)}</BodyCell>
                 <BodyCell>
                   {payment.type}{' '}
                   <span style={{ fontSize: '0.875em' }}>{payment.uid}</span>
                 </BodyCell>
                 <BodyCell>{payment.customer_name || 'N/A'}</BodyCell>
-                <BodyCell>{payment.mop}</BodyCell>
+                <BodyCell>{`${payment.mop}${payment.remarks ? `: ${payment.remarks}` : ''}`}</BodyCell>
                 <BodyCell align="right">₹{payment.amount.toFixed(2)}</BodyCell>
               </TableRow>
             ))}

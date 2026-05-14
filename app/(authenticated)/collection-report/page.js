@@ -48,8 +48,22 @@ const CollectionReportPage = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [allPayments, setAllPayments] = useState([]);
   const [selectedMop, setSelectedMop] = useState('');
-  const [dataToExport, setDataToExport] = useState([]);
   const [stats, setStats] = useState({});
+
+  const formatDateTime = (value, timeZone = 'Asia/Kolkata') => {
+    if (!value) return '';
+    return new Date(value)
+      .toLocaleString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone,
+      })
+      .replace(',', '');
+  };
 
   const handleSearch = () => {
     if (!startDate || !endDate) return;
@@ -77,6 +91,7 @@ const CollectionReportPage = () => {
             time_stamp: date.toISOString(),
             mop: p.mode,
             amount: Number(p.amount) || 0,
+            remarks: p.remark || '',
           });
         }
       });
@@ -101,6 +116,7 @@ const CollectionReportPage = () => {
             time_stamp: date.toISOString(),
             mop: ap.mode,
             amount: Number(ap.amount) || 0,
+            remarks: ap.remark || '',
           });
         }
       });
@@ -156,21 +172,9 @@ const CollectionReportPage = () => {
       }
     });
 
-    // 📤 EXPORT DATA
-    const dataToExport = allPayments.map((p) => ({
-      'Date & Time': new Date(p.time_stamp).toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-      }),
-      Type: ` ${p.type} - ${p.uid}`,
-      'Customer Name': p.customer_name,
-      'Payment Method': `${p.mop}:${p.remarks || ''}`,
-      'Amount ₹': p.amount,
-    }));
-
     // ✅ SET STATE
     setFilteredData(allPayments);
     setAllPayments(allPayments);
-    setDataToExport(dataToExport);
     setStats({
       mopStats,
       totalAmount,
@@ -188,9 +192,13 @@ const CollectionReportPage = () => {
     ? filteredData.filter((payment) => payment.mop === selectedMop)
     : filteredData;
 
-  const exportData = selectedMop
-    ? dataToExport.filter((row) => row['Payment Method'] === selectedMop)
-    : dataToExport;
+  const exportData = displayData.map((p) => ({
+    'Date & Time': formatDateTime(p.time_stamp),
+    Type: ` ${p.type} - ${p.uid}`,
+    'Customer Name': p.customer_name,
+    'Payment Method': `${p.mop}${p.remarks ? `: ${p.remarks}` : ''}`,
+    'Amount ₹': p.amount,
+  }));
 
   const displayStats = displayData.reduce(
     (acc, p) => {
@@ -424,7 +432,7 @@ const CollectionReportPage = () => {
                   {displayData?.map((payment, index) => (
                     <TableRow key={index}>
                       <TableCell align="center">
-                        {new Date(payment.time_stamp).toLocaleString()}
+                        {formatDateTime(payment.time_stamp)}
                       </TableCell>
 
                       <TableCell align="center">
@@ -446,7 +454,10 @@ const CollectionReportPage = () => {
                       <TableCell align="center">
                         {payment.customer_name}
                       </TableCell>
-                      <TableCell align="center">{payment.mop}</TableCell>
+                      <TableCell align="center">
+                        {payment.mop}
+                        {payment.remarks ? `: ${payment.remarks}` : ''}
+                      </TableCell>
                       <TableCell align="right">
                         <Typography fontWeight="bold" color="success.main">
                           ₹{payment.amount.toFixed(2)}
