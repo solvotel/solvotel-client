@@ -50,7 +50,7 @@ const Page = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const data = GetPosDataList({
-    auth,
+    id: auth?.user?.pos_outlet_id,
     endPoint: 'pos-payment-methods',
   });
 

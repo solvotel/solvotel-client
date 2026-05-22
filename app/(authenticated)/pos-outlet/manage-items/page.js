@@ -49,7 +49,7 @@ const Page = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const data = GetPosDataList({
-    auth,
+    id: auth?.user?.pos_outlet_id,
     endPoint: 'pos-items',
   });
 
@@ -285,7 +285,7 @@ const Page = () => {
                 ))}
                 {filteredData?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={11} align="center">
                       No menu item found
                     </TableCell>
                   </TableRow>

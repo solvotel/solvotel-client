@@ -24,6 +24,7 @@ import {
   Dashboard,
   Inventory,
   Logout,
+  Money,
   Receipt,
 } from '@mui/icons-material';
 import { Banknote, LogOut } from 'lucide-react';
@@ -44,7 +45,11 @@ const menuItems = [
     icon: <Inventory size={18} />,
     href: '/pos-outlet/manage-items',
   },
-
+  {
+    label: 'Payment Methods',
+    icon: <Money size={18} />,
+    href: '/pos-outlet/payment-methods',
+  },
   {
     label: 'Invoice Report',
     icon: <Receipt size={18} />,

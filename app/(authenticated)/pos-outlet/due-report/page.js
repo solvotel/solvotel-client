@@ -35,7 +35,7 @@ const Page = () => {
 
   // Fetch both room and restaurant invoices
   const invoices = GetPosDataList({
-    auth,
+    id: auth?.user?.pos_outlet_id,
     endPoint: 'pos-outlet-invoices',
   });
 

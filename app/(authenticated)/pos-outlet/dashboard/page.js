@@ -203,10 +203,16 @@ const Dashboard = () => {
     id: auth?.user?.pos_outlet_id || outletIdFromParams,
   });
 
-  const _posItems = GetPosDataList({ auth, endPoint: 'pos-items' });
+  const _posItems = GetPosDataList({
+    id: auth?.user?.pos_outlet_id,
+    endPoint: 'pos-items',
+  });
   const posItems = useMemo(() => _posItems || [], [_posItems]);
 
-  const _invoices = GetPosDataList({ auth, endPoint: 'pos-outlet-invoices' });
+  const _invoices = GetPosDataList({
+    id: auth?.user?.pos_outlet_id,
+    endPoint: 'pos-outlet-invoices',
+  });
   const invoices = useMemo(() => _invoices || [], [_invoices]);
 
   // Calculations

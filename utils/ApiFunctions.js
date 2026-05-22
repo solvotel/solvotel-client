@@ -14,8 +14,8 @@ export const GetDataList = ({ auth, endPoint }) => {
 };
 
 // fetch data list
-export const GetPosDataList = ({ auth, endPoint }) => {
-  const apiUrl = `${BASEURL}/${endPoint}?sort=createdAt:DESC&filters[$and][0][pos_outlet_id][$eq]=${auth?.user?.pos_outlet_id}&populate=*`;
+export const GetPosDataList = ({ id, endPoint }) => {
+  const apiUrl = `${BASEURL}/${endPoint}?sort=createdAt:DESC&filters[$and][0][pos_outlet_id][$eq]=${id}&populate=*`;
 
   const { data } = useSWR(apiUrl, fetcher, {
     revalidateOnFocus: true,

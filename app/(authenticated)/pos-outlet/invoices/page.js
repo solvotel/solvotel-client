@@ -66,16 +66,16 @@ const Page = () => {
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
   const data = GetPosDataList({
-    auth,
+    id: auth?.user?.pos_outlet_id,
     endPoint: 'pos-outlet-invoices',
   });
   const paymentMethods = GetPosDataList({
-    auth,
+    id: auth?.user?.pos_outlet_id,
     endPoint: 'pos-payment-methods',
   });
 
   const menuItems = GetPosDataList({
-    auth,
+    id: auth?.user?.pos_outlet_id,
     endPoint: 'pos-items',
   });
 
@@ -550,7 +550,7 @@ const Page = () => {
                 ))}
                 {filteredData?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={11} align="center">
+                    <TableCell colSpan={12} align="center">
                       No invoice found
                     </TableCell>
                   </TableRow>

@@ -33,7 +33,7 @@ const Page = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
   const data = GetPosDataList({
-    auth,
+    id: auth?.user?.pos_outlet_id,
     endPoint: 'pos-outlet-invoices',
   });
 
