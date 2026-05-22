@@ -48,7 +48,7 @@ import {
 } from 'lucide-react';
 import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutlined';
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
-import { SoupKitchen } from '@mui/icons-material';
+import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 
 const HotelNav = ({ auth, logout }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -297,6 +297,11 @@ const HotelNav = ({ auth, logout }) => {
                         label: 'Invoice',
                       },
                       {
+                        href: '/restaurant/order-history',
+                        icon: <SettingsBackupRestoreIcon size={16} />,
+                        label: 'Order History',
+                      },
+                      {
                         href: '/restaurant/menu-items',
                         icon: <BookOpen size={16} />,
                         label: 'Restaurant Menu',
@@ -314,11 +319,6 @@ const HotelNav = ({ auth, logout }) => {
                         icon: <FileText size={16} />,
                         label: 'Invoice Report',
                       },
-                      // {
-                      //   href: '/restaurant/kot',
-                      //   icon: <SoupKitchen sx={{ fontSize: '17px' }} />,
-                      //   label: 'KOT',
-                      // },
                     ]}
                   />
                 )}
@@ -455,7 +455,7 @@ const HotelNav = ({ auth, logout }) => {
       <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
         <Box sx={{ width: 280 }} role="presentation">
           {/* Admin Section */}
-          {access.includes('admin') && (
+          {(hasAllAccess || access.includes('admin')) && (
             <Accordion
               expanded={expandedSection === 'admin'}
               onChange={handleAccordionChange('admin')}
@@ -532,7 +532,7 @@ const HotelNav = ({ auth, logout }) => {
           )}
 
           {/* Property Section */}
-          {access.includes('property') && (
+          {(hasAllAccess || access.includes('property')) && (
             <Accordion
               expanded={expandedSection === 'property'}
               onChange={handleAccordionChange('property')}
@@ -609,7 +609,7 @@ const HotelNav = ({ auth, logout }) => {
           )}
 
           {/* Frontoffice Section */}
-          {access.includes('frontoffice') && (
+          {(hasAllAccess || access.includes('frontoffice')) && (
             <Accordion
               expanded={expandedSection === 'frontoffice'}
               onChange={handleAccordionChange('frontoffice')}
@@ -674,7 +674,7 @@ const HotelNav = ({ auth, logout }) => {
           )}
 
           {/* Housekeeping Section */}
-          {access.includes('housekeeping') && (
+          {(hasAllAccess || access.includes('housekeeping')) && (
             <Accordion
               expanded={expandedSection === 'housekeeping'}
               onChange={handleAccordionChange('housekeeping')}
@@ -703,7 +703,7 @@ const HotelNav = ({ auth, logout }) => {
           )}
 
           {/* Restaurant Section */}
-          {access.includes('restaurant') && (
+          {(hasAllAccess || access.includes('restaurant')) && (
             <Accordion
               expanded={expandedSection === 'restaurant'}
               onChange={handleAccordionChange('restaurant')}
@@ -794,7 +794,7 @@ const HotelNav = ({ auth, logout }) => {
           )}
 
           {/* Inventory Section */}
-          {access.includes('inventory') && (
+          {(hasAllAccess || access.includes('inventory')) && (
             <Accordion
               expanded={expandedSection === 'inventory'}
               onChange={handleAccordionChange('inventory')}
@@ -871,7 +871,7 @@ const HotelNav = ({ auth, logout }) => {
           )}
 
           {/* Accounts Section */}
-          {access.includes('accounts') && (
+          {(hasAllAccess || access.includes('accounts')) && (
             <Accordion
               expanded={expandedSection === 'accounts'}
               onChange={handleAccordionChange('accounts')}

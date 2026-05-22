@@ -94,7 +94,7 @@ export default function RoomBookings({ params }) {
             <Grid container spacing={1}>
               <Grid size={{ xs: 12, md: 6 }}>
                 <BookingDetailsCard booking={data} />
-                <BillingSummaryCard booking={data} />
+                <BillingSummaryCard booking={data} hotel={hotel} />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <BookingServiceActionsCard
