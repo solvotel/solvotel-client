@@ -63,9 +63,8 @@ const Page = () => {
 
     // Prepare data for export
     const dataToExport = filteredInvoices.map((row) => ({
-      Type: row.type,
       'Invoice No': row.invoice_no,
-      'Date/Time': `${row.date} ${row.time}`,
+      'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
       'Customer Name': row.customer_name || 'N/A',
       GSTIN: row.customer_gst || 'N/A',
       'Total Amount ₹': row.taxable,
@@ -81,14 +80,11 @@ const Page = () => {
         return totalPaid;
       })(),
       'Due Amount ₹': row.due || 0,
-      'Payment Method':
-        row.mop || row.payments?.map((p) => p.mop).join(', ') || 'N/A',
     }));
 
     setFilteredData(filteredInvoices);
     setDataToExport(dataToExport);
   };
-
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -195,17 +191,6 @@ const Page = () => {
                       .reduce((sum, inv) => sum + (inv.due || 0), 0)
                       .toFixed(2)}
                   </Typography>
-                  <Typography>
-                    <strong>Room Invoices:</strong>{' '}
-                    {filteredData.filter((inv) => inv.type === 'Room').length}
-                  </Typography>
-                  <Typography>
-                    <strong>Restaurant Invoices:</strong>{' '}
-                    {
-                      filteredData.filter((inv) => inv.type === 'Restaurant')
-                        .length
-                    }
-                  </Typography>
                 </Box>
               </Box>
             )}
@@ -216,7 +201,6 @@ const Page = () => {
                 <TableHead>
                   <TableRow sx={{ backgroundColor: 'grey.100' }}>
                     {[
-                      'Type',
                       'Invoice No',
                       'Date/Time',
                       'Customer Name',
@@ -225,7 +209,7 @@ const Page = () => {
                       'SGST ₹',
                       'CGST ₹',
                       'Payable ₹',
-                      ' Paid ₹',
+                      'Paid ₹',
                       'Due ₹',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -237,34 +221,16 @@ const Page = () => {
                 <TableBody>
                   {filteredData?.map((row) => (
                     <TableRow key={row.documentId}>
-                      <TableCell>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            bgcolor:
-                              row.type === 'Room'
-                                ? 'primary.main'
-                                : 'secondary.main',
-                            color: 'white',
-                            px: 1,
-                            py: 0.5,
-                            borderRadius: 1,
-                            display: 'inline-block',
-                          }}
-                        >
-                          {row.type}
-                        </Typography>
-                      </TableCell>
                       <TableCell>{row.invoice_no}</TableCell>
                       <TableCell>
-                        {row.date} {row.time}
+                        {GetCustomDate(row.date)} {row.time}
                       </TableCell>
                       <TableCell>{row.customer_name || 'N/A'}</TableCell>
                       <TableCell>{row.customer_gst || 'N/A'}</TableCell>
-                      <TableCell>{row.total_amount}</TableCell>
-                      <TableCell>{row.tax / 2}</TableCell>
-                      <TableCell>{row.tax / 2}</TableCell>
-                      <TableCell>{row.payable_amount}</TableCell>
+                      <TableCell>{row.taxable}</TableCell>
+                      <TableCell>{row.sgst}</TableCell>
+                      <TableCell>{row.cgst}</TableCell>
+                      <TableCell>{row.payable}</TableCell>
                       <TableCell>
                         {row.payments
                           ?.reduce(

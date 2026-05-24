@@ -22,7 +22,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { Loader } from '@/component/common';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
 import { PosOutletInvoiceReportPrint } from '@/component/printables/PosOutletInvoiceReportPrint';
@@ -60,7 +60,7 @@ const InvoiceReportClient = () => {
 
     const dataToExport = filteredInvoices.map((row) => ({
       'Invoice No': row.invoice_no,
-      'Date/Time': `${row.date} ${row.time}`,
+      'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
       'Customer Name': row.customer_name || 'N/A',
       GSTIN: row.customer_gst || 'N/A',
       'Total Amount ₹': row.taxable,
@@ -189,7 +189,7 @@ const InvoiceReportClient = () => {
                     <TableRow key={row.documentId}>
                       <TableCell>{row.invoice_no}</TableCell>
                       <TableCell>
-                        {row.date}:{row.time}
+                        {GetCustomDate(row.date)}:{row.time}
                       </TableCell>
                       <TableCell>{row.customer_name || 'N/A'}</TableCell>
                       <TableCell>{row.customer_gst || 'N/A'}</TableCell>

@@ -107,11 +107,10 @@ const PosOutletCollectionReportPrint = React.forwardRef((props, ref) => {
             <TableRow>
               {[
                 'Invoice No',
-
+                'Date & Time',
                 'Customer Name',
                 'Payment Method',
                 'Amount ₹',
-                'Timestamp',
               ].map((item, index) => (
                 <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>
                   {item}
@@ -121,12 +120,12 @@ const PosOutletCollectionReportPrint = React.forwardRef((props, ref) => {
             {filteredData?.map((payment, index) => (
               <TableRow key={index}>
                 <BodyCell>{payment.invoice_no}</BodyCell>
-                <BodyCell>{payment.customer_name || 'N/A'}</BodyCell>
-                <BodyCell>{payment.mop}</BodyCell>
-                <BodyCell>₹{payment.amount.toFixed(2)}</BodyCell>
                 <BodyCell>
                   {new Date(payment.time_stamp).toLocaleString()}
                 </BodyCell>
+                <BodyCell>{payment.customer_name || 'N/A'}</BodyCell>
+                <BodyCell>{payment.mop}</BodyCell>
+                <BodyCell>₹{payment.amount.toFixed(2)}</BodyCell>
               </TableRow>
             ))}
             {/* Totals Row */}

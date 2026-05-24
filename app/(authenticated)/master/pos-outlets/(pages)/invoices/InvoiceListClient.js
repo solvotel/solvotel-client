@@ -221,7 +221,7 @@ const InvoiceListClient = () => {
       cgst: 0,
       sgst: 0,
       payable: '',
-      payments: [], // Changed from mop to payments array
+      payments: [],
       due: 0,
       billing_items: [],
       pos_outlet_id: outletId || '',
@@ -231,27 +231,7 @@ const InvoiceListClient = () => {
   // handle edit
   const handleEdit = (row) => {
     setEditing(true);
-    let formData = { ...row };
-    // Backward compatibility: if old mop exists and no payments, convert to payments
-    if (
-      formData.mop &&
-      (!formData.payments || formData.payments.length === 0)
-    ) {
-      formData.payments = [
-        {
-          time_stamp: new Date().toISOString(),
-          mop: formData.mop,
-          amount: formData.payable - (formData.due || 0),
-        },
-      ];
-      delete formData.mop; // remove old field
-    }
-    // Backward compatibility: convert old tax field to cgst/sgst
-    if (formData.tax && !formData.cgst && !formData.sgst) {
-      formData.cgst = formData.tax / 2;
-      formData.sgst = formData.tax / 2;
-      delete formData.tax;
-    }
+    const formData = { ...row };
     setFormData(formData);
     setFormOpen(true);
   };
@@ -767,7 +747,7 @@ const InvoiceListClient = () => {
                                 const sgst = updated[idx].sgst || 0;
                                 const totalTax = cgst + sgst;
                                 const qty = updated[idx].qty || 1;
-                                updated[idx].amount = +(
+                                updated[idx].total = +(
                                   qty *
                                   newRate *
                                   (1 + totalTax / 100)
@@ -795,7 +775,7 @@ const InvoiceListClient = () => {
                                 const cgst = updated[idx].cgst || 0;
                                 const sgst = updated[idx].sgst || 0;
                                 const totalTax = cgst + sgst;
-                                updated[idx].amount = +(
+                                updated[idx].total = +(
                                   newQty *
                                   rate *
                                   (1 + totalTax / 100)
@@ -823,7 +803,7 @@ const InvoiceListClient = () => {
                                 const qty = updated[idx].qty || 1;
                                 const sgst = updated[idx].sgst || 0;
                                 const totalTax = newCgst + sgst;
-                                updated[idx].amount = +(
+                                updated[idx].total = +(
                                   qty *
                                   rate *
                                   (1 + totalTax / 100)
@@ -851,7 +831,7 @@ const InvoiceListClient = () => {
                                 const qty = updated[idx].qty || 1;
                                 const cgst = updated[idx].cgst || 0;
                                 const totalTax = cgst + newSgst;
-                                updated[idx].amount = +(
+                                updated[idx].total = +(
                                   qty *
                                   rate *
                                   (1 + totalTax / 100)

@@ -180,11 +180,11 @@ const InvoiceRow = ({ invoice }) => {
           }}
         />
       </TableCell>
-      <TableCell align="right">
+      {/* <TableCell align="right">
         <IconButton size="small">
           <VisibilityIcon fontSize="small" />
         </IconButton>
-      </TableCell>
+      </TableCell> */}
     </TableRow>
   );
 };
@@ -493,7 +493,7 @@ const DashboardClient = () => {
                           <TableCell>Invoice #</TableCell>
                           <TableCell>Date</TableCell>
                           <TableCell align="right">Amount</TableCell>
-                          <TableCell align="right">Action</TableCell>
+                          {/* <TableCell align="right">Action</TableCell> */}
                         </TableRow>
                       </TableHead>
                       <TableBody>

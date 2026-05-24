@@ -109,10 +109,10 @@ const CollectionReportClient = () => {
 
     const exportRows = allPayments.map((payment) => ({
       'Invoice No': payment.invoice_no,
+      'Date & Time': new Date(payment.time_stamp).toLocaleString(),
       'Customer Name': payment.customer_name,
       'Payment Method': payment.mop,
       'Amount ₹': payment.amount,
-      Timestamp: new Date(payment.time_stamp).toLocaleString(),
     }));
 
     setFilteredData(allPayments);
@@ -260,10 +260,10 @@ const CollectionReportClient = () => {
                   <TableRow sx={{ backgroundColor: 'grey.100' }}>
                     {[
                       'Invoice No',
+                      'Date & Time',
                       'Customer Name',
                       'Payment Method',
                       'Amount ₹',
-                      'Timestamp',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
                         {item}
@@ -275,15 +275,15 @@ const CollectionReportClient = () => {
                   {filteredData?.map((payment) => (
                     <TableRow key={payment.id}>
                       <TableCell>{payment.invoice_no}</TableCell>
+                      <TableCell>
+                        {new Date(payment.time_stamp).toLocaleString()}
+                      </TableCell>
                       <TableCell>{payment.customer_name}</TableCell>
                       <TableCell>{payment.mop}</TableCell>
                       <TableCell>
                         <Typography fontWeight="bold" color="success.main">
                           ₹{payment.amount.toFixed(2)}
                         </Typography>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(payment.time_stamp).toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))}

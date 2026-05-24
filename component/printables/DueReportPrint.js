@@ -44,13 +44,10 @@ const formatDateTime = (isoString) => {
 const DueReportPrint = React.forwardRef((props, ref) => {
   const { filteredData, startDate, endDate } = props;
 
-  const totalAmount = filteredData?.reduce(
-    (sum, i) => sum + i.payable_amount,
-    0,
-  );
+  const totalAmount = filteredData?.reduce((sum, i) => sum + i.payable, 0);
 
   const totalDue = filteredData?.reduce((sum, i) => sum + (i.due || 0), 0);
-  const totalPaid = filteredData?.reduce((sum, i) => sum + i.payed || 0, 0);
+  const totalPaid = totalAmount - totalDue;
 
   return (
     <Box
@@ -90,19 +87,6 @@ const DueReportPrint = React.forwardRef((props, ref) => {
               ₹{totalDue?.toFixed(2) || '0.00'}
             </span>
           </Typography>
-          <Typography>
-            Room Booking:{' '}
-            <span style={{ fontWeight: 600 }}>
-              {filteredData?.filter((inv) => inv.type === 'Room').length || 0}
-            </span>
-          </Typography>
-          <Typography>
-            Restaurant Invoices:{' '}
-            <span style={{ fontWeight: 600 }}>
-              {filteredData?.filter((inv) => inv.type === 'Restaurant')
-                .length || 0}
-            </span>
-          </Typography>
         </Box>
       </Box>
 
@@ -111,13 +95,16 @@ const DueReportPrint = React.forwardRef((props, ref) => {
           <TableBody>
             <TableRow>
               {[
-                'Type',
                 'Invoice No',
                 'Date/Time',
                 'Customer Name',
-                'Payable Amount ₹',
-                'Total Paid ₹',
-                'Due Amount ₹',
+                'GSTIN',
+                'Taxable ₹',
+                'SGST ₹',
+                'CGST ₹',
+                'Payable ₹',
+                'Paid ₹',
+                'Due ₹',
               ].map((item, index) => (
                 <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>
                   {item}
@@ -126,19 +113,31 @@ const DueReportPrint = React.forwardRef((props, ref) => {
             </TableRow>
             {filteredData?.map((row, index) => (
               <TableRow key={index}>
-                <BodyCell>{row.type}</BodyCell>
                 <BodyCell>{row.invoice_no}</BodyCell>
-                <BodyCell>{formatDateTime(row.date)}</BodyCell>
+                <BodyCell>
+                  {GetCustomDate(row.date)} {row.time}
+                </BodyCell>
                 <BodyCell>{row.customer_name || 'N/A'}</BodyCell>
-                <BodyCell>{row.payable_amount}</BodyCell>
-                <BodyCell>{row.payed || '0.00'}</BodyCell>
+                <BodyCell>{row.customer_gst || 'N/A'}</BodyCell>
+                <BodyCell>{row.taxable}</BodyCell>
+                <BodyCell>{row.sgst}</BodyCell>
+                <BodyCell>{row.cgst}</BodyCell>
+                <BodyCell>{row.payable}</BodyCell>
+                <BodyCell>
+                  {row.payments
+                    ?.reduce(
+                      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+                      0,
+                    )
+                    .toFixed(2) || '0.00'}
+                </BodyCell>
                 <BodyCell>{row.due || 0}</BodyCell>
               </TableRow>
             ))}
             {/* Totals Row */}
             <TableRow>
               <HeadingCell
-                colSpan={4}
+                colSpan={7}
                 sx={{ textAlign: 'right', fontWeight: 'bold' }}
               >
                 TOTAL

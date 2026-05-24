@@ -182,11 +182,11 @@ const InvoiceRow = ({ invoice }) => {
           }}
         />
       </TableCell>
-      <TableCell align="right">
-        <IconButton size="small">
+      {/* <TableCell align="right">
+        <IconButton size="small" href={`/master/pos-outlets/invoices/${invoice?.id || invoice?.documentId || invoice?.attributes?.id}`}>
           <VisibilityIcon fontSize="small" />
         </IconButton>
-      </TableCell>
+      </TableCell> */}
     </TableRow>
   );
 };
@@ -503,7 +503,7 @@ const Dashboard = () => {
                           <TableCell>Invoice #</TableCell>
                           <TableCell>Date</TableCell>
                           <TableCell align="right">Amount</TableCell>
-                          <TableCell align="right">Action</TableCell>
+                          {/* <TableCell align="right">Action</TableCell> */}
                         </TableRow>
                       </TableHead>
                       <TableBody>
