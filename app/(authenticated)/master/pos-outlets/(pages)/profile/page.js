@@ -5,39 +5,23 @@ import {
   UpdatePosOutletLogo,
 } from '@/component/updateForms';
 import { useAuth } from '@/context';
-import {
-  GetDataList,
-  GetPosDataList,
-  GetSingleData,
-} from '@/utils/ApiFunctions';
+import { GetSingleData } from '@/utils/ApiFunctions';
 import { NavigateNext } from '@mui/icons-material';
 import { Box, Breadcrumbs, Grid, Link, Typography } from '@mui/material';
+import { useSearchParams } from 'next/navigation';
 
-import React, { use } from 'react';
+import React, { Suspense } from 'react';
 
-const Page = ({ params }) => {
+const ProfilePage = () => {
   const { auth } = useAuth();
-  const { id } = use(params);
+  const searchParams = useSearchParams();
+  const outletId = searchParams.get('outletId');
 
   const data = GetSingleData({
     endPoint: 'pos-outlets',
     auth: auth,
-    id: id,
+    id: outletId,
   });
-  // const invoices = GetPosDataList({
-  //   endPoint: 'pos-outlet-invoices',
-  //   auth: auth,
-  // });
-
-  // const paymentMethods = GetPosDataList({
-  //   auth,
-  //   endPoint: 'pos-payment-methods',
-  // });
-
-  // const menuItems = GetPosDataList({
-  //   auth,
-  //   endPoint: 'pos-items',
-  // });
 
   return (
     <>
@@ -74,6 +58,14 @@ const Page = ({ params }) => {
         </>
       )}
     </>
+  );
+};
+
+const Page = () => {
+  return (
+    <Suspense>
+      <ProfilePage />
+    </Suspense>
   );
 };
 

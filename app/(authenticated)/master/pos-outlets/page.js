@@ -124,7 +124,7 @@ const Page = () => {
                         <Button
                           color="secondary"
                           variant="contained"
-                          href={`/master/pos-outlets/${row.documentId}`}
+                          href={`/master/pos-outlets/dashboard?outletId=${row.documentId}`}
                           size="small"
                           disabled={!permissions.canUpdate}
                           startIcon={<EditIcon fontSize="inherit" />}
