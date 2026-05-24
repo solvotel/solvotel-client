@@ -604,7 +604,7 @@ const Dashboard = () => {
 
 const Page = () => {
   return (
-    <Suspense>
+    <Suspense fallback={<Loader />}>
       <Dashboard />
     </Suspense>
   );

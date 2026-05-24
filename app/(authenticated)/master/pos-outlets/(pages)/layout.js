@@ -79,7 +79,6 @@ const Layout = ({ children }) => {
                   alignItems="center"
                   gap={1}
                   sx={{
-                    '&:hover': { backgroundColor: '#f0f0f0' },
                     borderRadius: 1,
                     fontSize: 13,
                   }}
