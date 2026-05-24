@@ -21,19 +21,20 @@ import {
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { Loader } from '@/component/common';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
-import { PosOutletCollectionReportPrint } from '@/component/printables/PosOutletCollectionReportPrint';
+import { DueReportPrint } from '@/component/printables/DueReportPrint';
 import { useSearchParams } from 'next/navigation';
-import { Loader } from '@/component/common';
 
-const CollectionReportClient = () => {
+const DueReportClient = () => {
   const todaysDate = GetTodaysDate().dateString;
   const searchParams = useSearchParams();
   const outletId = searchParams.get('outletId');
 
-  const allInvoices = GetPosDataList({
+  // Fetch both room and restaurant invoices
+  const invoices = GetPosDataList({
     id: outletId,
     endPoint: 'pos-outlet-invoices',
   });
@@ -42,92 +43,60 @@ const CollectionReportClient = () => {
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setFilteredData] = useState([]);
   const [dataToExport, setDataToExport] = useState([]);
-  const [stats, setStats] = useState({});
 
   const handleSearch = () => {
     if (!startDate || !endDate) return;
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    // Normalize to ignore time part
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
 
-    const allPayments = [];
-    allInvoices.forEach((invoice) => {
-      if (invoice.payments && invoice.payments.length > 0) {
-        invoice.payments.forEach((payment) => {
-          const paymentDate = new Date(payment.time_stamp);
-          if (paymentDate >= start && paymentDate <= end) {
-            allPayments.push({
-              id: `${invoice.documentId}-${payment.time_stamp}`,
-              invoice_no: invoice.invoice_no,
-              customer_name: invoice.customer_name || 'N/A',
-              time_stamp: payment.time_stamp,
-              mop: payment.mop,
-              amount: parseFloat(payment.amount) || 0,
-            });
-          }
-        });
-      } else if (
-        invoice.mop &&
-        invoice.payable_amount &&
-        invoice.due !== undefined
-      ) {
-        const paidAmount = invoice.payable_amount - (invoice.due || 0);
-        if (paidAmount > 0) {
-          const paymentDate = new Date(invoice.date);
-          if (paymentDate >= start && paymentDate <= end) {
-            allPayments.push({
-              id: `${invoice.documentId}-legacy`,
-              invoice_no: invoice.invoice_no,
-              customer_name: invoice.customer_name || 'N/A',
-              time_stamp: new Date(
-                invoice.date + ' ' + invoice.time,
-              ).toISOString(),
-              mop: invoice.mop,
-              amount: paidAmount,
-            });
-          }
-        }
-      }
+    // Filter invoices with due amount > 0 and within date range
+    const filteredInvoices = invoices.filter((inv) => {
+      const invoiceDate = new Date(inv.date);
+      const hasDue = (inv.due || 0) > 0;
+      const inDateRange = invoiceDate >= start && invoiceDate <= end;
+      return hasDue && inDateRange;
     });
 
-    allPayments.sort((a, b) => new Date(b.time_stamp) - new Date(a.time_stamp));
-
-    const mopStats = {};
-    let totalAmount = 0;
-
-    allPayments.forEach((payment) => {
-      const mop = payment.mop || 'N/A';
-      if (!mopStats[mop]) {
-        mopStats[mop] = { count: 0, amount: 0 };
-      }
-      mopStats[mop].count += 1;
-      mopStats[mop].amount += payment.amount;
-      totalAmount += payment.amount;
-    });
-
-    const exportRows = allPayments.map((payment) => ({
-      'Invoice No': payment.invoice_no,
-      'Customer Name': payment.customer_name,
-      'Payment Method': payment.mop,
-      'Amount ₹': payment.amount,
-      Timestamp: new Date(payment.time_stamp).toLocaleString(),
+    // Prepare data for export
+    const dataToExport = filteredInvoices.map((row) => ({
+      Type: row.type,
+      'Invoice No': row.invoice_no,
+      'Date/Time': `${row.date} ${row.time}`,
+      'Customer Name': row.customer_name || 'N/A',
+      GSTIN: row.customer_gst || 'N/A',
+      'Total Amount ₹': row.taxable,
+      'SGST ₹': row.sgst,
+      'CGST ₹': row.cgst,
+      'Payable Amount ₹': row.payable,
+      'Total Paid ₹': (() => {
+        const totalPaid =
+          row.payments?.reduce(
+            (acc, payment) => acc + (parseFloat(payment.amount) || 0),
+            0,
+          ) || 0;
+        return totalPaid;
+      })(),
+      'Due Amount ₹': row.due || 0,
+      'Payment Method':
+        row.mop || row.payments?.map((p) => p.mop).join(', ') || 'N/A',
     }));
 
-    setFilteredData(allPayments);
-    setDataToExport(exportRows);
-    setStats({ mopStats, totalAmount, totalPayments: allPayments.length });
+    setFilteredData(filteredInvoices);
+    setDataToExport(dataToExport);
   };
 
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
-    documentTitle: 'collection-report',
+    documentTitle: 'due-report',
   });
 
   const handleExport = () => {
-    exportToExcel(dataToExport, 'pos_outlet_collection_report');
+    exportToExcel(dataToExport, 'due_report');
   };
 
   return (
@@ -137,17 +106,18 @@ const CollectionReportClient = () => {
           separator={<NavigateNextIcon fontSize="small" />}
           aria-label="breadcrumb"
         >
-          <Link underline="hover" color="inherit" href="/pos-outlet/dashboard">
+          <Link underline="hover" color="inherit" href="/dashboard">
             Dashboard
           </Link>
-          <Typography color="text.primary">Collection Report</Typography>
+          <Typography color="text.primary">Due Report</Typography>
         </Breadcrumbs>
       </Box>
-      {!allInvoices ? (
+      {!invoices ? (
         <Loader />
       ) : (
         <>
           <Box p={3}>
+            {/* Header Section */}
             <Box
               sx={{
                 display: 'flex',
@@ -209,61 +179,54 @@ const CollectionReportClient = () => {
               </Box>
             </Box>
 
-            {Object.keys(stats).length > 0 && (
-              <Box mb={2}>
+            {/* Summary Stats */}
+            {filteredData.length > 0 && (
+              <Box mb={2} p={2} bgcolor="grey.50" borderRadius={1}>
                 <Typography variant="h6" gutterBottom>
-                  Collection Summary
+                  Summary
                 </Typography>
-                <Box display="flex" gap={3} mb={2}>
+                <Box display="flex" gap={3}>
                   <Typography>
-                    <strong>Total Payments:</strong> {stats.totalPayments || 0}
+                    <strong>Total Invoices:</strong> {filteredData.length}
                   </Typography>
                   <Typography>
-                    <strong>Total Amount Collected:</strong> ₹
-                    {stats.totalAmount?.toFixed(2) || '0.00'}
+                    <strong>Total Due Amount:</strong> ₹
+                    {filteredData
+                      .reduce((sum, inv) => sum + (inv.due || 0), 0)
+                      .toFixed(2)}
                   </Typography>
-                </Box>
-
-                <Typography variant="subtitle1" gutterBottom>
-                  Payment Method Breakdown:
-                </Typography>
-                <Box display="flex" gap={2} flexWrap="wrap">
-                  {Object.entries(stats.mopStats || {}).map(([mop, data]) => (
-                    <Paper
-                      key={mop}
-                      sx={{
-                        p: 2,
-                        minWidth: 150,
-                        bgcolor: 'grey.50',
-                        border: '1px solid',
-                        borderColor: 'grey.300',
-                      }}
-                    >
-                      <Typography variant="subtitle2" fontWeight="bold">
-                        {mop}
-                      </Typography>
-                      <Typography variant="body2">
-                        Payments: {data.count}
-                      </Typography>
-                      <Typography variant="body2">
-                        Amount: ₹{data.amount.toFixed(2)}
-                      </Typography>
-                    </Paper>
-                  ))}
+                  <Typography>
+                    <strong>Room Invoices:</strong>{' '}
+                    {filteredData.filter((inv) => inv.type === 'Room').length}
+                  </Typography>
+                  <Typography>
+                    <strong>Restaurant Invoices:</strong>{' '}
+                    {
+                      filteredData.filter((inv) => inv.type === 'Restaurant')
+                        .length
+                    }
+                  </Typography>
                 </Box>
               </Box>
             )}
 
+            {/* Data Table */}
             <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
               <Table>
                 <TableHead>
                   <TableRow sx={{ backgroundColor: 'grey.100' }}>
                     {[
+                      'Type',
                       'Invoice No',
+                      'Date/Time',
                       'Customer Name',
-                      'Payment Method',
-                      'Amount ₹',
-                      'Timestamp',
+                      'GSTIN',
+                      'Taxable ₹',
+                      'SGST ₹',
+                      'CGST ₹',
+                      'Payable ₹',
+                      ' Paid ₹',
+                      'Due ₹',
                     ].map((item, index) => (
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
                         {item}
@@ -272,25 +235,56 @@ const CollectionReportClient = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredData?.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell>{payment.invoice_no}</TableCell>
-                      <TableCell>{payment.customer_name}</TableCell>
-                      <TableCell>{payment.mop}</TableCell>
+                  {filteredData?.map((row) => (
+                    <TableRow key={row.documentId}>
                       <TableCell>
-                        <Typography fontWeight="bold" color="success.main">
-                          ₹{payment.amount.toFixed(2)}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            bgcolor:
+                              row.type === 'Room'
+                                ? 'primary.main'
+                                : 'secondary.main',
+                            color: 'white',
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 1,
+                            display: 'inline-block',
+                          }}
+                        >
+                          {row.type}
                         </Typography>
                       </TableCell>
+                      <TableCell>{row.invoice_no}</TableCell>
                       <TableCell>
-                        {new Date(payment.time_stamp).toLocaleString()}
+                        {row.date} {row.time}
+                      </TableCell>
+                      <TableCell>{row.customer_name || 'N/A'}</TableCell>
+                      <TableCell>{row.customer_gst || 'N/A'}</TableCell>
+                      <TableCell>{row.total_amount}</TableCell>
+                      <TableCell>{row.tax / 2}</TableCell>
+                      <TableCell>{row.tax / 2}</TableCell>
+                      <TableCell>{row.payable_amount}</TableCell>
+                      <TableCell>
+                        {row.payments
+                          ?.reduce(
+                            (acc, payment) =>
+                              acc + (parseFloat(payment.amount) || 0),
+                            0,
+                          )
+                          .toFixed(2) || '0.00'}
+                      </TableCell>
+                      <TableCell>
+                        <Typography color="error" fontWeight="bold">
+                          {row.due || 0}
+                        </Typography>
                       </TableCell>
                     </TableRow>
                   ))}
                   {filteredData?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        No collection data found for the selected date range
+                      <TableCell colSpan={12} align="center">
+                        No due invoices found for the selected date range
                       </TableCell>
                     </TableRow>
                   )}
@@ -299,12 +293,11 @@ const CollectionReportClient = () => {
             </TableContainer>
           </Box>
           <Box sx={{ display: 'none' }}>
-            <PosOutletCollectionReportPrint
+            <DueReportPrint
               filteredData={filteredData}
               ref={componentRef}
               startDate={startDate}
               endDate={endDate}
-              stats={stats}
             />
           </Box>
         </>
@@ -313,4 +306,4 @@ const CollectionReportClient = () => {
   );
 };
 
-export default CollectionReportClient;
+export default DueReportClient;

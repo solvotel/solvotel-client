@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 const Page = () => {
   return (
-    <Suspense fallback={<div>Loading collection report...</div>}>
+    <Suspense>
       <CollectionReportClient />
     </Suspense>
   );
