@@ -1,7 +1,5 @@
 'use client';
-
-import { useAuth } from '@/context';
-import { GetDataList, GetPosDataList } from '@/utils/ApiFunctions';
+import { GetPosDataList } from '@/utils/ApiFunctions';
 import { useState, useRef, Suspense } from 'react';
 
 // mui
@@ -31,7 +29,6 @@ import { PosOutletCollectionReportPrint } from '@/component/printables/PosOutlet
 import { useSearchParams } from 'next/navigation';
 
 const CollectioReportPage = () => {
-  const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
   const searchParams = useSearchParams();
   const outletId = searchParams.get('outletId');
