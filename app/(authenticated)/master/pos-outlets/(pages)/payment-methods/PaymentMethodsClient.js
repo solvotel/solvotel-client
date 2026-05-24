@@ -167,7 +167,7 @@ const PaymentMethodsClient = () => {
 
   return (
     <>
-      <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
+      {/* <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize="small" />}
           aria-label="breadcrumb"
@@ -177,7 +177,7 @@ const PaymentMethodsClient = () => {
           </Link>
           <Typography color="text.primary">Payment Methods</Typography>
         </Breadcrumbs>
-      </Box>
+      </Box> */}
       {!data ? (
         <Loader />
       ) : (

@@ -85,7 +85,7 @@ const InvoiceReportClient = () => {
 
   return (
     <>
-      <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
+      {/* <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize="small" />}
           aria-label="breadcrumb"
@@ -95,7 +95,7 @@ const InvoiceReportClient = () => {
           </Link>
           <Typography color="text.primary">Invoice Report</Typography>
         </Breadcrumbs>
-      </Box>
+      </Box> */}
       {!data ? (
         <Loader />
       ) : (

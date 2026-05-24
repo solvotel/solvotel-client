@@ -183,7 +183,7 @@ const ManagaItemsClient = () => {
   }
   return (
     <>
-      <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
+      {/* <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize="small" />}
           aria-label="breadcrumb"
@@ -193,7 +193,7 @@ const ManagaItemsClient = () => {
           </Link>
           <Typography color="text.primary">Manage Items</Typography>
         </Breadcrumbs>
-      </Box>
+      </Box> */}
       {!data ? (
         <Loader />
       ) : (

@@ -29,7 +29,7 @@ const ProfileClient = () => {
         <Loader />
       ) : (
         <>
-          <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
+          {/* <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
             <Breadcrumbs
               separator={<NavigateNext fontSize="small" />}
               aria-label="breadcrumb"
@@ -46,7 +46,7 @@ const ProfileClient = () => {
               </Link>
               <Typography color="text.primary">{data?.name}</Typography>
             </Breadcrumbs>
-          </Box>
+          </Box> */}
           <Grid container spacing={2} p={3}>
             <Grid size={{ xs: 12, md: 8 }}>
               <UpdatePosOutletForm data={data} auth={auth} />

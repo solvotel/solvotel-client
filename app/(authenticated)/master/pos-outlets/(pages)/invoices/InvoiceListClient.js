@@ -429,7 +429,7 @@ const InvoiceListClient = () => {
 
   return (
     <>
-      <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
+      {/* <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize="small" />}
           aria-label="breadcrumb"
@@ -439,7 +439,7 @@ const InvoiceListClient = () => {
           </Link>
           <Typography color="text.primary">Invoices</Typography>
         </Breadcrumbs>
-      </Box>
+      </Box> */}
       {!data || !menuItems || !paymentMethods ? (
         <Loader />
       ) : (
