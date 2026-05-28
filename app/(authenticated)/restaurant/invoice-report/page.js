@@ -24,7 +24,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { Loader } from '@/component/common';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { RestaurantInvoiceReportPrint } from '@/component/printables/RestaurantInvoiceReportPrint';
 import { exportToExcel } from '@/utils/exportToExcel';
@@ -82,7 +82,7 @@ const Page = () => {
 
     const dataToExport = filteredInvoices.map((row) => ({
       'Invoice No': row.invoice_no,
-      'Date/Time': `${row.date} ${row.time}`,
+      'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
       'Customer Name': row.customer_name || 'NA',
       GSTIN: row.customer_gst || 'NA',
       'Taxable Amount ₹': row.total_amount,
@@ -236,7 +236,7 @@ const Page = () => {
                     <TableRow key={row.documentId}>
                       <TableCell>{row.invoice_no}</TableCell>
                       <TableCell>
-                        {row.date}:{row.time}
+                        {GetCustomDate(row.date)}:{row.time}
                       </TableCell>
                       <TableCell>{row.customer_name || 'NA'}</TableCell>
                       <TableCell>{row.customer_gst || 'NA'}</TableCell>

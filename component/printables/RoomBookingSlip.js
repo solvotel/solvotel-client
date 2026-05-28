@@ -53,6 +53,8 @@ const BookingSlip = React.forwardRef((props, ref) => {
           gst: token.gst,
           amount: token.amount,
           roomCount: 1,
+          checkin_date: token.in_date,
+          checkout_date: token.out_date,
         };
       } else {
         acc[key].room += `, ${token.room}`;
@@ -266,8 +268,8 @@ const BookingSlip = React.forwardRef((props, ref) => {
                 <TableCell>{room?.roomCount}</TableCell>
                 <TableCell>₹{room?.tariff}</TableCell>
                 <TableCell>
-                  {GetCustomDate(booking?.checkin_date)} /{' '}
-                  {GetCustomDate(booking?.checkout_date)}
+                  {GetCustomDate(room?.checkin_date)} /{' '}
+                  {GetCustomDate(room?.checkout_date)}
                 </TableCell>
                 <TableCell>{room?.gst}%</TableCell>
                 <TableCell>₹{room?.amount}</TableCell>

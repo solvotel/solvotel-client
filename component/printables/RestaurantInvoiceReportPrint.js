@@ -76,7 +76,7 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
               <TableRow key={index}>
                 <BodyCell>{row.invoice_no}</BodyCell>
                 <BodyCell>
-                  {row.date}:{row.time}
+                  {GetCustomDate(row.date)}:{row.time}
                 </BodyCell>
                 <BodyCell>{row.customer_name || 'NA'}</BodyCell>
                 <BodyCell>{row.customer_gst || 'NA'}</BodyCell>

@@ -149,22 +149,47 @@ export default function BookingServiceActionsCard({
   };
 
   const findConflictingBookings = () => {
-    const currentRoomIds = booking?.room_tokens
-      ?.map((room) => room.room_no || room.room || '')
-      .filter(Boolean);
-    if (!currentRoomIds?.length) return [];
+    const currentRoomTokens = booking?.room_tokens || [];
+
+    if (!currentRoomTokens.length) return [];
 
     return (allBookings || [])
-      .filter(
-        (otherBooking) =>
-          otherBooking?.documentId !== booking?.documentId &&
-          otherBooking?.checked_in === true &&
-          otherBooking?.checked_out !== true &&
-          otherBooking?.booking_status !== 'Cancelled' &&
-          otherBooking?.room_tokens?.some((token) =>
-            currentRoomIds.includes(token.room_no || token.room || ''),
-          ),
-      )
+      .filter((otherBooking) => {
+        // skip same booking
+        if (otherBooking?.documentId === booking?.documentId) return false;
+
+        // skip cancelled / checked out bookings
+        if (
+          otherBooking?.booking_status === 'Cancelled' ||
+          otherBooking?.checked_out === true
+        ) {
+          return false;
+        }
+
+        const otherTokens = otherBooking?.room_tokens || [];
+
+        return currentRoomTokens.some((currentToken) => {
+          const currentRoom = currentToken?.room_no || currentToken?.room || '';
+
+          const currentIn = new Date(currentToken?.in_date);
+          const currentOut = new Date(currentToken?.out_date);
+
+          return otherTokens.some((otherToken) => {
+            const otherRoom = otherToken?.room_no || otherToken?.room || '';
+
+            // room must match
+            if (currentRoom !== otherRoom) return false;
+
+            const otherIn = new Date(otherToken?.in_date);
+            const otherOut = new Date(otherToken?.out_date);
+
+            // date overlap check
+            const hasConflict = currentIn < otherOut && currentOut > otherIn;
+
+            return hasConflict;
+          });
+        });
+      })
       .map((conflict) => ({
         documentId: conflict?.documentId,
         booking_id: conflict?.booking_id,
