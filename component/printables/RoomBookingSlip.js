@@ -245,10 +245,10 @@ const BookingSlip = React.forwardRef((props, ref) => {
           <TableHead>
             <TableRow sx={{ backgroundColor: TABLE_HEAD_BG }}>
               {[
-                'Category',
-                'Rooms',
-                'Tariff',
                 'Check-In/Out',
+                'Category',
+                'No. Of Rooms',
+                'Tariff',
                 'GST',
                 'Amount',
               ].map((header, index) => (
@@ -264,13 +264,14 @@ const BookingSlip = React.forwardRef((props, ref) => {
                 key={idx}
                 sx={{ '&:nth-of-type(odd)': { backgroundColor: ROW_ODD_BG } }}
               >
-                <TableCell>{room?.item}</TableCell>
-                <TableCell>{room?.roomCount}</TableCell>
-                <TableCell>₹{room?.tariff}</TableCell>
                 <TableCell>
                   {GetCustomDate(room?.checkin_date)} /{' '}
                   {GetCustomDate(room?.checkout_date)}
                 </TableCell>
+                <TableCell>{room?.item}</TableCell>
+                <TableCell>{room?.roomCount}</TableCell>
+                <TableCell>₹{room?.tariff}</TableCell>
+
                 <TableCell>{room?.gst}%</TableCell>
                 <TableCell>₹{room?.amount}</TableCell>
               </TableRow>
