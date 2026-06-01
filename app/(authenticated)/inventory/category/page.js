@@ -43,7 +43,7 @@ import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 
-const Page = () => {
+const InventorycategoryPage = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
 
@@ -72,7 +72,7 @@ const Page = () => {
   const filteredData = useMemo(() => {
     if (!data) return [];
     return data.filter((item) =>
-      item.name?.toLowerCase().includes(search.toLowerCase())
+      item.name?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -91,10 +91,21 @@ const Page = () => {
   };
 
   const handleSave = async () => {
-    if (!formData.name) {
+    if (!formData.name?.trim()) {
       ErrorToast('Name is required');
       return;
     }
+
+    const normalizedName = formData.name.trim().toLowerCase();
+    const isDuplicate = data
+      ?.filter((item) => item.documentId !== formData.documentId)
+      .some((item) => item.name?.trim().toLowerCase() === normalizedName);
+
+    if (isDuplicate) {
+      ErrorToast('Category name already exists');
+      return;
+    }
+
     if (editing) {
       const {
         id,
@@ -201,7 +212,7 @@ const Page = () => {
                       <TableCell key={index} sx={{ fontWeight: 'bold' }}>
                         {item}
                       </TableCell>
-                    )
+                    ),
                   )}
                 </TableRow>
               </TableHead>
@@ -314,4 +325,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default InventorycategoryPage;
