@@ -84,8 +84,16 @@ const BookingListPage = () => {
           ?.toString()
           .toLowerCase()
           .includes(searchTerm);
+        const matchesRoomNo = booking.rooms?.some((room) =>
+          room.room_no?.toString().toLowerCase().includes(searchTerm),
+        );
 
-        if (!matchesBookingId && !matchesGuestName && !matchesPhoneNo) {
+        if (
+          !matchesBookingId &&
+          !matchesGuestName &&
+          !matchesPhoneNo &&
+          !matchesRoomNo
+        ) {
           return false;
         }
       }
@@ -216,7 +224,7 @@ const BookingListPage = () => {
               />
               <TextField
                 size="small"
-                label="Search Booking ID, Guest Name, or Phone"
+                label="Search "
                 variant="outlined"
                 value={searchBookingId}
                 onChange={(e) => setSearchBookingId(e.target.value)}
@@ -310,8 +318,16 @@ const BookingListPage = () => {
                         <br />
                         {row?.customer?.mobile}
                       </TableCell>
-                      <TableCell>
-                        <Stack direction="row" spacing={1} flexWrap="wrap">
+                      <TableCell
+                        sx={{ display: 'flex', justifyContent: 'center' }}
+                      >
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          flexWrap="wrap"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
                           {row.rooms?.map((room, index) => (
                             <Chip
                               variant="filled"

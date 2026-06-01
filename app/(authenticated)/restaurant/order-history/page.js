@@ -15,23 +15,25 @@ import {
   IconButton,
   TablePagination,
   Paper,
+  TextField,
+  Stack,
+  Button,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 import { GetDataList, DeleteData } from '@/utils/ApiFunctions';
 import { useAuth } from '@/context';
 import { Loader } from '@/component/common';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { formatDateTime, GetTodaysDate } from '@/utils/DateFetcher';
 import { SuccessToast } from '@/utils/GenerateToast';
 import { DeleteDialog } from '@/component/tableOrderComp';
 import { CheckUserPermission } from '@/utils/UserPermissions';
-import { generateKOTChanges } from '@/utils/generateKOTChanges';
 import ViewTableOrder from '@/component/tableOrderComp/ViewTableOrder';
 import { Delete, RemoveRedEyeOutlined } from '@mui/icons-material';
 
-const Page = () => {
+const OrderHistory = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
@@ -42,6 +44,16 @@ const Page = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState(todaysDate);
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setStartDate('');
+    setEndDate(todaysDate);
+    setPage(0);
+  };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
@@ -52,7 +64,38 @@ const Page = () => {
     setPage(newPage);
   };
 
-  const paginatedOrders = orders?.slice(
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    if (start) start.setHours(0, 0, 0, 0);
+    if (end) end.setHours(23, 59, 59, 999);
+
+    return orders.filter((order) => {
+      let matchesSearch = true;
+      if (normalizedSearch) {
+        const orderId = order.order_id?.toString().toLowerCase() || '';
+        const tableNo = order.table?.table_no?.toString().toLowerCase() || '';
+        matchesSearch =
+          orderId.includes(normalizedSearch) ||
+          tableNo.includes(normalizedSearch);
+      }
+
+      let matchesDate = true;
+      if ((start || end) && order.createdAt) {
+        const orderDate = new Date(order.createdAt);
+        matchesDate =
+          (!start || orderDate >= start) && (!end || orderDate <= end);
+      }
+
+      return matchesSearch && matchesDate;
+    });
+  }, [orders, searchTerm, startDate, endDate]);
+
+  const paginatedOrders = filteredOrders?.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage,
   );
@@ -86,6 +129,54 @@ const Page = () => {
       </Box>
 
       <Box sx={{ p: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 2,
+            alignItems: 'center',
+            mb: 2,
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{ flex: 1, width: '100%' }}
+          >
+            <TextField
+              size="small"
+              label="Start Date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              size="small"
+              label="End Date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ max: todaysDate }}
+            />
+            <TextField
+              size="small"
+              label="Search "
+              variant="outlined"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleResetFilters}
+              sx={{ minWidth: 120 }}
+            >
+              Reset
+            </Button>
+          </Stack>
+        </Box>
         <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
           <Table>
             <TableHead>
@@ -195,7 +286,7 @@ const Page = () => {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={orders.length}
+            count={filteredOrders?.length || 0}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -223,4 +314,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default OrderHistory;

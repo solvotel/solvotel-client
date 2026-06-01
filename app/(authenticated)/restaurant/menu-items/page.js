@@ -44,7 +44,7 @@ import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 
-const Page = () => {
+const RestaurantMenuPage = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const data = GetDataList({
@@ -103,12 +103,33 @@ const Page = () => {
     setFormOpen(true);
   };
 
-  const validateForm = (data) => {
+  const validateForm = (formValues) => {
     const errors = {};
 
-    if (!data.item?.trim()) errors.item = 'Name is required';
-    if (!data.rate || data.rate <= 0) errors.rate = 'Enter a valid rate';
-    if (data.gst === '' || data.gst < 0) errors.gst = 'Enter a valid GST (%)';
+    if (!formValues.item?.trim()) {
+      errors.item = 'Name is required';
+    }
+
+    if (!formValues.rate || formValues.rate <= 0) {
+      errors.rate = 'Enter a valid rate';
+    }
+
+    if (formValues.gst === '' || formValues.gst < 0) {
+      errors.gst = 'Enter a valid GST (%)';
+    }
+
+    const normalizedItem = formValues.item?.trim().toLowerCase();
+
+    const duplicateMenu = data
+      ?.filter((menu) => menu.documentId !== formValues.documentId)
+      .some((menu) => {
+        const menuItem = menu.item?.trim().toLowerCase();
+        return normalizedItem && menuItem === normalizedItem;
+      });
+
+    if (duplicateMenu) {
+      errors.item = 'A menu item with this name already exists';
+    }
 
     return errors;
   };
@@ -520,4 +541,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default RestaurantMenuPage;
