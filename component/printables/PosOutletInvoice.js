@@ -30,12 +30,16 @@ const PosOutletInvoice = React.forwardRef((props, ref) => {
       }}
     >
       <div style={{ textAlign: 'center' }}>
-        <h3 style={{ margin: 0 }}>{profile.name}</h3>
+        <h2 style={{ margin: 0 }}>{profile.name}</h2>
         <p style={{ margin: 0 }}>
           {profile.address_line_1}, {profile.address_line_2}
         </p>
         <p style={{ margin: 0 }}>
           {profile.district}, {profile.state}
+        </p>
+        <p style={{ margin: 0 }}>
+          Phone: {profile.phone}{' '}
+          {profile.alt_phone && ` | ${profile.alt_phone}`}
         </p>
         {profile.gst_no && (
           <p style={{ margin: 0 }}>GST: {profile.gst_no || 'N/A'}</p>
@@ -48,6 +52,7 @@ const PosOutletInvoice = React.forwardRef((props, ref) => {
       </p>
       {invoice.customer_name && <p>Customer: {invoice.customer_name}</p>}
       {invoice.customer_phone && <p>Phone: {invoice.customer_phone}</p>}
+      {invoice.customer_gst && <p>GST: {invoice.customer_gst}</p>}
       <p style={{ margin: '5px 0' }}>-------------------------------</p>
 
       <table style={{ width: '100%' }}>

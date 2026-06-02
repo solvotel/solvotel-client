@@ -100,24 +100,35 @@ const Page = () => {
     setFormOpen(true);
   };
 
-  const validateForm = (data) => {
+  const validateForm = (formData, allData, isEditing) => {
     const errors = {};
 
-    if (!data.item?.trim()) errors.item = 'Name is required';
-    if (!data.category?.trim()) errors.category = 'Category is required';
-    if (!data.hsn?.trim()) errors.hsn = 'HSN/SAC is required';
-    if (!data.rate || Number(data.rate) <= 0)
+    if (!formData.item?.trim()) errors.item = 'Name is required';
+
+    // Check for duplicate item name
+    if (formData.item?.trim()) {
+      const isDuplicate = allData?.some(
+        (item) =>
+          item.item?.toLowerCase() === formData.item.toLowerCase() &&
+          (!isEditing || item.documentId !== formData.documentId),
+      );
+      if (isDuplicate) {
+        errors.item = 'An item with this name already exists';
+      }
+    }
+
+    if (!formData.rate || Number(formData.rate) <= 0)
       errors.rate = 'Enter a valid rate';
-    if (data.cgst === '' || Number(data.cgst) < 0)
+    if (formData.cgst === '' || Number(formData.cgst) < 0)
       errors.cgst = 'Enter a valid CGST (%)';
-    if (data.sgst === '' || Number(data.sgst) < 0)
+    if (formData.sgst === '' || Number(formData.sgst) < 0)
       errors.sgst = 'Enter a valid SGST (%)';
 
     return errors;
   };
 
   const handleSave = async () => {
-    const errors = validateForm(formData);
+    const errors = validateForm(formData, data, editing);
     setFormErrors(errors);
 
     if (Object.keys(errors).length > 0) {
@@ -327,9 +338,7 @@ const Page = () => {
             maxWidth="md"
             fullWidth
           >
-            <DialogTitle>
-              {editing ? 'Edit Menu Item' : 'Create Menu Item'}
-            </DialogTitle>
+            <DialogTitle>{editing ? 'Edit Item' : 'Create Item'}</DialogTitle>
             <DialogContent>
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid size={{ xs: 12, sm: 6 }}>
@@ -401,51 +410,83 @@ const Page = () => {
                   <TextField
                     margin="dense"
                     label="Rate"
-                    type="number"
                     fullWidth
-                    value={formData.rate}
+                    value={formData.rate ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
                     onChange={(e) => {
-                      const rate = parseFloat(e.target.value) || 0;
-                      const cgst = parseFloat(formData.cgst) || 0;
-                      const sgst = parseFloat(formData.sgst) || 0;
-                      const total = rate + (rate * (cgst + sgst)) / 100;
-                      setFormData({ ...formData, rate, total });
+                      const value = e.target.value;
+
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const rate = value === '' ? '' : parseFloat(value);
+                        const cgst = parseFloat(formData.cgst) || 0;
+                        const sgst = parseFloat(formData.sgst) || 0;
+
+                        setFormData({
+                          ...formData,
+                          rate,
+                          total: rate ? rate + (rate * (cgst + sgst)) / 100 : 0,
+                        });
+                      }
                     }}
                     error={!!formErrors.rate}
                     helperText={formErrors.rate}
                   />
                 </Grid>
+
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
                     margin="dense"
                     label="CGST (%)"
-                    type="number"
                     fullWidth
-                    value={formData.cgst}
+                    value={formData.cgst ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
                     onChange={(e) => {
-                      const cgst = parseFloat(e.target.value) || 0;
-                      const rate = parseFloat(formData.rate) || 0;
-                      const sgst = parseFloat(formData.sgst) || 0;
-                      const total = rate + (rate * (cgst + sgst)) / 100;
-                      setFormData({ ...formData, cgst, total });
+                      const value = e.target.value;
+
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const cgst = value === '' ? '' : parseFloat(value);
+                        const rate = parseFloat(formData.rate) || 0;
+                        const sgst = parseFloat(formData.sgst) || 0;
+
+                        setFormData({
+                          ...formData,
+                          cgst,
+                          total: rate
+                            ? rate +
+                              (rate * ((parseFloat(cgst) || 0) + sgst)) / 100
+                            : 0,
+                        });
+                      }
                     }}
                     error={!!formErrors.cgst}
                     helperText={formErrors.cgst}
                   />
                 </Grid>
+
                 <Grid size={{ xs: 12, sm: 4 }}>
                   <TextField
                     margin="dense"
                     label="SGST (%)"
-                    type="number"
                     fullWidth
-                    value={formData.sgst}
+                    value={formData.sgst ?? ''}
+                    inputProps={{ inputMode: 'decimal' }}
                     onChange={(e) => {
-                      const sgst = parseFloat(e.target.value) || 0;
-                      const rate = parseFloat(formData.rate) || 0;
-                      const cgst = parseFloat(formData.cgst) || 0;
-                      const total = rate + (rate * (cgst + sgst)) / 100;
-                      setFormData({ ...formData, sgst, total });
+                      const value = e.target.value;
+
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        const sgst = value === '' ? '' : parseFloat(value);
+                        const rate = parseFloat(formData.rate) || 0;
+                        const cgst = parseFloat(formData.cgst) || 0;
+
+                        setFormData({
+                          ...formData,
+                          sgst,
+                          total: rate
+                            ? rate +
+                              (rate * (cgst + (parseFloat(sgst) || 0))) / 100
+                            : 0,
+                        });
+                      }
                     }}
                     error={!!formErrors.sgst}
                     helperText={formErrors.sgst}

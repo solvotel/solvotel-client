@@ -80,6 +80,8 @@ const Page = () => {
   });
 
   const [search, setSearch] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState(todaysDate);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -105,13 +107,28 @@ const Page = () => {
     return totalAmount + tax;
   }, [formData.billing_items]);
 
-  // filter data by name
+  // filter data by invoice number and date range
   const filteredData = useMemo(() => {
     if (!data) return [];
-    return data.filter((item) =>
-      item.invoice_no?.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [data, search]);
+
+    const searchText = search.toLowerCase();
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    if (end) end.setHours(23, 59, 59, 999);
+
+    return data.filter((item) => {
+      const matchesSearch = item.invoice_no?.toLowerCase().includes(searchText);
+
+      if (!matchesSearch) return false;
+      if (!item.date) return true;
+
+      const invoiceDate = new Date(item.date);
+      if (start && invoiceDate < start) return false;
+      if (end && invoiceDate > end) return false;
+
+      return true;
+    });
+  }, [data, search, startDate, endDate]);
 
   const handleItemSelect = () => {
     if (!selectedItem) return;
@@ -424,17 +441,51 @@ const Page = () => {
           {/* Header Section */}
           <Box
             display="flex"
+            flexWrap="wrap"
+            gap={2}
             justifyContent="space-between"
             alignItems="center"
             mb={2}
           >
-            <TextField
-              size="small"
-              label="Search by invoice no"
-              variant="outlined"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <Box display="flex" flexWrap="wrap" gap={2} alignItems="center">
+              <TextField
+                size="small"
+                label="Start date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ max: todaysDate }}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+              <TextField
+                size="small"
+                label="End date"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ max: todaysDate }}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+              <TextField
+                size="small"
+                label="Search by invoice no"
+                variant="outlined"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <Button
+                variant="outlined"
+                color="secondary"
+                sx={{ textTransform: 'none' }}
+                onClick={() => {
+                  setSearch('');
+                  setStartDate('');
+                  setEndDate(todaysDate);
+                }}
+              >
+                Reset
+              </Button>
+            </Box>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -623,12 +674,20 @@ const Page = () => {
                     size="small"
                     fullWidth
                     value={formData.customer_phone}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      const cleaned = e.target.value
+                        .replace(/\D/g, '')
+                        .slice(0, 10);
                       setFormData({
                         ...formData,
-                        customer_phone: e.target.value,
-                      })
-                    }
+                        customer_phone: cleaned,
+                      });
+                    }}
+                    inputProps={{
+                      maxLength: 10,
+                      inputMode: 'numeric',
+                      pattern: '[0-9]*',
+                    }}
                   />
                 </Grid>
                 <Grid item size={{ xs: 12, sm: 6 }}>

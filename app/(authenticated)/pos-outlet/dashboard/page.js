@@ -476,9 +476,9 @@ const Dashboard = () => {
                       Latest 6 transactions
                     </Typography>
                   </Box>
-                  <IconButton size="small">
+                  {/* <IconButton size="small">
                     <MoreVertIcon />
-                  </IconButton>
+                  </IconButton> */}
                 </Stack>
 
                 {recentInvoices.length === 0 ? (

@@ -41,7 +41,7 @@ const PosOutletInvoiceReportPrint = React.forwardRef((props, ref) => {
       }}
     >
       <Typography variant="h6" textAlign={'center'} fontWeight={600} mb={2}>
-        Restaurant Invoive Report
+        Outlet Invoive Report
       </Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
         <Typography>
@@ -61,6 +61,7 @@ const PosOutletInvoiceReportPrint = React.forwardRef((props, ref) => {
                 'Invoice No',
                 'Date/Time',
                 'Customer Name',
+                'GSTIN',
                 'Taxable Amount ₹',
                 'SGST ₹',
                 'CGST ₹',
@@ -78,6 +79,7 @@ const PosOutletInvoiceReportPrint = React.forwardRef((props, ref) => {
                   {GetCustomDate(row.date)}:{row.time}
                 </BodyCell>
                 <BodyCell>{row.customer_name}</BodyCell>
+                <BodyCell>{row.customer_gst || 'N/A'}</BodyCell>
                 <BodyCell>{row.taxable}</BodyCell>
                 <BodyCell>{row.sgst}</BodyCell>
                 <BodyCell>{row.cgst}</BodyCell>

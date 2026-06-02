@@ -46,7 +46,7 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       }}
     >
       <div style={{ textAlign: 'center' }}>
-        <h3 style={{ margin: 0, fontWeight: 'bold' }}>{profile.res_name}</h3>
+        <h2 style={{ margin: 0, fontWeight: 'bold' }}>{profile.res_name}</h2>
         <p style={{ margin: 0 }}>
           {profile.res_address_line1}, {profile.res_address_line2}
         </p>
