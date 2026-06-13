@@ -13,6 +13,7 @@ import {
 } from '@/component/dashboardComp';
 import { Loader } from '@/component/common';
 import { CheckUserPermission } from '@/utils/UserPermissions';
+import dayjs from 'dayjs';
 
 const Page = () => {
   const { auth } = useAuth();
@@ -20,6 +21,7 @@ const Page = () => {
   const todaysDate = GetTodaysDate().dateString;
   const today = new Date(todaysDate);
   const [selectedDate, setSelectedDate] = useState(today);
+  const selected = dayjs(selectedDate);
 
   // Fetch all bookings
   const bookings = GetDataList({
@@ -36,38 +38,28 @@ const Page = () => {
   yesterday.setDate(yesterday.getDate() - 1);
 
   const stayOver = bookings?.filter((bk) => {
-    const checkIn = new Date(bk.checkin_date);
-    const checkOut = new Date(bk.checkout_date);
-    const isSameDay = checkIn.toDateString() === checkOut.toDateString();
-    const isYesterdayCheckIn =
-      checkIn.toDateString() === yesterday.toDateString();
-
     return (
       bk.checked_in === true &&
       bk.checked_out !== true &&
-      isYesterdayCheckIn &&
-      // Exclude same-day checkin/checkout from stayOver
-      !isSameDay
+      selected.isAfter(dayjs(bk.checkin_date), 'day') &&
+      selected.isBefore(dayjs(bk.checkout_date), 'day')
     );
   });
 
   const expectedCheckin = bookings?.filter((bk) => {
-    const checkIn = new Date(bk.checkin_date);
     return (
+      bk.booking_status === 'Confirmed' &&
       bk.checked_in !== true &&
       bk.checked_out !== true &&
-      checkIn.toDateString() === selectedDate.toDateString() &&
-      bk.booking_status === 'Confirmed'
+      selected.isSame(dayjs(bk.checkin_date), 'day')
     );
   });
 
   const expectedCheckout = bookings?.filter((bk) => {
-    const checkOut = new Date(bk.checkout_date);
     return (
       bk.checked_in === true &&
       bk.checked_out !== true &&
-      checkOut.toDateString() === selectedDate.toDateString() &&
-      bk.booking_status === 'Confirmed'
+      selected.isSame(dayjs(bk.checkout_date), 'day')
     );
   });
 

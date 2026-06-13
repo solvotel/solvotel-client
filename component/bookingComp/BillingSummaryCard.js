@@ -15,6 +15,7 @@ import {
   TableBody,
   Paper,
   IconButton,
+  TableContainer,
 } from '@mui/material';
 import RoomIcon from '@mui/icons-material/MeetingRoom';
 import LocalMallIcon from '@mui/icons-material/LocalMall';
@@ -196,54 +197,66 @@ export default function BillingSummaryCard({ booking, hotel }) {
             </Typography>
           ) : (
             <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell>
-                      <b>Room No</b>
-                    </TableCell>
-                    <TableCell>
-                      <b>Check In/Out</b>
-                    </TableCell>
-                    <TableCell>
-                      <b>Items</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>SGST (₹)</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>CGST (₹)</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>Total (₹)</b>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {roomTokens.map((room, index) => {
-                    const rate = room.rate * room.days;
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>{room.room || room.room_no}</TableCell>
-                        <TableCell>
-                          {GetCustomDate(room.in_date)} <br />
-                          {GetCustomDate(room.out_date)}
-                        </TableCell>
-                        <TableCell>{room.item}</TableCell>
-                        <TableCell align="right">
-                          {parseFloat((room.amount - rate) / 2 || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right">
-                          {parseFloat((room.amount - rate) / 2 || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right">
-                          {parseFloat(room.amount || 0).toFixed(2)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <TableContainer
+                component={Paper}
+                sx={{
+                  borderRadius: 2,
+                  maxHeight: 400, // adjust as needed
+                }}
+              >
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableCell>
+                        <b>Room No</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Check In/Out</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Items</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>SGST (₹)</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>CGST (₹)</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>Total (₹)</b>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {roomTokens.map((room, index) => {
+                      const rate = room.rate * room.days;
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>{room.room || room.room_no}</TableCell>
+                          <TableCell>
+                            {GetCustomDate(room.in_date)} <br />
+                            {GetCustomDate(room.out_date)}
+                          </TableCell>
+                          <TableCell>{room.item}</TableCell>
+                          <TableCell align="right">
+                            {parseFloat((room.amount - rate) / 2 || 0).toFixed(
+                              2,
+                            )}
+                          </TableCell>
+                          <TableCell align="right">
+                            {parseFloat((room.amount - rate) / 2 || 0).toFixed(
+                              2,
+                            )}
+                          </TableCell>
+                          <TableCell align="right">
+                            {parseFloat(room.amount || 0).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Paper>
           )}
         </CardContent>
@@ -264,59 +277,67 @@ export default function BillingSummaryCard({ booking, hotel }) {
             </Typography>
           ) : (
             <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell>
-                      <b>Room No</b>
-                    </TableCell>
-                    <TableCell>
-                      <b>Items</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>SGST (₹)</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>CGST (₹)</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>Total (₹)</b>
-                    </TableCell>
-                    <TableCell align="right"></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {services.map((service, index) => {
-                    const itemsString =
-                      service.items?.map((i) => i.item).join(', ') || '—';
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>{service.room_no}</TableCell>
-                        <TableCell>{itemsString}</TableCell>
-                        <TableCell align="right">
-                          {parseFloat(service.total_gst / 2 || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right">
-                          {parseFloat(service.total_gst / 2 || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right">
-                          {parseFloat(service.total_amount || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right">
-                          <IconButton
-                            disabled={service?.invoice}
-                            size="small"
-                            color="error"
-                            onClick={() => deleteServices(index)}
-                          >
-                            <Delete />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <TableContainer
+                component={Paper}
+                sx={{
+                  borderRadius: 2,
+                  maxHeight: 400, // adjust as needed
+                }}
+              >
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableCell>
+                        <b>Room No</b>
+                      </TableCell>
+                      <TableCell>
+                        <b>Items</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>SGST (₹)</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>CGST (₹)</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>Total (₹)</b>
+                      </TableCell>
+                      <TableCell align="right"></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {services.map((service, index) => {
+                      const itemsString =
+                        service.items?.map((i) => i.item).join(', ') || '—';
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>{service.room_no}</TableCell>
+                          <TableCell>{itemsString}</TableCell>
+                          <TableCell align="right">
+                            {parseFloat(service.total_gst / 2 || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right">
+                            {parseFloat(service.total_gst / 2 || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right">
+                            {parseFloat(service.total_amount || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right">
+                            <IconButton
+                              disabled={service?.invoice}
+                              size="small"
+                              color="error"
+                              onClick={() => deleteServices(index)}
+                            >
+                              <Delete />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Paper>
           )}
         </CardContent>
@@ -337,68 +358,76 @@ export default function BillingSummaryCard({ booking, hotel }) {
             </Typography>
           ) : (
             <Paper sx={{ borderRadius: 2, overflow: 'hidden' }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
-                    <TableCell>
-                      <b>Room No</b>
-                    </TableCell>
-                    {/* <TableCell>
+              <TableContainer
+                component={Paper}
+                sx={{
+                  borderRadius: 2,
+                  maxHeight: 400, // adjust as needed
+                }}
+              >
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableCell>
+                        <b>Room No</b>
+                      </TableCell>
+                      {/* <TableCell>
                     <b>Items</b>
                   </TableCell> */}
-                    <TableCell>
-                      <b>Items</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>SGST (₹)</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>CGST (₹)</b>
-                    </TableCell>
-                    <TableCell align="right">
-                      <b>Total (₹)</b>
-                    </TableCell>
-                    <TableCell align="right"></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {foodItems.map((food, index) => {
-                    const itemsString =
-                      food.items?.map((i) => i.item).join(', ') || '—';
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>{food.room_no}</TableCell>
-                        <TableCell>{itemsString}</TableCell>
-                        {/* <TableCell>{food.type}</TableCell> */}
-                        <TableCell align="right">
-                          {parseFloat(food.total_gst / 2 || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right">
-                          {parseFloat(food.total_gst / 2 || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right">
-                          {parseFloat(food.total_amount || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell align="right">
-                          <IconButton
-                            disabled={food?.invoice}
-                            size="small"
-                            color="error"
-                            onClick={() =>
-                              deleteFoodItems({
-                                id: index,
-                                orderId: food.orderId,
-                              })
-                            }
-                          >
-                            <Delete />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                      <TableCell>
+                        <b>Items</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>SGST (₹)</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>CGST (₹)</b>
+                      </TableCell>
+                      <TableCell align="right">
+                        <b>Total (₹)</b>
+                      </TableCell>
+                      <TableCell align="right"></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {foodItems.map((food, index) => {
+                      const itemsString =
+                        food.items?.map((i) => i.item).join(', ') || '—';
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>{food.room_no}</TableCell>
+                          <TableCell>{itemsString}</TableCell>
+                          {/* <TableCell>{food.type}</TableCell> */}
+                          <TableCell align="right">
+                            {parseFloat(food.total_gst / 2 || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right">
+                            {parseFloat(food.total_gst / 2 || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right">
+                            {parseFloat(food.total_amount || 0).toFixed(2)}
+                          </TableCell>
+                          <TableCell align="right">
+                            <IconButton
+                              disabled={food?.invoice}
+                              size="small"
+                              color="error"
+                              onClick={() =>
+                                deleteFoodItems({
+                                  id: index,
+                                  orderId: food.orderId,
+                                })
+                              }
+                            >
+                              <Delete />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Paper>
           )}
         </CardContent>

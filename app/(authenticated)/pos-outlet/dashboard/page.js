@@ -36,6 +36,7 @@ import {
 import { Loader } from '@/component/common';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 // Helper functions remain the same
 function safeGetCreatedAt(item) {
@@ -476,9 +477,11 @@ const Dashboard = () => {
                       Latest 6 transactions
                     </Typography>
                   </Box>
-                  {/* <IconButton size="small">
-                    <MoreVertIcon />
-                  </IconButton> */}
+                  <Link href={`/pos-outlet/invoices`} passHref>
+                    <IconButton size="small">
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Link>
                 </Stack>
 
                 {recentInvoices.length === 0 ? (

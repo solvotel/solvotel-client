@@ -64,36 +64,41 @@ const Page = () => {
     endPoint: 'restaurant-invoices',
   });
 
-  const activeBookings = bookings?.filter((bk) => {
-    const checkIn = new Date(bk.checkin_date);
-    const checkOut = new Date(bk.checkout_date);
-    const today = new Date(todaysDate);
+  const today = todaysDate; // YYYY-MM-DD
 
-    return (
-      bk.checked_in === true &&
-      bk.checked_out !== true &&
-      today >= checkIn &&
-      today <= checkOut
-    );
-  });
+  const activeRooms =
+    bookings?.flatMap((bk) => {
+      if (
+        bk.checked_in !== true ||
+        bk.checked_out === true ||
+        bk.booking_status === 'Cancelled'
+      ) {
+        return [];
+      }
 
-  // Step 2: Flatten all rooms from those active bookings
-  const today = new Date().toISOString().split('T')[0];
+      return (
+        bk.room_tokens
+          ?.filter((token) => {
+            const inDate = token.in_date?.split('T')[0];
+            const outDate = token.out_date?.split('T')[0];
 
-  const activeRooms = activeBookings?.flatMap(
-    (bk) =>
-      bk.room_tokens
-        ?.filter((room) => {
-          const checkIn = new Date(room.in_date).toISOString().split('T')[0];
-          const checkOut = new Date(room.out_date).toISOString().split('T')[0];
+            console.log(
+              token.room,
+              today,
+              inDate,
+              outDate,
+              today >= inDate && today < outDate,
+            );
 
-          return today >= checkIn && today <= checkOut;
-        })
-        ?.map((room) => ({
-          booking_id: bk.documentId,
-          room_no: room.room,
-        })) || [],
-  );
+            return today >= inDate && today < outDate;
+          })
+          ?.map((token) => ({
+            booking_id: bk.documentId,
+            room_no: token.room,
+            booking: bk,
+          })) || []
+      );
+    }) || [];
 
   const [viewOpen, setViewOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);

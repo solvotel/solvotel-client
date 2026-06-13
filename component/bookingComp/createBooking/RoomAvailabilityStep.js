@@ -58,15 +58,13 @@ const RoomAvailabilityStep = ({
   // Generate date range from check-in to day before check-out
   const dateRange = useMemo(() => {
     const dates = [];
-    const current = new Date(bookingDetails.checkin_date);
-    const checkoutDate = new Date(bookingDetails.checkout_date);
 
-    // Include at least the check-in date (even for same-day bookings)
-    while (current < checkoutDate || dates.length === 0) {
-      dates.push(current.toISOString().split('T')[0]);
-      current.setDate(current.getDate() + 1);
-      // Prevent infinite loop: stop after adding the checkout date equivalent
-      if (dates.length > 0 && current >= checkoutDate) break;
+    let current = dayjs(bookingDetails.checkin_date);
+    const checkout = dayjs(bookingDetails.checkout_date);
+
+    while (current.isBefore(checkout, 'day')) {
+      dates.push(current.format('YYYY-MM-DD'));
+      current = current.add(1, 'day');
     }
 
     return dates;
@@ -160,10 +158,6 @@ const RoomAvailabilityStep = ({
   // Create a unique key for room-date combination
   const getRoomDateKey = (roomNo, date) => `${roomNo}-${date}`;
 
-  // Generate temporary client-side ID for room tokens (for UI/tracking before backend persistence)
-  const generateRoomTokenId = () =>
-    `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-
   const buildRoomTokens = (selections) => {
     const groupedByRoom = selections.reduce((acc, selection) => {
       if (!acc[selection.room_no]) {
@@ -172,36 +166,67 @@ const RoomAvailabilityStep = ({
           dates: [],
         };
       }
+
       acc[selection.room_no].dates.push(selection.date);
       return acc;
     }, {});
 
-    return Object.values(groupedByRoom).map(({ room, dates }) => {
-      const uniqueDates = [...new Set(dates)].sort();
+    const tokens = [];
+
+    Object.values(groupedByRoom).forEach(({ room, dates }) => {
+      const sortedDates = [...new Set(dates)].sort();
+
+      if (!sortedDates.length) return;
+
       const rate = room.category?.tariff || 0;
       const gst = room.category?.gst || 0;
-      const baseAmount = rate;
-      const gstAmount = (baseAmount * gst) / 100;
-      const totalAmountPerNight = baseAmount + gstAmount;
-      const inDate = uniqueDates[0];
-      const outDateObj = new Date(uniqueDates[uniqueDates.length - 1]);
-      outDateObj.setDate(outDateObj.getDate() + 1);
-      const out_date = outDateObj.toISOString().split('T')[0];
 
-      return {
-        id: `${room.room_no}-${inDate}-${out_date}`,
-        room: room.room_no,
-        hsn: room.category?.hsn || '',
-        item: room.category?.name || '',
-        rate,
-        gst,
-        amount: totalAmountPerNight * uniqueDates.length,
-        days: uniqueDates.length,
-        invoice: false,
-        in_date: inDate,
-        out_date,
+      let currentBlock = [sortedDates[0]];
+
+      const pushToken = (blockDates) => {
+        const in_date = blockDates[0];
+
+        const outDateObj = new Date(blockDates[blockDates.length - 1]);
+        outDateObj.setDate(outDateObj.getDate() + 1);
+
+        const out_date = outDateObj.toISOString().split('T')[0];
+
+        const days = blockDates.length;
+
+        tokens.push({
+          id: `${room.room_no}-${in_date}-${out_date}`,
+          room: room.room_no,
+          hsn: room.category?.hsn || '',
+          item: room.category?.name || '',
+          rate,
+          gst,
+          amount: (rate + (rate * gst) / 100) * days,
+          days,
+          invoice: false,
+          in_date,
+          out_date,
+        });
       };
+
+      for (let i = 1; i < sortedDates.length; i++) {
+        const prev = new Date(sortedDates[i - 1]);
+        const curr = new Date(sortedDates[i]);
+
+        const diffDays =
+          (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+
+        if (diffDays === 1) {
+          currentBlock.push(sortedDates[i]);
+        } else {
+          pushToken(currentBlock);
+          currentBlock = [sortedDates[i]];
+        }
+      }
+
+      pushToken(currentBlock);
     });
+
+    return tokens;
   };
 
   const getAvailableRoomsForDate = (date) => {
@@ -286,115 +311,29 @@ const RoomAvailabilityStep = ({
 
   // Handle room + date selection
   const handleRoomDateSelection = (room, date) => {
-    const key = getRoomDateKey(room.room_no, date);
     const exists = selectedRooms.some(
       (r) => r.room_no === room.room_no && r.date === date,
     );
 
+    let updatedSelectedRooms;
+
     if (exists) {
-      // Remove this date from selectedRooms
-      const updatedSelectedRooms = selectedRooms.filter(
+      updatedSelectedRooms = selectedRooms.filter(
         (r) => !(r.room_no === room.room_no && r.date === date),
       );
-      setSelectedRooms(updatedSelectedRooms);
-
-      // Get all remaining dates for this room (sorted)
-      const remainingDatesForRoom = updatedSelectedRooms
-        .filter((r) => r.room_no === room.room_no)
-        .map((r) => r.date)
-        .sort();
-
-      if (remainingDatesForRoom.length === 0) {
-        // No more dates for this room, remove token
-        setRoomTokens(roomTokens.filter((t) => t.room !== room.room_no));
-      } else {
-        // Update token with new date range and days
-        const inDate = remainingDatesForRoom[0];
-        const outDateObj = new Date(
-          remainingDatesForRoom[remainingDatesForRoom.length - 1],
-        );
-        outDateObj.setDate(outDateObj.getDate() + 1);
-        const outDate = outDateObj.toISOString().split('T')[0];
-
-        const updatedTokens = roomTokens.map((t) => {
-          if (t.room === room.room_no) {
-            return {
-              ...t,
-
-              in_date: inDate,
-              out_date: outDate,
-              days: remainingDatesForRoom.length,
-              amount:
-                (t.rate + (t.rate * t.gst) / 100) *
-                remainingDatesForRoom.length,
-            };
-          }
-          return t;
-        });
-        setRoomTokens(updatedTokens);
-      }
     } else {
-      // Add this date to selectedRooms
-      const newRoom = {
-        key,
-        ...room,
-        date,
-      };
-      const updatedSelectedRooms = [...selectedRooms, newRoom];
-      setSelectedRooms(updatedSelectedRooms);
-
-      // Get all dates for this room (sorted)
-      const allDatesForRoom = updatedSelectedRooms
-        .filter((r) => r.room_no === room.room_no)
-        .map((r) => r.date)
-        .sort();
-
-      const rate = room.category?.tariff || 0;
-      const gst = room.category?.gst || 0;
-      const baseAmount = rate;
-      const gstAmount = (baseAmount * gst) / 100;
-      const totalAmountPerNight = baseAmount + gstAmount;
-
-      const inDate = allDatesForRoom[0];
-      const outDateObj = new Date(allDatesForRoom[allDatesForRoom.length - 1]);
-      outDateObj.setDate(outDateObj.getDate() + 1);
-      const outDate = outDateObj.toISOString().split('T')[0];
-      const daysCount = allDatesForRoom.length;
-
-      // Check if token already exists for this room
-      const existingTokenIndex = roomTokens.findIndex(
-        (t) => t.room === room.room_no,
-      );
-
-      if (existingTokenIndex >= 0) {
-        // Update existing token
-        const updatedTokens = [...roomTokens];
-        updatedTokens[existingTokenIndex] = {
-          ...updatedTokens[existingTokenIndex],
-          in_date: inDate,
-          out_date: outDate,
-          days: daysCount,
-          amount: totalAmountPerNight * daysCount,
-        };
-        setRoomTokens(updatedTokens);
-      } else {
-        // Create new token (no key attribute)
-        const newToken = {
-          id: generateRoomTokenId(),
-          room: room.room_no,
-          hsn: room.category?.hsn || '',
-          item: room.category?.name || '',
-          rate: rate,
-          gst: gst,
-          amount: totalAmountPerNight * daysCount,
-          days: daysCount,
-          invoice: false,
-          in_date: inDate,
-          out_date: outDate,
-        };
-        setRoomTokens([...roomTokens, newToken]);
-      }
+      updatedSelectedRooms = [
+        ...selectedRooms,
+        {
+          key: getRoomDateKey(room.room_no, date),
+          ...room,
+          date,
+        },
+      ];
     }
+
+    setSelectedRooms(updatedSelectedRooms);
+    setRoomTokens(buildRoomTokens(updatedSelectedRooms));
   };
 
   // Remove a specific selection (remove all dates for that room)
@@ -471,14 +410,10 @@ const RoomAvailabilityStep = ({
   };
 
   const removeSelection = (key) => {
-    const roomNo = key.split('-')[0];
-    // Remove all dates for this room
-    const updatedSelectedRooms = selectedRooms.filter(
-      (r) => r.room_no !== roomNo,
-    );
+    const updatedSelectedRooms = selectedRooms.filter((r) => r.key !== key);
+
     setSelectedRooms(updatedSelectedRooms);
-    // Remove token for this room
-    setRoomTokens(roomTokens.filter((t) => t.room !== roomNo));
+    setRoomTokens(buildRoomTokens(updatedSelectedRooms));
   };
 
   return (
@@ -727,68 +662,6 @@ const RoomAvailabilityStep = ({
           );
         })}
       </AnimatePresence>
-
-      {/* Selection Summary */}
-      {selectedRooms.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-        >
-          <Card
-            sx={{
-              mt: { xs: 2, sm: 2.5, md: 3 },
-              bgcolor: '#f5f5f5',
-              borderLeft: '4px solid #4caf50',
-              borderRadius: 1,
-            }}
-          >
-            <CardContent sx={{ p: { xs: 1, sm: 1.5 } }}>
-              <Box display="flex" alignItems="center" gap={1} mb={1}>
-                <Users size={16} color="#4caf50" />
-                <Typography
-                  variant="body2"
-                  fontWeight="bold"
-                  sx={{ fontSize: { xs: '0.8rem', sm: '0.95rem' } }}
-                >
-                  {selectedRooms.length} Room
-                  {selectedRooms.length !== 1 ? 's' : ''}
-                </Typography>
-              </Box>
-
-              <Box display="flex" flexWrap="wrap" gap={0.75}>
-                {selectedRooms.map((selection) => (
-                  <motion.div
-                    key={selection.key}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                  >
-                    <Chip
-                      label={`${selection.room_no} (${dayjs(selection.date).format('M/D')})`}
-                      onDelete={() => removeSelection(selection.key)}
-                      color="primary"
-                      variant="outlined"
-                      size="small"
-                      sx={{
-                        fontWeight: 500,
-                        fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                        '& .MuiChip-deleteIcon': {
-                          color: '#d32f2f !important',
-                          fontSize: 'inherit',
-                          '&:hover': {
-                            color: '#b71c1c !important',
-                          },
-                        },
-                      }}
-                    />
-                  </motion.div>
-                ))}
-              </Box>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
     </Box>
   );
 };
