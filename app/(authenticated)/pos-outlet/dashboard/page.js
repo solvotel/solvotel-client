@@ -22,6 +22,7 @@ import {
   useTheme,
   alpha,
   Breadcrumbs,
+  Button,
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
@@ -32,6 +33,7 @@ import {
   MoreVert as MoreVertIcon,
   Visibility as VisibilityIcon,
   NavigateNext,
+  Add,
 } from '@mui/icons-material';
 import { Loader } from '@/component/common';
 import Image from 'next/image';
@@ -478,9 +480,9 @@ const Dashboard = () => {
                     </Typography>
                   </Box>
                   <Link href={`/pos-outlet/invoices`} passHref>
-                    <IconButton size="small">
-                      <MoreVertIcon />
-                    </IconButton>
+                    <Button size="small" color="primary" startIcon={<Add />}>
+                      Create Invoice
+                    </Button>
                   </Link>
                 </Stack>
 

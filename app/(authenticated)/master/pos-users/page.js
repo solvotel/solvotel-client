@@ -44,7 +44,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useState, useMemo } from 'react';
 
-const Page = () => {
+const PosUsers = () => {
   const { auth } = useAuth();
 
   const data = GetUserList({
@@ -54,7 +54,7 @@ const Page = () => {
     auth,
     endPoint: 'pos-outlets',
   });
-  console.log('outlets:', outlets);
+
   const filteresData = data?.filter(
     (user) =>
       user.role?.name !== 'Authenticated' && user.role?.name !== 'hotel-admin',
@@ -63,7 +63,6 @@ const Page = () => {
   const [search, setSearch] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
-
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState(initialForm());
@@ -113,7 +112,8 @@ const Page = () => {
 
   const validate = () => {
     let newErrors = {};
-    if (!formData.username.trim()) newErrors.username = 'Username is required';
+    if (!formData.email || !formData.email.trim())
+      newErrors.email = 'Email is required';
     if (!password.trim() && !editing)
       newErrors.password = 'Password is required';
     setErrors(newErrors);
@@ -139,7 +139,8 @@ const Page = () => {
         confirmed: formData.confirmed,
         hotel_id: formData.hotel_id,
         role: formData.role,
-        username: formData.username,
+        username: formData.email,
+        email: formData.email,
         pos_outlet_id: formData.pos_outlet_id || '',
       };
       if (password) {
@@ -168,11 +169,12 @@ const Page = () => {
 
   const CreateNewUser = async () => {
     try {
-      await CreateNewData({
+      const res = await CreateNewData({
         auth,
         endPoint: 'users',
-        payload: { ...formData, password: password },
+        payload: { ...formData, username: formData.email, password: password },
       });
+
       SuccessToast('User created successfully');
       setSearch('');
       setFormOpen(false);
@@ -240,7 +242,6 @@ const Page = () => {
               <TableHead>
                 <TableRow sx={{ backgroundColor: 'grey.100' }}>
                   {[
-                    'Username',
                     'Email',
                     'Role',
                     'Outlet',
@@ -267,7 +268,6 @@ const Page = () => {
                   })
                   ?.map((row) => (
                     <TableRow key={row.documentId}>
-                      <TableCell>{row.username}</TableCell>
                       <TableCell>{row.email}</TableCell>
                       <TableCell>
                         {row.role?.name === 'hotel-admin'
@@ -437,20 +437,6 @@ const Page = () => {
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
-                    label="Username"
-                    autoComplete="new-username"
-                    value={formData.username}
-                    onChange={(e) =>
-                      setFormData({ ...formData, username: e.target.value })
-                    }
-                    error={!!errors.username}
-                    helperText={errors.username}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
                     label="Email"
                     type="email"
                     autoComplete="new-email"
@@ -458,6 +444,8 @@ const Page = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
+                    error={!!errors.email}
+                    helperText={errors.email}
                   />
                 </Grid>
 
@@ -553,4 +541,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default PosUsers;

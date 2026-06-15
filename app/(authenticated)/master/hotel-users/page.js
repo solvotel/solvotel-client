@@ -104,7 +104,8 @@ const HotelUser = () => {
 
   const validate = () => {
     let newErrors = {};
-    if (!formData.username.trim()) newErrors.username = 'Username is required';
+    if (!formData.email || !formData.email.trim())
+      newErrors.email = 'Email is required';
     if (!password.trim() && !editing)
       newErrors.password = 'Password is required';
     setErrors(newErrors);
@@ -130,7 +131,8 @@ const HotelUser = () => {
         confirmed: formData.confirmed,
         hotel_id: formData.hotel_id,
         role: formData.role,
-        username: formData.username,
+        username: formData.email,
+        email: formData.email,
       };
       if (password) {
         data = {
@@ -160,7 +162,7 @@ const HotelUser = () => {
       await CreateNewData({
         auth,
         endPoint: 'users',
-        payload: { ...formData, password: password },
+        payload: { ...formData, password: password, username: formData.email },
       });
       SuccessToast('User created successfully');
       setFormOpen(false);
@@ -228,7 +230,6 @@ const HotelUser = () => {
               <TableHead>
                 <TableRow sx={{ backgroundColor: 'grey.100' }}>
                   {[
-                    'Username',
                     'Email',
                     'Role',
                     'Access',
@@ -259,7 +260,6 @@ const HotelUser = () => {
                   })
                   ?.map((row) => (
                     <TableRow key={row.documentId}>
-                      <TableCell>{row.username}</TableCell>
                       <TableCell>{row.email}</TableCell>
                       <TableCell>
                         {row.role?.name === 'hotel-admin'
@@ -424,27 +424,14 @@ const HotelUser = () => {
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth
-                    label="Username"
-                    autoComplete="new-username"
-                    value={formData.username}
-                    onChange={(e) =>
-                      setFormData({ ...formData, username: e.target.value })
-                    }
-                    error={!!errors.username}
-                    helperText={errors.username}
-                  />
-                </Grid>
-
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
                     label="Email"
                     type="email"
-                    autoComplete="new-email"
                     value={formData.email}
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
+                    error={!!errors.email}
+                    helperText={errors.email}
                   />
                 </Grid>
 

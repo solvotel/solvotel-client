@@ -22,6 +22,7 @@ import {
   useTheme,
   alpha,
   Breadcrumbs,
+  Button,
 } from '@mui/material';
 import {
   Receipt as ReceiptIcon,
@@ -30,6 +31,7 @@ import {
   AccountBalanceWallet as WalletIcon,
   MoreVert as MoreVertIcon,
   Visibility as VisibilityIcon,
+  Add,
 } from '@mui/icons-material';
 import { Loader } from '@/component/common';
 import Image from 'next/image';
@@ -471,9 +473,9 @@ const DashboardClient = () => {
                     href={`/master/pos-outlets/invoices?outletId=${outletId}`}
                     passHref
                   >
-                    <IconButton size="small">
-                      <MoreVertIcon />
-                    </IconButton>
+                    <Button size="small" color="primary" startIcon={<Add />}>
+                      Create Invoice
+                    </Button>
                   </Link>
                 </Stack>
 
