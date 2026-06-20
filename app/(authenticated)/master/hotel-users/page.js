@@ -2,11 +2,9 @@
 
 import { useAuth } from '@/context';
 import {
-  GetDataList,
   CreateNewData,
   UpdateData,
   DeleteData,
-  GetUsers,
   GetUserList,
 } from '@/utils/ApiFunctions';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
@@ -85,7 +83,7 @@ const HotelUser = () => {
       confirmed: true,
       hotel_id: row.hotel_id,
       role: row.role.id,
-      username: row.username,
+      username: row.email,
       email: row.email,
       id: row.id,
     });
@@ -209,7 +207,7 @@ const HotelUser = () => {
           <Box display="flex" justifyContent="space-between" mb={2}>
             <TextField
               size="small"
-              label="Search by Username"
+              label="Search by Email"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoComplete="off"
@@ -251,7 +249,7 @@ const HotelUser = () => {
                 {filteresData
                   ?.filter((row) => {
                     if (search) {
-                      return row.username
+                      return row.email
                         ?.toLowerCase()
                         .includes(search.toLowerCase());
                     } else {

@@ -39,12 +39,47 @@ const FinalPreviewStep = ({
   const [bulkPrice, setBulkPrice] = useState('');
   const [bulkGst, setBulkGst] = useState('');
 
+  const totalDays = CalculateDays({
+    checkin: bookingDetails.checkin_date,
+    checkout: bookingDetails.checkout_date,
+  });
+
+  const applyBulkChanges = React.useCallback(
+    (priceValue, gstValue) => {
+      const numericPrice = parseFloat(priceValue) || 0;
+      const numericGst = parseFloat(gstValue) || 0;
+      const hasPrice = priceValue !== '' && numericPrice >= 0;
+      const hasGst = gstValue !== '' && numericGst >= 0;
+
+      if (useBulkPrice && (hasPrice || hasGst)) {
+        const updated = roomTokens.map((room) => {
+          const currentRate = parseFloat(room.rate) || 0;
+          const currentGst = parseFloat(room.gst) || 0;
+
+          const rate = hasPrice ? numericPrice : currentRate;
+          const gst = hasGst ? numericGst : currentGst;
+          const days = parseFloat(room.days) || totalDays;
+          const newAmount = (rate + (rate * gst) / 100) * days;
+
+          return {
+            ...room,
+            rate: parseFloat(rate.toFixed(2)),
+            gst: parseFloat(gst.toFixed(2)),
+            amount: parseFloat(newAmount.toFixed(2)),
+          };
+        });
+        setRoomTokens(updated);
+      }
+    },
+    [roomTokens, setRoomTokens, totalDays, useBulkPrice],
+  );
+
   // Apply bulk changes when bulk mode is enabled
   useEffect(() => {
     if (useBulkPrice) {
       applyBulkChanges(bulkPrice, bulkGst);
     }
-  }, [useBulkPrice]);
+  }, [useBulkPrice, bulkPrice, bulkGst, applyBulkChanges]);
 
   // Handle bulk mode toggle
   const handleBulkModeChange = (checked) => {
@@ -55,11 +90,6 @@ const FinalPreviewStep = ({
       setBulkGst('');
     }
   };
-
-  const totalDays = CalculateDays({
-    checkin: bookingDetails.checkin_date,
-    checkout: bookingDetails.checkout_date,
-  });
 
   // ✅ Bidirectional handler
   const handleChange = (index, field, value) => {
@@ -103,35 +133,6 @@ const FinalPreviewStep = ({
   const handleBulkGstChange = (value) => {
     setBulkGst(value);
     applyBulkChanges(bulkPrice, value);
-  };
-
-  // Apply bulk changes to all rooms
-  const applyBulkChanges = (priceValue, gstValue) => {
-    const numericPrice = parseFloat(priceValue) || 0;
-    const numericGst = parseFloat(gstValue) || 0;
-    const hasPrice = priceValue !== '' && numericPrice >= 0;
-    const hasGst = gstValue !== '' && numericGst >= 0;
-
-    if (useBulkPrice && (hasPrice || hasGst)) {
-      // Update all room rates and/or GST with the bulk values
-      const updated = roomTokens.map((room) => {
-        const currentRate = parseFloat(room.rate) || 0;
-        const currentGst = parseFloat(room.gst) || 0;
-
-        const rate = hasPrice ? numericPrice : currentRate;
-        const gst = hasGst ? numericGst : currentGst;
-        const days = parseFloat(room.days) || totalDays;
-        const newAmount = (rate + (rate * gst) / 100) * days;
-
-        return {
-          ...room,
-          rate: parseFloat(rate.toFixed(2)),
-          gst: parseFloat(gst.toFixed(2)),
-          amount: parseFloat(newAmount.toFixed(2)),
-        };
-      });
-      setRoomTokens(updated);
-    }
   };
 
   const handleAdvanceChange = (index, field, value) => {
@@ -314,7 +315,7 @@ const FinalPreviewStep = ({
               {selectedRooms.map((room) => (
                 <Chip
                   key={room.key}
-                  label={`Room ${room.room_no} - ${room.category?.name} (${room.date})`}
+                  label={`Room ${room.room_no} - ${room.category?.name || room.item || room.room_type || 'Room'} (${room.date})`}
                   color="info"
                   size="small"
                 />
@@ -390,7 +391,9 @@ const FinalPreviewStep = ({
             {roomTokens.map((room, index) => (
               <TableRow key={room.room}>
                 <TableCell>{room.room}</TableCell>
-                <TableCell>{room.item}</TableCell>
+                <TableCell>
+                  {room.item || room.room_type || room.category?.name || 'Room'}
+                </TableCell>
                 <TableCell>{GetCustomDate(room.in_date)}</TableCell>
                 <TableCell>{GetCustomDate(room.out_date)}</TableCell>
 

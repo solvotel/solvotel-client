@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { GetDataList } from '@/utils/ApiFunctions';
 import {
   Typography,
@@ -185,78 +185,131 @@ const RoomAvailabilityStep = ({
   // Create a unique key for room-date combination
   const getRoomDateKey = (roomNo, date) => `${roomNo}-${date}`;
 
-  const buildRoomTokens = (selections) => {
-    const groupedByRoom = selections.reduce((acc, selection) => {
-      if (!acc[selection.room_no]) {
-        acc[selection.room_no] = {
-          room: selection,
-          dates: [],
-        };
-      }
+  const normalizeRoomSelection = useCallback(
+    (selection = {}) => {
+      const latestRoom =
+        rooms?.find(
+          (room) =>
+            room.documentId === selection.documentId ||
+            room.room_no === selection.room_no,
+        ) || selection;
 
-      acc[selection.room_no].dates.push(selection.date);
-
-      return acc;
-    }, {});
-
-    const tokens = [];
-
-    Object.values(groupedByRoom).forEach(({ room, dates }) => {
-      const sortedDates = [...new Set(dates)].sort();
-
-      if (!sortedDates.length) return;
-
-      const rate = room.category?.tariff || 0;
-      const gst = room.category?.gst || 0;
-
-      let currentBlock = [sortedDates[0]];
-
-      const pushToken = (blockDates) => {
-        const in_date = blockDates[0];
-
-        const outDateObj = new Date(blockDates[blockDates.length - 1]);
-
-        outDateObj.setDate(outDateObj.getDate() + 1);
-
-        const out_date = outDateObj.toISOString().split('T')[0];
-
-        const days = blockDates.length;
-
-        tokens.push({
-          id: `${room.room_no}-${in_date}-${out_date}`,
-          room: room.room_no,
-          hsn: room.category?.hsn || '',
-          item: room.category?.name || '',
-          rate,
-          gst,
-          amount: (rate + (rate * gst) / 100) * days,
-          days,
-          invoice: false,
-          in_date,
-          out_date,
-        });
+      return {
+        ...latestRoom,
+        ...selection,
+        category: {
+          ...(latestRoom.category || {}),
+          ...(selection.category || {}),
+        },
       };
+    },
+    [rooms],
+  );
 
-      for (let i = 1; i < sortedDates.length; i++) {
-        const prev = new Date(sortedDates[i - 1]);
-        const curr = new Date(sortedDates[i]);
+  const getRoomTokenDetails = useCallback(
+    (room = {}) => {
+      const normalizedRoom = normalizeRoomSelection(room);
+      const category = normalizedRoom.category || {};
 
-        const diffDays =
-          (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+      return {
+        item:
+          category.name ||
+          normalizedRoom.item ||
+          normalizedRoom.room_type ||
+          'Room',
+        hsn: category.hsn || normalizedRoom.hsn || '',
+        rate: Number(category.tariff ?? normalizedRoom.rate ?? 0),
+        gst: Number(category.gst ?? normalizedRoom.gst ?? 0),
+      };
+    },
+    [normalizeRoomSelection],
+  );
 
-        if (diffDays === 1) {
-          currentBlock.push(sortedDates[i]);
-        } else {
-          pushToken(currentBlock);
-          currentBlock = [sortedDates[i]];
+  const buildRoomTokens = useCallback(
+    (selections) => {
+      const groupedByRoom = selections.reduce((acc, selection) => {
+        const normalizedSelection = normalizeRoomSelection(selection);
+        const roomKey = normalizedSelection.room_no;
+
+        if (!acc[roomKey]) {
+          acc[roomKey] = {
+            room: normalizedSelection,
+            dates: [],
+          };
         }
-      }
 
-      pushToken(currentBlock);
-    });
+        acc[roomKey].dates.push(normalizedSelection.date);
 
-    return tokens;
-  };
+        return acc;
+      }, {});
+
+      const tokens = [];
+
+      Object.values(groupedByRoom).forEach(({ room, dates }) => {
+        const sortedDates = [...new Set(dates)].sort();
+
+        if (!sortedDates.length) return;
+
+        const { item, hsn, rate, gst } = getRoomTokenDetails(room);
+
+        let currentBlock = [sortedDates[0]];
+
+        const pushToken = (blockDates) => {
+          const in_date = blockDates[0];
+
+          const outDateObj = new Date(blockDates[blockDates.length - 1]);
+          outDateObj.setDate(outDateObj.getDate() + 1);
+
+          const out_date = outDateObj.toISOString().split('T')[0];
+
+          const days = blockDates.length;
+
+          tokens.push({
+            id: `${room.room_no}-${in_date}-${out_date}`,
+            room: room.room_no,
+            hsn,
+            item,
+            rate,
+            gst,
+            amount: (rate + (rate * gst) / 100) * days,
+            days,
+            invoice: false,
+            in_date,
+            out_date,
+          });
+        };
+
+        for (let i = 1; i < sortedDates.length; i++) {
+          const prev = new Date(sortedDates[i - 1]);
+          const curr = new Date(sortedDates[i]);
+
+          const diffDays =
+            (curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
+
+          if (diffDays === 1) {
+            currentBlock.push(sortedDates[i]);
+          } else {
+            pushToken(currentBlock);
+            currentBlock = [sortedDates[i]];
+          }
+        }
+
+        pushToken(currentBlock);
+      });
+
+      return tokens;
+    },
+    [getRoomTokenDetails, normalizeRoomSelection],
+  );
+
+  useEffect(() => {
+    if (!selectedRooms || selectedRooms.length === 0) {
+      setRoomTokens([]);
+      return;
+    }
+
+    setRoomTokens(buildRoomTokens(selectedRooms));
+  }, [selectedRooms, setRoomTokens, buildRoomTokens]);
 
   const getAvailableRoomsForDate = (date) => {
     return Object.values(roomsByCategory).flatMap((catData) =>
