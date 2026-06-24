@@ -31,30 +31,31 @@ export default function ManageRoomTariff({
 
   const handleInlineChange = (index, field, value) => {
     const updated = [...roomTokens];
-    updated[index][field] = value;
 
-    let rate = parseFloat(updated[index].rate) || 0;
-    let gst = parseFloat(updated[index].gst) || 0;
-    let days = parseFloat(updated[index].days) || 1;
-    let amount = parseFloat(updated[index].amount) || 0;
+    const row = {
+      ...updated[index],
+    };
 
-    // 🔹 If Rate, GST, or Days entered → calculate Amount
-    if (field === 'rate' || field === 'gst' || field === 'days') {
-      if (rate && gst && days) {
-        amount = +((rate + (rate * gst) / 100) * days).toFixed(2);
-        updated[index].amount = amount;
-      }
+    // Preserve original numeric types
+    row[field] = value === '' ? '' : Number(value);
+
+    let rate = Number(row.rate) || 0;
+    let gst = Number(row.gst) || 0;
+    let days = Number(row.days) || 1;
+    let amount = Number(row.amount) || 0;
+
+    if (field === 'rate' || field === 'gst') {
+      row.amount = Number(((rate + (rate * gst) / 100) * days).toFixed(2));
     }
 
-    // 🔹 If Amount, GST, and Days entered → calculate Rate
-    if (field === 'amount' || field === 'gst' || field === 'days') {
-      if (amount && gst && days && field === 'amount') {
-        rate = +(amount / ((1 + gst / 100) * days)).toFixed(2);
-        updated[index].rate = rate;
-      }
+    if (field === 'amount') {
+      row.rate = Number((amount / ((1 + gst / 100) * days)).toFixed(2));
     }
+
+    updated[index] = row;
 
     setRoomTokens(updated);
+
     setHighlightedIndex(index);
     setTimeout(() => setHighlightedIndex(null), 800);
   };

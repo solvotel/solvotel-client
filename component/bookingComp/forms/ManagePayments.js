@@ -34,17 +34,23 @@ export default function ManagePayments({
 }) {
   const todaysDate = GetTodaysDate().dateString;
   const [errorMessage, setErrorMessage] = useState('');
-  const prevPayments = booking?.payment_tokens || [];
+  const payments = booking?.payment_tokens || [];
   const roomTokens = booking?.room_tokens || [];
   const services = booking?.service_tokens || [];
   const foodItems = booking?.food_tokens || [];
   // ---- Summary calculations ----
-  const totalAmount = prevPayments.reduce(
+  const totalAmount = payments.reduce(
     (sum, p) => sum + (Number(p.amount) || 0),
     0,
   );
-  const advancePayment = booking?.advance_payment || null;
-  const advanceAmount = advancePayment?.amount || 0;
+  const advancePaymentsRaw = booking?.advance_payment || [];
+  const advancePayments = Array.isArray(advancePaymentsRaw)
+    ? advancePaymentsRaw
+    : [advancePaymentsRaw];
+  const advanceAmount = advancePayments.reduce(
+    (sum, p) => sum + (parseFloat(p?.amount) || 0),
+    0,
+  );
   const totalRoomAmount = roomTokens.reduce(
     (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
     0,
@@ -69,20 +75,27 @@ export default function ManagePayments({
 
   const handleSaveAll = () => {
     // Field validation
+    const enteredAmount = parseFloat(form.amount);
 
-    if (!form.date || !form.mode || !form.amount) {
+    if (
+      !form.date ||
+      !form.mode ||
+      form.amount === null ||
+      form.amount === ''
+    ) {
       setErrorMessage('Please fill Date, Mode, and Amount for all rows.');
       return;
     }
 
-    // Calculate total input payments
+    if (Number.isNaN(enteredAmount) || enteredAmount <= 0) {
+      setErrorMessage('Please enter a valid payment amount greater than 0.');
+      return;
+    }
 
     // Validation: prevent overpayment
-    if (form.amount > dueAmount) {
+    if (enteredAmount > dueAmount) {
       setErrorMessage(
-        `Total payment (₹${
-          form.amount
-        }) cannot exceed due amount (₹${dueAmount.toFixed(1)}).`,
+        `Payment amount (₹${enteredAmount.toFixed(2)}) cannot exceed due amount (₹${dueAmount.toFixed(2)}).`,
       );
       return;
     }
@@ -94,7 +107,7 @@ export default function ManagePayments({
     handleManagePayments({
       date: form.date,
       mode: form.mode,
-      amount: parseFloat(form.amount),
+      amount: enteredAmount,
       remark: form.remark,
     });
     SuccessToast('Payments added successfully');

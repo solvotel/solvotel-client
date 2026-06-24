@@ -57,15 +57,6 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
     // Required fields
     if (!formData.res_name.trim())
       newErrors.res_name = 'Restaurant name is required';
-    if (!formData.res_mobile.trim())
-      newErrors.res_mobile = 'Mobile number is required';
-
-    if (!formData.res_address_line1.trim())
-      newErrors.res_address_line1 = 'Address Line 1 is required';
-    if (!formData.res_district.trim())
-      newErrors.res_district = 'District is required';
-    if (!formData.res_state.trim()) newErrors.res_state = 'State is required';
-    if (!formData.res_pincode) newErrors.res_pincode = 'Pin code is required';
 
     // Conditional validation
     if (formData.res_email) {
@@ -85,8 +76,10 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
     if (formData.res_mobile.trim() && !/^[0-9]{10}$/.test(formData.res_mobile))
       newErrors.res_mobile = 'Enter a valid 10-digit mobile number';
 
-    if (formData.res_pincode && !/^[0-9]{6}$/.test(formData.res_pincode))
-      newErrors.res_pincode = 'Enter a valid 6-digit pin code';
+    if (formData.res_pincode) {
+      if (formData.res_pincode && !/^[0-9]{6}$/.test(formData.res_pincode))
+        newErrors.res_pincode = 'Enter a valid 6-digit pin code';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -108,6 +101,11 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
           res_email: formData.res_email?.trim()
             ? formData.res_email.trim()
             : null,
+          res_mobile: formData.res_mobile ? formData.res_mobile : null,
+          res_alt_mobile: formData.res_alt_mobile
+            ? formData.res_alt_mobile
+            : null,
+          res_pincode: formData.res_pincode ? formData.res_pincode : null,
         },
       };
       await UpdateData({
@@ -299,6 +297,8 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 error={!!errors.res_state}
                 helperText={errors.res_state}
               >
+                {' '}
+                <MenuItem value="">Select State</MenuItem>
                 {indianStatesAndUTs.map((state) => (
                   <MenuItem key={state} value={state}>
                     {state}

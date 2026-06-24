@@ -60,10 +60,10 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
     // Required fields
     if (!formData.hotel_name.trim())
       newErrors.hotel_name = 'Hotel name is required';
-    if (!formData.hotel_mobile.trim())
-      newErrors.hotel_mobile = 'Mobile number is required';
-    else if (!/^[0-9]{10}$/.test(formData.hotel_mobile))
-      newErrors.hotel_mobile = 'Enter a valid 10-digit mobile number';
+    if (formData.hotel_mobile) {
+      if (!/^[0-9]{10}$/.test(formData.hotel_mobile))
+        newErrors.hotel_mobile = 'Enter a valid 10-digit mobile number';
+    }
 
     // ✅ Alt mobile is optional, but must be valid if entered
     if (formData.hotel_alt_mobile) {
@@ -71,22 +71,10 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
         newErrors.hotel_alt_mobile = 'Enter a valid 10-digit mobile number';
     }
 
-    if (!formData.hotel_address_line1.trim())
-      newErrors.hotel_address_line1 = 'Address Line 1 is required';
-
-    if (!formData.hotel_district.trim())
-      newErrors.hotel_district = 'District is required';
-    if (!formData.hotel_state.trim())
-      newErrors.hotel_state = 'State is required';
-    if (!formData.hotel_pincode)
-      newErrors.hotel_pincode = 'Pincode is required';
-    else if (!/^[1-9][0-9]{5}$/.test(formData.hotel_pincode))
-      newErrors.hotel_pincode = 'Enter a valid 6-digit pincode';
-
-    if (!formData.hotel_checkin)
-      newErrors.hotel_checkin = 'Check-in time is required';
-    if (!formData.hotel_checkout)
-      newErrors.hotel_checkout = 'Check-out time is required';
+    if (formData.hotel_pincode) {
+      if (!/^[1-9][0-9]{5}$/.test(formData.hotel_pincode))
+        newErrors.hotel_pincode = 'Enter a valid 6-digit pincode';
+    }
 
     // Optional but format check
     if (
@@ -114,6 +102,11 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
           hotel_email: formData.hotel_email?.trim()
             ? formData.hotel_email.trim()
             : null,
+          hotel_mobile: formData.hotel_mobile ? formData.hotel_mobile : null,
+          hotel_alt_mobile: formData.hotel_alt_mobile
+            ? formData.hotel_alt_mobile
+            : null,
+          hotel_pincode: formData.hotel_pincode ? formData.hotel_pincode : null,
         },
       };
       await UpdateData({
@@ -297,6 +290,8 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
                 error={!!errors.hotel_state}
                 helperText={errors.hotel_state || ''}
               >
+                {' '}
+                <MenuItem value="">Select State</MenuItem>
                 {indianStatesAndUTs.map((state) => (
                   <MenuItem key={state} value={state}>
                     {state}

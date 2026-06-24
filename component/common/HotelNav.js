@@ -391,11 +391,11 @@ const HotelNav = ({ auth, logout }) => {
                         icon: <ClipboardList size={16} />,
                         label: 'Manage Expenses',
                       },
-                      {
-                        href: '/inventory/stock-report',
-                        icon: <ShoppingCart size={16} />,
-                        label: 'Stock Report',
-                      },
+                      // {
+                      //   href: '/inventory/stock-report',
+                      //   icon: <ShoppingCart size={16} />,
+                      //   label: 'Stock Report',
+                      // },
                       {
                         href: '/restaurant/invoice-report',
                         icon: <Utensils size={16} />,
@@ -894,7 +894,7 @@ const HotelNav = ({ auth, logout }) => {
                       <ListItemText primary="Manage Expenses" />
                     </ListItemButton>
                   </ListItem>
-                  <ListItem disablePadding>
+                  {/* <ListItem disablePadding>
                     <ListItemButton
                       component={Link}
                       href="/inventory/stock-report"
@@ -905,7 +905,7 @@ const HotelNav = ({ auth, logout }) => {
                       </ListItemIcon>
                       <ListItemText primary="Stock Report" />
                     </ListItemButton>
-                  </ListItem>
+                  </ListItem> */}
                   <ListItem disablePadding>
                     <ListItemButton
                       component={Link}

@@ -191,8 +191,8 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                           {hotel?.hotel_name}
                         </Typography>
                         <Typography variant="body1">
-                          Contact: {hotel?.hotel_mobile}
-                          {`, ${hotel?.hotel_alt_mobile} `} | Email:{' '}
+                          Contact: {hotel?.hotel_mobile || ''}
+                          {`, ${hotel?.hotel_alt_mobile || ''} `} | Email:{' '}
                           {hotel?.hotel_email || 'N/A'}
                         </Typography>
                         <Typography variant="body2">
