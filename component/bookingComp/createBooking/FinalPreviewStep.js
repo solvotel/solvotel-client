@@ -150,7 +150,7 @@ const FinalPreviewStep = ({
     setAdvancePayments((prev) => [
       ...prev,
       {
-        date: new Date().toISOString().split('T')[0],
+        date: new Date().toISOString(),
         mode: '',
         amount: '',
         remark: '',

@@ -44,10 +44,13 @@ const formatDateTime = (isoString) => {
 const DueReportPrint = React.forwardRef((props, ref) => {
   const { filteredData, startDate, endDate } = props;
 
-  const totalAmount = filteredData?.reduce((sum, i) => sum + i.payable, 0);
+  const totalAmount = filteredData?.reduce(
+    (sum, i) => sum + i.payable_amount,
+    0,
+  );
 
   const totalDue = filteredData?.reduce((sum, i) => sum + (i.due || 0), 0);
-  const totalPaid = totalAmount - totalDue;
+  const totalPaid = filteredData?.reduce((sum, i) => sum + i.payed, 0);
 
   return (
     <Box
@@ -95,15 +98,12 @@ const DueReportPrint = React.forwardRef((props, ref) => {
           <TableBody>
             <TableRow>
               {[
+                'Type',
                 'Invoice No',
                 'Date/Time',
                 'Customer Name',
-                'GSTIN',
-                'Taxable ₹',
-                'SGST ₹',
-                'CGST ₹',
                 'Payable ₹',
-                'Paid ₹',
+                ' Paid ₹',
                 'Due ₹',
               ].map((item, index) => (
                 <HeadingCell key={index} sx={{ fontWeight: 'bold' }}>
@@ -113,31 +113,20 @@ const DueReportPrint = React.forwardRef((props, ref) => {
             </TableRow>
             {filteredData?.map((row, index) => (
               <TableRow key={index}>
+                <BodyCell>{row.type}</BodyCell>
                 <BodyCell>{row.invoice_no}</BodyCell>
-                <BodyCell>
-                  {GetCustomDate(row.date)} {row.time}
-                </BodyCell>
+                <BodyCell>{formatDateTime(row.date)}</BodyCell>
                 <BodyCell>{row.customer_name || 'N/A'}</BodyCell>
-                <BodyCell>{row.customer_gst || 'N/A'}</BodyCell>
-                <BodyCell>{row.taxable}</BodyCell>
-                <BodyCell>{row.sgst}</BodyCell>
-                <BodyCell>{row.cgst}</BodyCell>
-                <BodyCell>{row.payable}</BodyCell>
-                <BodyCell>
-                  {row.payments
-                    ?.reduce(
-                      (acc, payment) => acc + (parseFloat(payment.amount) || 0),
-                      0,
-                    )
-                    .toFixed(2) || '0.00'}
-                </BodyCell>
+
+                <BodyCell>{row.payable_amount}</BodyCell>
+                <BodyCell>{row.payed || '0.00'}</BodyCell>
                 <BodyCell>{row.due || 0}</BodyCell>
               </TableRow>
             ))}
             {/* Totals Row */}
             <TableRow>
               <HeadingCell
-                colSpan={7}
+                colSpan={4}
                 sx={{ textAlign: 'right', fontWeight: 'bold' }}
               >
                 TOTAL

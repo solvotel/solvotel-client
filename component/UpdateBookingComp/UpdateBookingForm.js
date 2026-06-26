@@ -12,7 +12,7 @@ import {
   Zoom,
 } from '@mui/material';
 
-import { CreateNewData, UpdateData } from '@/utils/ApiFunctions';
+import { UpdateData } from '@/utils/ApiFunctions';
 import { useAuth } from '@/context';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { useRouter } from 'next/navigation';
@@ -28,21 +28,6 @@ const steps = [
   'Room Availability',
   'Preview & Checkout',
 ];
-
-const generateNextBookingId = (bookings) => {
-  if (!bookings || bookings.length === 0) {
-    return 'SOLV-1';
-  }
-
-  // Extract all numbers from booking_id like "INV-12" -> 12
-  const numbers = bookings
-    .map((inv) => parseInt(inv.booking_id?.replace('SOLV-', ''), 10))
-    .filter((n) => !isNaN(n));
-
-  const maxNumber = Math.max(...numbers);
-
-  return `SOLV-${maxNumber + 1}`;
-};
 
 const UpdateBookingForm = ({
   hotelData,

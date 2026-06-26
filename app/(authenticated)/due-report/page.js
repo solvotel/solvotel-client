@@ -329,7 +329,6 @@ const DueReportPage = () => {
                       'Invoice No',
                       'Date/Time',
                       'Customer Name',
-
                       'Payable ₹',
                       ' Paid ₹',
                       'Due ₹',

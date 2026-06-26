@@ -20,8 +20,6 @@ import {
   Grid,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import { SuccessToast } from '@/utils/GenerateToast';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 
@@ -67,7 +65,7 @@ export default function ManagePayments({
   const amountPayed = totalAmount + advanceAmount;
   const dueAmount = grandTotal - amountPayed;
   const [form, setForm] = useState({
-    date: todaysDate,
+    date: new Date().toISOString(),
     amount: null,
     mode: '',
     remark: '',
@@ -83,7 +81,7 @@ export default function ManagePayments({
       form.amount === null ||
       form.amount === ''
     ) {
-      setErrorMessage('Please fill Date, Mode, and Amount for all rows.');
+      setErrorMessage('Please fill  Mode, and Amount for all rows.');
       return;
     }
 
