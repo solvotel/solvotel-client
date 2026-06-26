@@ -207,6 +207,7 @@ export default function BookingForm() {
       });
 
       SuccessToast('Booking Create Successfully');
+
       router.push(`/front-office/room-booking/${res.data.data.documentId}`);
     } catch (err) {
       console.log(`Error creating booking: ${err}`);

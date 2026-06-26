@@ -77,6 +77,25 @@ const RoomAvailabilityStep = ({
     setExpandedDates(new Set());
   }, [dateRange]);
 
+  const getSavedRoomDetailsForDate = useCallback(
+    (roomNo, date) => {
+      const targetDate = dayjs(date);
+      return roomTokens.find((token) => {
+        if (token.room !== roomNo) return false;
+
+        const inDate = dayjs(token.in_date);
+        const outDate = dayjs(token.out_date);
+
+        return (
+          targetDate.isSame(inDate, 'day') ||
+          (targetDate.isAfter(inDate, 'day') &&
+            targetDate.isBefore(outDate, 'day'))
+        );
+      });
+    },
+    [roomTokens],
+  );
+
   useEffect(() => {
     if (
       bookingData?.documentId &&
@@ -95,10 +114,18 @@ const RoomAvailabilityStep = ({
         const checkout = dayjs(token.out_date);
 
         while (current.isBefore(checkout, 'day')) {
+          const dateString = current.format('YYYY-MM-DD');
+          const savedToken = getSavedRoomDetailsForDate(token.room, dateString);
+
           selections.push({
-            key: `${token.room}-${current.format('YYYY-MM-DD')}`,
+            key: `${token.room}-${dateString}`,
             ...room,
-            date: current.format('YYYY-MM-DD'),
+            date: dateString,
+            rate: savedToken?.rate ?? savedToken?.price ?? undefined,
+            gst: savedToken?.gst,
+            item: savedToken?.item,
+            hsn: savedToken?.hsn,
+            invoice: savedToken?.invoice,
           });
 
           current = current.add(1, 'day');
@@ -107,7 +134,14 @@ const RoomAvailabilityStep = ({
 
       setSelectedRooms(selections);
     }
-  }, [bookingData?.documentId, roomTokens, rooms]);
+  }, [
+    bookingData?.documentId,
+    roomTokens,
+    rooms,
+    selectedRooms?.length,
+    setSelectedRooms,
+    getSavedRoomDetailsForDate,
+  ]);
 
   const toggleDateExpansion = (date) => {
     setExpandedDates((prev) => {
@@ -213,13 +247,21 @@ const RoomAvailabilityStep = ({
 
       return {
         item:
-          category.name ||
           normalizedRoom.item ||
+          category.name ||
           normalizedRoom.room_type ||
           'Room',
-        hsn: category.hsn || normalizedRoom.hsn || '',
-        rate: Number(category.tariff ?? normalizedRoom.rate ?? 0),
-        gst: Number(category.gst ?? normalizedRoom.gst ?? 0),
+        hsn: normalizedRoom.hsn || category.hsn || '',
+        rate: Number(
+          normalizedRoom.rate !== undefined && normalizedRoom.rate !== null
+            ? normalizedRoom.rate
+            : (category.tariff ?? 0),
+        ),
+        gst: Number(
+          normalizedRoom.gst !== undefined && normalizedRoom.gst !== null
+            ? normalizedRoom.gst
+            : (category.gst ?? 0),
+        ),
       };
     },
     [normalizeRoomSelection],

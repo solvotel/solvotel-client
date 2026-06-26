@@ -180,55 +180,55 @@ const FinalPreviewStep = ({
               {selectedGuest.name}
             </Typography>
             <Grid container spacing={1}>
-              <Grid item xs={6} sm={4}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 📞 {selectedGuest.mobile || '-'}
               </Grid>
-              <Grid item xs={6} sm={4}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 ✉️ {selectedGuest.email || '-'}
               </Grid>
-              <Grid item xs={6} sm={4}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 🏢 {selectedGuest.company_name || '-'}
               </Grid>
-              <Grid item xs={6} sm={4}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 🧾 GST: {selectedGuest.gst_no || '-'}
               </Grid>
               {selectedGuest.dob && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   🎂 DOB: {selectedGuest.dob}
                 </Grid>
               )}
               {selectedGuest.doa && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   💍 DOA: {selectedGuest.doa}
                 </Grid>
               )}
               {selectedGuest.id_type && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   🪪 {selectedGuest.id_type}: {selectedGuest.id_number || '-'}
                 </Grid>
               )}
               {selectedGuest.passport_issue_date && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   📘 Passport Issue: {selectedGuest.passport_issue_date}
                 </Grid>
               )}
               {selectedGuest.passport_exp_date && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   📘 Passport Expiry: {selectedGuest.passport_exp_date}
                 </Grid>
               )}
               {selectedGuest.visa_number && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   🛂 Visa No: {selectedGuest.visa_number}
                 </Grid>
               )}
               {selectedGuest.visa_issue_date && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   🛂 Visa Issue: {selectedGuest.visa_issue_date}
                 </Grid>
               )}
               {selectedGuest.visa_exp_date && (
-                <Grid item xs={6} sm={4}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   🛂 Visa Expiry: {selectedGuest.visa_exp_date}
                 </Grid>
               )}

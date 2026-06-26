@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   Box,
@@ -19,6 +19,8 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { SuccessToast } from '@/utils/GenerateToast';
+import { useSWRConfig } from 'swr';
+import { BASEURL } from '@/config/MainApi';
 
 export default function ManageRoomTariff({
   open,
@@ -26,8 +28,13 @@ export default function ManageRoomTariff({
   booking,
   handleManageRoomTariff,
 }) {
+  const { mutate } = useSWRConfig();
   const [roomTokens, setRoomTokens] = useState([...booking?.room_tokens]);
   const [highlightedIndex, setHighlightedIndex] = useState(null);
+
+  useEffect(() => {
+    setRoomTokens([...(booking?.room_tokens || [])]);
+  }, [booking?.room_tokens]);
 
   const handleInlineChange = (index, field, value) => {
     const updated = [...roomTokens];
@@ -36,13 +43,12 @@ export default function ManageRoomTariff({
       ...updated[index],
     };
 
-    // Preserve original numeric types
     row[field] = value === '' ? '' : Number(value);
 
-    let rate = Number(row.rate) || 0;
-    let gst = Number(row.gst) || 0;
-    let days = Number(row.days) || 1;
-    let amount = Number(row.amount) || 0;
+    const rate = Number(row.rate) || 0;
+    const gst = Number(row.gst) || 0;
+    const days = Number(row.days) || 1;
+    const amount = Number(row.amount) || 0;
 
     if (field === 'rate' || field === 'gst') {
       row.amount = Number(((rate + (rate * gst) / 100) * days).toFixed(2));
@@ -60,7 +66,7 @@ export default function ManageRoomTariff({
     setTimeout(() => setHighlightedIndex(null), 800);
   };
 
-  const handleSaveAll = () => {
+  const handleSaveAll = async () => {
     for (let s of roomTokens) {
       if (!s.room || !s.item || !s.rate) {
         alert('Please fill Room, Item, and Rate for all rows before saving.');
@@ -68,9 +74,18 @@ export default function ManageRoomTariff({
       }
     }
 
-    handleManageRoomTariff(roomTokens);
-    SuccessToast('Room Tariff updated successfully');
-    setOpen(false);
+    try {
+      const res = await handleManageRoomTariff(roomTokens);
+      if (res) {
+        await mutate(
+          `${BASEURL}/room-bookings/${booking?.documentId}?populate=*`,
+        );
+      }
+      SuccessToast('Room Tariff updated successfully');
+      setOpen(false);
+    } catch (err) {
+      console.error('ManageRoomTariff save error', err);
+    }
   };
 
   const handleClose = () => {

@@ -69,20 +69,29 @@ const UpdateBookingForm = ({
       const inDate = new Date(token.in_date);
       const outDate = new Date(token.out_date);
 
+      const roomRef = bookingData.rooms.find((r) => r.room_no === token.room);
+      const tokenRate = token.rate ?? token.price ?? 0;
+      const tokenGst = token.gst ?? 0;
+      const tokenItem = token.item ?? roomRef?.room_type ?? '';
+      const tokenHsn = token.hsn ?? roomRef?.hsn ?? '';
+      const tokenInvoice = token.invoice ?? false;
+
       // Generate dates from in_date to day-before-out_date (include at least in_date for same-day)
       let currentDate = new Date(inDate);
       while (currentDate < outDate || expanded.length === 0) {
         const dateString = currentDate.toISOString().split('T')[0];
         const key = `${token.room}-${dateString}`;
 
-        // Find the room documentId from bookingData.rooms
-        const roomRef = bookingData.rooms.find((r) => r.room_no === token.room);
-
         expanded.push({
           key,
           room_no: token.room,
           date: dateString,
           documentId: roomRef?.documentId,
+          rate: tokenRate,
+          gst: tokenGst,
+          item: tokenItem,
+          hsn: tokenHsn,
+          invoice: tokenInvoice,
         });
 
         currentDate.setDate(currentDate.getDate() + 1);
@@ -101,6 +110,8 @@ const UpdateBookingForm = ({
     if (!payments) return [];
     return Array.isArray(payments) ? payments : [payments];
   };
+
+  console.log(roomTokens, 'roomTokens');
   const [advancePayments, setAdvancePayments] = useState(
     normalizeAdvancePayments(),
   );
