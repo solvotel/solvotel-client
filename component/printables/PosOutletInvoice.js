@@ -30,12 +30,13 @@ const PosOutletInvoice = React.forwardRef((props, ref) => {
       }}
     >
       <div style={{ textAlign: 'center' }}>
-        <h2 style={{ margin: 0 }}>{profile.name}</h2>
+        <h2 style={{ margin: 0, fontWeight: '500' }}>{profile.name}</h2>
+        <p style={{ margin: 0 }}>{profile.address_line_1},</p>
         <p style={{ margin: 0 }}>
-          {profile.address_line_1}, {profile.address_line_2}
+          {profile.address_line_2}, {profile.district},
         </p>
         <p style={{ margin: 0 }}>
-          {profile.district}, {profile.state}
+          {profile.state}, PIN:{profile.pincode}
         </p>
         <p style={{ margin: 0 }}>
           Phone: {profile.phone}{' '}

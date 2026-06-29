@@ -480,7 +480,11 @@ const Dashboard = () => {
                     </Typography>
                   </Box>
                   <Link href={`/pos-outlet/invoices`} passHref>
-                    <Button size="small" color="primary" startIcon={<Add />}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      startIcon={<Add />}
+                    >
                       Create Invoice
                     </Button>
                   </Link>

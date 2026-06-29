@@ -25,6 +25,7 @@ import { use } from 'react';
 import { Loader } from '@/component/common';
 import { PosOutletInvoice } from '@/component/printables/PosOutletInvoice';
 import { useSearchParams } from 'next/navigation';
+import { GetCustomDate } from '@/utils/DateFetcher';
 
 const InvoiceDetailsClient = () => {
   const { auth } = useAuth();
@@ -95,7 +96,7 @@ const InvoiceDetailsClient = () => {
 
         {/* Customer Info */}
         <Typography variant="subtitle1">
-          Date: {invoiceData.date} | Time: {invoiceData.time}
+          Date: {GetCustomDate(invoiceData.date)} | Time: {invoiceData.time}
         </Typography>
         <Typography variant="subtitle1">
           Customer: {invoiceData.customer_name || 'N/A'}

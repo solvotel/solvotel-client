@@ -527,7 +527,7 @@ const Page = () => {
                   <TableRow key={row.documentId}>
                     <TableCell>{row.invoice_no}</TableCell>
                     <TableCell>
-                      {row.date}:{row.time}
+                      {GetCustomDate(row.date)}:{row.time}
                     </TableCell>
                     <TableCell>{row.customer_name || 'N/A'}</TableCell>
                     <TableCell>{row.taxable}</TableCell>

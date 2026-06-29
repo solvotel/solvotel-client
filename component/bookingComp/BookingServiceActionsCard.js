@@ -142,7 +142,12 @@ export default function BookingServiceActionsCard({
       endPoint: 'room-bookings',
       auth,
       id: booking?.documentId,
-      payload: { data: { checked_in: true } },
+      payload: {
+        data: {
+          checked_in: true,
+          checkin_timeStamp: new Date().toISOString(),
+        },
+      },
     });
     setCheckinDialogOpen(false);
     SuccessToast('Checked In Successfully');
@@ -217,7 +222,12 @@ export default function BookingServiceActionsCard({
       endPoint: 'room-bookings',
       auth,
       id: booking?.documentId,
-      payload: { data: { checked_out: true } },
+      payload: {
+        data: {
+          checked_out: true,
+          checkout_timeStamp: new Date().toISOString(),
+        },
+      },
     });
     setCheckoutDialogOpen(false);
     SuccessToast('Checked Out Successfully');

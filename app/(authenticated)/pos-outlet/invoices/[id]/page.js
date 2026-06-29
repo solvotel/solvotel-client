@@ -26,6 +26,7 @@ import { useRouter } from 'next/navigation';
 import { Loader } from '@/component/common';
 import { RestaurantPosInvoice } from '@/component/printables/RestaurantPosInvoice';
 import { PosOutletInvoice } from '@/component/printables/PosOutletInvoice';
+import { GetCustomDate } from '@/utils/DateFetcher';
 
 export default function Page({ params }) {
   const { auth } = useAuth();
@@ -94,7 +95,7 @@ export default function Page({ params }) {
 
         {/* Customer Info */}
         <Typography variant="subtitle1">
-          Date: {invoiceData.date} | Time: {invoiceData.time}
+          Date: {GetCustomDate(invoiceData.date)} | Time: {invoiceData.time}
         </Typography>
         <Typography variant="subtitle1">
           Customer: {invoiceData.customer_name || 'N/A'}

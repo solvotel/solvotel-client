@@ -473,7 +473,11 @@ const DashboardClient = () => {
                     href={`/master/pos-outlets/invoices?outletId=${outletId}`}
                     passHref
                   >
-                    <Button size="small" color="primary" startIcon={<Add />}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      startIcon={<Add />}
+                    >
                       Create Invoice
                     </Button>
                   </Link>

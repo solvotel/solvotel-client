@@ -194,11 +194,11 @@ export default function FacebookLogin() {
               <FormControl fullWidth>
                 <CustomLable>
                   <AccountCircleOutlinedIcon />
-                  Username
+                  Email
                 </CustomLable>
                 <TextField
                   id="outlined-basic"
-                  placeholder="Enter your username"
+                  placeholder="Enter your Email"
                   variant="outlined"
                   size="small"
                   {...register('userName')}
