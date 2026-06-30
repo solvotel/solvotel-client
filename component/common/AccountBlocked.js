@@ -15,7 +15,7 @@ export default function AccountBlocked() {
   return (
     <Box
       sx={{
-        minHeight: '83vh',
+        minHeight: '100vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',

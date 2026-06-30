@@ -244,7 +244,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                 </CustomTableCell>
                 <CustomTableCell colSpan={2}>
                   <Typography fontWeight={600}>
-                    Check-in: {GetCustomDate(booking?.checkin_date)}
+                    Check-in: {GetCustomDate(booking?.checkin_timeStamp)}
                   </Typography>
                 </CustomTableCell>
                 <CustomTableCell align="center" colSpan={2}>
@@ -257,7 +257,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
               <TableRow>
                 <CustomTableCell colSpan={2}>
                   <Typography fontWeight={600}>
-                    Check-out: {GetCustomDate(booking?.checkout_date)}
+                    Check-out: {GetCustomDate(booking?.checkout_timeStamp)}
                   </Typography>
                 </CustomTableCell>
                 <CustomTableCell rowSpan={2} colSpan={2} align="center">

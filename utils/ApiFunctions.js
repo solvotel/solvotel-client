@@ -103,3 +103,25 @@ export const GetUserList = ({ auth }) => {
   });
   return filteredData;
 };
+
+export const GetSingleUser = ({ auth }) => {
+  const apiUrl = `${BASEURL}/users/${auth?.user?.id}?populate=*`;
+
+  const { data } = useSWR(
+    apiUrl,
+    async (url) => {
+      const res = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${auth.token}`,
+        },
+      });
+      return res.data;
+    },
+    {
+      refreshInterval: 500,
+      revalidateOnFocus: true,
+    },
+  );
+
+  return data;
+};
