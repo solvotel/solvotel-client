@@ -8,7 +8,7 @@ import {
   UpdateData,
   GetPosDataList,
 } from '@/utils/ApiFunctions';
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo } from 'react';
 
 // mui
 import {
@@ -37,7 +37,6 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
@@ -49,17 +48,17 @@ import { useSearchParams } from 'next/navigation';
 
 const generateNextInvoiceNo = (invoices) => {
   if (!invoices || invoices.length === 0) {
-    return 'INV-1';
+    return 'BILL-1';
   }
 
-  // Extract all numbers from invoice_no like "INV-12" -> 12
+  // Extract all numbers from invoice_no like "BILL-12" -> 12
   const numbers = invoices
-    .map((inv) => parseInt(inv.invoice_no?.replace('INV-', ''), 10))
+    .map((inv) => parseInt(inv.invoice_no?.replace('BILL-', ''), 10))
     .filter((n) => !isNaN(n));
 
   const maxNumber = Math.max(...numbers);
 
-  return `INV-${maxNumber + 1}`;
+  return `BILL-${maxNumber + 1}`;
 };
 
 const InvoiceListClient = () => {

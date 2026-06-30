@@ -70,10 +70,10 @@ const Page = () => {
       segment: '',
       code: '',
       hsn: '',
-      rate: 0,
-      cgst: 0,
-      sgst: 0,
-      total: 0,
+      rate: null,
+      cgst: null,
+      sgst: null,
+      total: null,
       pos_outlet_id: auth?.user?.pos_outlet_id || '',
     };
   }
@@ -261,13 +261,13 @@ const Page = () => {
                 {filteredData?.map((row) => (
                   <TableRow key={row.documentId}>
                     <TableCell>{row.item}</TableCell>
-                    <TableCell>{row.category}</TableCell>
-                    <TableCell>{row.segment}</TableCell>
-                    <TableCell>{row.hsn}</TableCell>
-                    <TableCell>{row.rate}</TableCell>
-                    <TableCell>{row.cgst}</TableCell>
-                    <TableCell>{row.sgst}</TableCell>
-                    <TableCell>{row.total}</TableCell>
+                    <TableCell>{row.category || 'NA'}</TableCell>
+                    <TableCell>{row.segment || 'NA'}</TableCell>
+                    <TableCell>{row.hsn || 'NA'}</TableCell>
+                    <TableCell>{row.rate || 0}</TableCell>
+                    <TableCell>{row.cgst || 0}</TableCell>
+                    <TableCell>{row.sgst || 0}</TableCell>
+                    <TableCell>{row.total || 0}</TableCell>
                     <TableCell>{row.user_created}</TableCell>
                     <TableCell>{row.user_updated}</TableCell>
                     <TableCell sx={{ width: '100px' }}>

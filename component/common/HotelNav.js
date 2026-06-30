@@ -49,6 +49,7 @@ import {
 import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutlined';
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 const HotelNav = ({ auth, logout }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -211,8 +212,8 @@ const HotelNav = ({ auth, logout }) => {
                     items={[
                       {
                         href: '/front-office/room-booking',
-                        icon: <BookOpen size={16} />,
-                        label: 'Booking',
+                        icon: <CalendarMonthIcon size={16} />,
+                        label: 'Bookings',
                       },
                       {
                         href: '/front-office/room-invoice',
@@ -303,7 +304,7 @@ const HotelNav = ({ auth, logout }) => {
                       },
                       {
                         href: '/restaurant/menu-items',
-                        icon: <BookOpen size={16} />,
+                        icon: <CalendarMonthIcon size={16} />,
                         label: 'Restaurant Menu',
                       },
                       {
@@ -627,9 +628,9 @@ const HotelNav = ({ auth, logout }) => {
                       onClick={toggleDrawer(false)}
                     >
                       <ListItemIcon>
-                        <BookOpen size={16} />
+                        <CalendarMonthIcon size={16} />
                       </ListItemIcon>
-                      <ListItemText primary="Booking" />
+                      <ListItemText primary="Bookings" />
                     </ListItemButton>
                   </ListItem>
                   <ListItem disablePadding>

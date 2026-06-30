@@ -48,17 +48,17 @@ import { Add } from '@mui/icons-material';
 
 const generateNextInvoiceNo = (invoices) => {
   if (!invoices || invoices.length === 0) {
-    return 'INV-1';
+    return 'BILL-1';
   }
 
-  // Extract all numbers from invoice_no like "INV-12" -> 12
+  // Extract all numbers from invoice_no like "BILL-12" -> 12
   const numbers = invoices
-    .map((inv) => parseInt(inv.invoice_no?.replace('INV-', ''), 10))
+    .map((inv) => parseInt(inv.invoice_no?.replace('BILL-', ''), 10))
     .filter((n) => !isNaN(n));
 
   const maxNumber = Math.max(...numbers);
 
-  return `INV-${maxNumber + 1}`;
+  return `BILL-${maxNumber + 1}`;
 };
 
 const Page = () => {
