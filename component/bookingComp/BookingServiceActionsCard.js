@@ -51,6 +51,7 @@ export default function BookingServiceActionsCard({
   handlePrintBookingSlip,
   roomInvoices,
   allBookings,
+  hotel,
 }) {
   const router = useRouter();
   const [invoiceModel, setInvoiceModel] = useState(false);
@@ -466,6 +467,7 @@ export default function BookingServiceActionsCard({
         booking={booking}
         roomInvoices={roomInvoices}
         paymentMethods={paymentMethods}
+        hotel={hotel}
       />
 
       {/* Cancel Booking Confirmation Dialog */}

@@ -32,13 +32,31 @@ import { GetCurrentTime } from '@/utils/Timefetcher';
 import { CreateNewData, UpdateData } from '@/utils/ApiFunctions';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
-const generateNextInvoiceNo = (roomInvoices) => {
-  if (!roomInvoices || roomInvoices.length === 0) return 'INVOICE-1';
+const generateNextInvoiceNo = (roomInvoices, hotel) => {
+  const prefix = hotel?.hotel_inv_prefix?.trim() || 'INVOICE';
+
+  if (!roomInvoices || roomInvoices.length === 0) {
+    return `${prefix}-1`;
+  }
+
   const numbers = roomInvoices
-    .map((inv) => parseInt(inv.invoice_no?.replace('INVOICE-', ''), 10))
-    .filter((n) => !isNaN(n));
+    .map((inv) => {
+      const invoiceNo = inv?.invoice_no || '';
+      const numericPart = invoiceNo.replace(
+        new RegExp(`^${prefix}-?`, 'i'),
+        '',
+      );
+      const parsed = parseInt(numericPart, 10);
+      return Number.isNaN(parsed) ? null : parsed;
+    })
+    .filter((n) => n !== null);
+
+  if (numbers.length === 0) {
+    return `${prefix}-1`;
+  }
+
   const maxNumber = Math.max(...numbers);
-  return `INVOICE-${maxNumber + 1}`;
+  return `${prefix}-${maxNumber + 1}`;
 };
 
 export default function CreateInvoiceModal({
@@ -46,6 +64,7 @@ export default function CreateInvoiceModal({
   setOpen,
   booking,
   roomInvoices,
+  hotel,
 }) {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
@@ -173,7 +192,7 @@ export default function CreateInvoiceModal({
         return null;
       }
 
-      const newInvoiceNo = generateNextInvoiceNo(roomInvoices);
+      const newInvoiceNo = generateNextInvoiceNo(roomInvoices, hotel);
       const time = GetCurrentTime();
 
       const finalPayload = {

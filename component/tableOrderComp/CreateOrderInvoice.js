@@ -195,7 +195,6 @@ const CreateOrderInvoice = ({
     );
 
     const newInvoiceNO = generateNextInvoiceNo(invoices, profileData);
-
     const time = GetCurrentTime();
     const finalData = {
       ...formData,
