@@ -30,6 +30,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
     footer: data.footer || '',
     upi_id: data.upi_id || '',
     upi_name: data.upi_name || '',
+    inv_prefix: data.inv_prefix || '',
   });
 
   const [errors, setErrors] = useState({});
@@ -46,6 +47,10 @@ const UpdatePosOutletForm = ({ data, auth }) => {
     if (name === 'pincode') {
       formattedValue = formattedValue.replace(/\D/g, '');
       formattedValue = formattedValue.slice(0, 6);
+    }
+
+    if (name === 'inv_prefix') {
+      formattedValue = formattedValue.replace(/[^A-Za-z]/g, '');
     }
 
     setFormData({ ...formData, [name]: formattedValue });
@@ -81,6 +86,11 @@ const UpdatePosOutletForm = ({ data, auth }) => {
 
     if (formData.pincode && !/^[0-9]{6}$/.test(formData.pincode))
       newErrors.pincode = 'Enter a valid 6-digit pin code';
+
+    if (formData.inv_prefix) {
+      if (!/^[A-Za-z]+$/.test(formData.inv_prefix))
+        newErrors.inv_prefix = 'Only alphabets are allowed';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -150,7 +160,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
 
           <Grid container spacing={2}>
             {/* Name */}
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, md: 12 }}>
               <TextField
                 size="small"
                 fullWidth
@@ -164,7 +174,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
             </Grid>
 
             {/* phone */}
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 size="small"
                 fullWidth
@@ -183,7 +193,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
             </Grid>
 
             {/* Email */}
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 size="small"
                 fullWidth
@@ -197,7 +207,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
             </Grid>
 
             {/* Alt phone */}
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 size="small"
                 fullWidth
@@ -216,7 +226,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
             </Grid>
 
             {/* GST */}
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 size="small"
                 fullWidth
@@ -230,7 +240,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
             </Grid>
 
             {/* Website */}
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 size="small"
                 fullWidth
@@ -238,6 +248,19 @@ const UpdatePosOutletForm = ({ data, auth }) => {
                 name="website"
                 value={formData.website}
                 onChange={handleChange}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                size="small"
+                fullWidth
+                label="Invoice Prefix"
+                name="inv_prefix"
+                value={formData.inv_prefix}
+                onChange={handleChange}
+                error={!!errors.inv_prefix}
+                helperText={errors.inv_prefix || ''}
+                inputProps={{ maxLength: 10, inputMode: 'text' }}
               />
             </Grid>
 
@@ -327,6 +350,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
                 }}
               />
             </Grid>
+
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth

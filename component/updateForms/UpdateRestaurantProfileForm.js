@@ -30,6 +30,7 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
     res_footer: data.res_footer || '',
     res_upi_id: data.res_upi_id || '',
     res_upi_name: data.res_upi_name || '',
+    res_inv_prefix: data.res_inv_prefix || '',
   });
 
   const [errors, setErrors] = useState({});
@@ -46,6 +47,10 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
     if (name === 'res_pincode') {
       formattedValue = formattedValue.replace(/\D/g, '');
       formattedValue = formattedValue.slice(0, 6);
+    }
+
+    if (name === 'res_inv_prefix') {
+      formattedValue = formattedValue.replace(/[^A-Za-z]/g, '');
     }
 
     setFormData({ ...formData, [name]: formattedValue });
@@ -79,6 +84,11 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
     if (formData.res_pincode) {
       if (formData.res_pincode && !/^[0-9]{6}$/.test(formData.res_pincode))
         newErrors.res_pincode = 'Enter a valid 6-digit pin code';
+    }
+
+    if (formData.res_inv_prefix) {
+      if (!/^[A-Za-z]+$/.test(formData.res_inv_prefix))
+        newErrors.res_inv_prefix = 'Only alphabets are allowed';
     }
 
     setErrors(newErrors);
@@ -156,7 +166,7 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
 
           <Grid container spacing={2}>
             {/* Name */}
-            <Grid size={{ xs: 12, md: 6 }}>
+            <Grid size={{ xs: 12, md: 12 }}>
               <TextField
                 fullWidth
                 label="Name"
@@ -185,20 +195,6 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 }}
               />
             </Grid>
-
-            {/* Email */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                label="Email"
-                name="res_email"
-                value={formData.res_email}
-                onChange={handleChange}
-                error={!!errors.res_email}
-                helperText={errors.res_email}
-              />
-            </Grid>
-
             {/* Alt Mobile */}
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
@@ -214,6 +210,18 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                   inputMode: 'numeric',
                   pattern: '[0-9]*',
                 }}
+              />
+            </Grid>
+            {/* Email */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Email"
+                name="res_email"
+                value={formData.res_email}
+                onChange={handleChange}
+                error={!!errors.res_email}
+                helperText={errors.res_email}
               />
             </Grid>
 
@@ -238,6 +246,19 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 name="res_website"
                 value={formData.res_website}
                 onChange={handleChange}
+              />
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Invoice Prefix"
+                name="res_inv_prefix"
+                value={formData.res_inv_prefix}
+                onChange={handleChange}
+                error={!!errors.res_inv_prefix}
+                helperText={errors.res_inv_prefix || ''}
+                inputProps={{ maxLength: 10, inputMode: 'text' }}
               />
             </Grid>
 

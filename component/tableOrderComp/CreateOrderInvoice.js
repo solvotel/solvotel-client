@@ -32,6 +32,7 @@ const CreateOrderInvoice = ({
   setSelectedRow,
   invoices,
   paymentMethods,
+  profileData,
 }) => {
   const todaysDate = GetTodaysDate().dateString;
   const [formData, setFormData] = useState({
@@ -42,19 +43,31 @@ const CreateOrderInvoice = ({
     payments: [],
   });
   const [loading, setLoading] = useState(false);
-  const generateNextInvoiceNo = () => {
+  const generateNextInvoiceNo = (invoices, profileData) => {
+    const prefix = profileData?.res_inv_prefix?.trim() || 'INV';
+
     if (!invoices || invoices.length === 0) {
-      return 'INV-1';
+      return `${prefix}-1`;
     }
 
-    // Extract all numbers from invoice_no like "INV-12" -> 12
     const numbers = invoices
-      .map((inv) => parseInt(inv.invoice_no?.replace('INV-', ''), 10))
-      .filter((n) => !isNaN(n));
+      .map((inv) => {
+        const invoiceNo = inv?.invoice_no || '';
+        const numericPart = invoiceNo.replace(
+          new RegExp(`^${prefix}-?`, 'i'),
+          '',
+        );
+        const parsed = parseInt(numericPart, 10);
+        return Number.isNaN(parsed) ? null : parsed;
+      })
+      .filter((n) => n !== null);
+
+    if (numbers.length === 0) {
+      return `${prefix}-1`;
+    }
 
     const maxNumber = Math.max(...numbers);
-
-    return `INV-${maxNumber + 1}`;
+    return `${prefix}-${maxNumber + 1}`;
   };
 
   const handleAddPayment = () => {
@@ -181,7 +194,8 @@ const CreateOrderInvoice = ({
       ({ id, documentId, ...rest }) => rest,
     );
 
-    const newInvoiceNO = generateNextInvoiceNo();
+    const newInvoiceNO = generateNextInvoiceNo(invoices, profileData);
+
     const time = GetCurrentTime();
     const finalData = {
       ...formData,
@@ -261,11 +275,6 @@ const CreateOrderInvoice = ({
             Invoice Info
           </Typography>
           <Grid container spacing={2} mb={2}>
-            <Grid item size={{ xs: 12, sm: 4 }}>
-              <Typography>
-                Invoice No: <b>{generateNextInvoiceNo()}</b>
-              </Typography>
-            </Grid>
             <Grid item size={{ xs: 12, sm: 4 }}>
               <Typography>
                 Date: <b>{todaysDate}</b>

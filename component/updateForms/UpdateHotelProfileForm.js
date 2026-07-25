@@ -34,6 +34,7 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
     hotel_footer: data.hotel_footer || '',
     hotel_upi_id: data.hotel_upi_id || '',
     hotel_upi_name: data.hotel_upi_name || '',
+    hotel_inv_prefix: data.hotel_inv_prefix || '',
   });
 
   const handleChange = (e) => {
@@ -48,6 +49,10 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
     if (name === 'hotel_pincode') {
       formattedValue = formattedValue.replace(/\D/g, '');
       formattedValue = formattedValue.slice(0, 6);
+    }
+
+    if (name === 'hotel_inv_prefix') {
+      formattedValue = formattedValue.replace(/[^A-Za-z]/g, '');
     }
 
     setFormData({ ...formData, [name]: formattedValue });
@@ -74,6 +79,11 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
     if (formData.hotel_pincode) {
       if (!/^[1-9][0-9]{5}$/.test(formData.hotel_pincode))
         newErrors.hotel_pincode = 'Enter a valid 6-digit pincode';
+    }
+
+    if (formData.hotel_inv_prefix) {
+      if (!/^[A-Za-z]+$/.test(formData.hotel_inv_prefix))
+        newErrors.hotel_inv_prefix = 'Only alphabets are allowed';
     }
 
     // Optional but format check
@@ -153,7 +163,7 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
 
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
-            <Grid item size={{ xs: 12, md: 6 }}>
+            <Grid item size={{ xs: 12, md: 12 }}>
               <TextField
                 fullWidth
                 label="Hotel Name"
@@ -181,19 +191,6 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
                 }}
               />
             </Grid>
-
-            <Grid item size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                label="Email"
-                name="hotel_email"
-                value={formData.hotel_email}
-                onChange={handleChange}
-                error={!!errors.hotel_email}
-                helperText={errors.hotel_email || ''}
-              />
-            </Grid>
-
             <Grid item size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
@@ -208,6 +205,17 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
                   inputMode: 'numeric',
                   pattern: '[0-9]*',
                 }}
+              />
+            </Grid>
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Email"
+                name="hotel_email"
+                value={formData.hotel_email}
+                onChange={handleChange}
+                error={!!errors.hotel_email}
+                helperText={errors.hotel_email || ''}
               />
             </Grid>
 
@@ -232,6 +240,19 @@ const UpdateHotelProfileForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.hotel_website}
                 helperText={errors.hotel_website || ''}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="Invoice Prefix"
+                name="hotel_inv_prefix"
+                value={formData.hotel_inv_prefix}
+                onChange={handleChange}
+                error={!!errors.hotel_inv_prefix}
+                helperText={errors.hotel_inv_prefix || ''}
+                inputProps={{ maxLength: 10, inputMode: 'text' }}
               />
             </Grid>
 

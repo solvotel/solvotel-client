@@ -111,7 +111,6 @@ const UpdateBookingForm = ({
     return Array.isArray(payments) ? payments : [payments];
   };
 
-  console.log(roomTokens, 'roomTokens');
   const [advancePayments, setAdvancePayments] = useState(
     normalizeAdvancePayments(),
   );

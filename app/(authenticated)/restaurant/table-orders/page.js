@@ -7,6 +7,7 @@ import {
   CreateNewData,
   UpdateData,
   DeleteData,
+  GetSingleData,
 } from '@/utils/ApiFunctions';
 import { useAuth } from '@/context';
 import { Loader } from '@/component/common';
@@ -63,6 +64,11 @@ const Page = () => {
     auth,
     endPoint: 'restaurant-invoices',
   });
+  const profileData = GetSingleData({
+    auth,
+    endPoint: 'hotels',
+    id: auth?.user?.hotel_id,
+  });
 
   const today = todaysDate; // YYYY-MM-DD
 
@@ -81,14 +87,6 @@ const Page = () => {
           ?.filter((token) => {
             const inDate = token.in_date?.split('T')[0];
             const outDate = token.out_date?.split('T')[0];
-
-            console.log(
-              token.room,
-              today,
-              inDate,
-              outDate,
-              today >= inDate && today < outDate,
-            );
 
             return today >= inDate && today < outDate;
           })
@@ -209,7 +207,7 @@ const Page = () => {
             },
           },
         });
-        console.log('KOT creation response:', res.data?.data?.updatedAt);
+
         // 4️⃣ Open print dialog for latest KOT
         setSelectedKot({
           kot_number: kotNumber,
@@ -299,7 +297,8 @@ const Page = () => {
     setSelectedRow(null);
   };
 
-  if (!tables || !orders || !paymentMethods || !invoices) return <Loader />;
+  if (!tables || !orders || !paymentMethods || !invoices || !profileData)
+    return <Loader />;
 
   return (
     <>
@@ -403,6 +402,7 @@ const Page = () => {
         setSelectedRow={setSelectedRow}
         invoices={invoices}
         paymentMethods={paymentMethods}
+        profileData={profileData}
       />
 
       {/* KOT Print Dialog */}

@@ -6,6 +6,7 @@ import {
   GetDataList,
   CreateNewData,
   UpdateData,
+  GetSingleData,
 } from '@/utils/ApiFunctions';
 import { useState, useMemo } from 'react';
 
@@ -45,25 +46,38 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 import { Add } from '@mui/icons-material';
 
-const generateNextInvoiceNo = (invoices) => {
+const generateNextInvoiceNo = (invoices, profileData) => {
+  const prefix = profileData?.res_inv_prefix?.trim() || 'INV';
+
   if (!invoices || invoices.length === 0) {
-    return 'INV-1';
+    return `${prefix}-1`;
   }
 
-  // Extract all numbers from invoice_no like "INV-12" -> 12
   const numbers = invoices
-    .map((inv) => parseInt(inv.invoice_no?.replace('INV-', ''), 10))
-    .filter((n) => !isNaN(n));
+    .map((inv) => {
+      const invoiceNo = inv?.invoice_no || '';
+      const numericPart = invoiceNo.replace(
+        new RegExp(`^${prefix}-?`, 'i'),
+        '',
+      );
+      const parsed = parseInt(numericPart, 10);
+      return Number.isNaN(parsed) ? null : parsed;
+    })
+    .filter((n) => n !== null);
+
+  if (numbers.length === 0) {
+    return `${prefix}-1`;
+  }
 
   const maxNumber = Math.max(...numbers);
-
-  return `INV-${maxNumber + 1}`;
+  return `${prefix}-${maxNumber + 1}`;
 };
 
 const Page = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
+
   const data = GetDataList({
     auth,
     endPoint: 'restaurant-invoices',
@@ -76,6 +90,11 @@ const Page = () => {
   const menuItems = GetDataList({
     auth,
     endPoint: 'restaurant-menus',
+  });
+  const profileData = GetSingleData({
+    auth,
+    endPoint: 'hotels',
+    id: auth?.user?.hotel_id,
   });
 
   const [search, setSearch] = useState('');
@@ -200,7 +219,7 @@ const Page = () => {
   };
 
   function initialFormData() {
-    const newInvoiceNO = generateNextInvoiceNo(data);
+    const newInvoiceNO = generateNextInvoiceNo(data, profileData);
     const time = GetCurrentTime();
     return {
       invoice_no: newInvoiceNO,
@@ -428,7 +447,7 @@ const Page = () => {
           <Typography color="text.primary">Restaurant Invoices</Typography>
         </Breadcrumbs>
       </Box>
-      {!data || !menuItems || !paymentMethods ? (
+      {!data || !menuItems || !paymentMethods | !profileData ? (
         <Loader />
       ) : (
         <Box p={3}>
