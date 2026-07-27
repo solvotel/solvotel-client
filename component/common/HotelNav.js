@@ -243,6 +243,11 @@ const HotelNav = ({ auth, logout }) => {
                         icon: <ClipboardList size={16} />,
                         label: 'Invoice Report',
                       },
+                      {
+                        href: '/front-office/day-based-report',
+                        icon: <CalendarMonthIcon size={16} />,
+                        label: 'Day Based Report',
+                      },
                     ]}
                   />
                 )}

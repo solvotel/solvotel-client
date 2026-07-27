@@ -92,7 +92,7 @@ const ProfileSettingPage = () => {
   return (
     <Box
       sx={{
-        minHeight: '75vh',
+        minHeight: '85vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
