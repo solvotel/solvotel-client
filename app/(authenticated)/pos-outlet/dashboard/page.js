@@ -199,12 +199,14 @@ const Dashboard = () => {
   const theme = useTheme();
   const searchParams = useSearchParams();
   const outletIdFromParams = searchParams.get('outlet_id');
+  console.log(auth?.user?.pos_outlet_id || outletIdFromParams);
 
   const posOutlet = GetSingleData({
     auth,
     endPoint: 'pos-outlets',
     id: auth?.user?.pos_outlet_id || outletIdFromParams,
   });
+  console.log(posOutlet);
 
   const _posItems = GetPosDataList({
     id: auth?.user?.pos_outlet_id,

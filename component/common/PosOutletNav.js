@@ -15,6 +15,10 @@ import {
   ListItemText,
   Box,
   Button,
+  Avatar,
+  Menu,
+  MenuItem,
+  Divider,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
@@ -69,8 +73,17 @@ const menuItems = [
 
 const PosOutletNav = ({ auth, logout }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [profileMenuAnchor, setProfileMenuAnchor] = useState(null);
 
   const toggleDrawer = (open) => () => setDrawerOpen(open);
+
+  const handleProfileMenuOpen = (event) => {
+    setProfileMenuAnchor(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileMenuAnchor(null);
+  };
   return (
     <>
       <AppBar
@@ -123,20 +136,64 @@ const PosOutletNav = ({ auth, logout }) => {
                 {item.label}
               </Button>
             ))}
-            {/* Logout */}
-            <Button
-              onClick={logout}
-              sx={{
-                bgcolor: 'red',
-                '&:hover': { bgcolor: 'darkred' },
-                color: '#fff',
-                borderRadius: 2,
-                px: 2,
-              }}
-              startIcon={<LogOut size={18} />}
-            >
-              Logout
-            </Button>
+            {/* Profile Menu */}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton
+                onClick={handleProfileMenuOpen}
+                aria-controls={
+                  profileMenuAnchor ? 'pos-profile-menu' : undefined
+                }
+                aria-haspopup="true"
+                aria-expanded={profileMenuAnchor ? 'true' : undefined}
+                sx={{
+                  p: 0.5,
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  borderRadius: '50%',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
+                }}
+              >
+                <Avatar
+                  sx={{
+                    width: 34,
+                    height: 34,
+                    bgcolor: '#f59e0b',
+                    fontSize: 14,
+                    fontWeight: 700,
+                  }}
+                >
+                  {auth?.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+                </Avatar>
+              </IconButton>
+
+              <Menu
+                id="pos-profile-menu"
+                anchorEl={profileMenuAnchor}
+                open={Boolean(profileMenuAnchor)}
+                onClose={handleProfileMenuClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                PaperProps={{ sx: { mt: 1, minWidth: 200, borderRadius: 2 } }}
+              >
+                <MenuItem
+                  component={Link}
+                  href="/profile-setting"
+                  onClick={handleProfileMenuClose}
+                >
+                  Profile Settings
+                </MenuItem>
+
+                <Divider />
+                <MenuItem
+                  onClick={() => {
+                    handleProfileMenuClose();
+                    logout();
+                  }}
+                  sx={{ color: 'error.main' }}
+                >
+                  Logout
+                </MenuItem>
+              </Menu>
+            </Box>
           </Box>
           {/* Mobile Hamburger */}
           <Box sx={{ display: { xs: 'block', md: 'none' } }}>

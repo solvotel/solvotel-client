@@ -7,6 +7,7 @@ import {
   CreateNewData,
   UpdateData,
   GetPosDataList,
+  GetSingleData,
 } from '@/utils/ApiFunctions';
 import { useState, useMemo } from 'react';
 
@@ -46,19 +47,31 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 import { Add } from '@mui/icons-material';
 
-const generateNextInvoiceNo = (invoices) => {
+const generateNextInvoiceNo = (invoices, profileData) => {
+  const prefix = profileData?.inv_prefix?.trim() || 'BILL';
+
   if (!invoices || invoices.length === 0) {
-    return 'BILL-1';
+    return `${prefix}-1`;
   }
 
-  // Extract all numbers from invoice_no like "BILL-12" -> 12
   const numbers = invoices
-    .map((inv) => parseInt(inv.invoice_no?.replace('BILL-', ''), 10))
-    .filter((n) => !isNaN(n));
+    .map((inv) => {
+      const invoiceNo = inv?.invoice_no || '';
+      const numericPart = invoiceNo.replace(
+        new RegExp(`^${prefix}-?`, 'i'),
+        '',
+      );
+      const parsed = parseInt(numericPart, 10);
+      return Number.isNaN(parsed) ? null : parsed;
+    })
+    .filter((n) => n !== null);
+
+  if (numbers.length === 0) {
+    return `${prefix}-1`;
+  }
 
   const maxNumber = Math.max(...numbers);
-
-  return `BILL-${maxNumber + 1}`;
+  return `${prefix}-${maxNumber + 1}`;
 };
 
 const Page = () => {
@@ -77,6 +90,12 @@ const Page = () => {
   const menuItems = GetPosDataList({
     id: auth?.user?.pos_outlet_id,
     endPoint: 'pos-items',
+  });
+
+  const profileData = GetSingleData({
+    auth,
+    endPoint: 'pos-outlets',
+    id: auth?.user?.pos_outlet_id,
   });
 
   const [search, setSearch] = useState('');
@@ -221,7 +240,7 @@ const Page = () => {
   };
 
   function initialFormData() {
-    const newInvoiceNO = generateNextInvoiceNo(data);
+    const newInvoiceNO = generateNextInvoiceNo(data, profileData);
     const time = GetCurrentTime();
     return {
       invoice_no: newInvoiceNO,
@@ -434,7 +453,7 @@ const Page = () => {
           <Typography color="text.primary">Invoices</Typography>
         </Breadcrumbs>
       </Box>
-      {!data || !menuItems || !paymentMethods ? (
+      {!data || !menuItems || !paymentMethods || !profileData ? (
         <Loader />
       ) : (
         <Box p={3}>
