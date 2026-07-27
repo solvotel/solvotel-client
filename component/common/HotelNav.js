@@ -132,7 +132,7 @@ const HotelNav = ({ auth, logout }) => {
                   <DropdownMenu
                     items={[
                       {
-                        href: '/master/profile',
+                        href: '/profile-setting',
                         icon: <UserCircle size={16} />,
                         label: 'Profile',
                       },
@@ -525,7 +525,7 @@ const HotelNav = ({ auth, logout }) => {
                   <ListItem disablePadding>
                     <ListItemButton
                       component={Link}
-                      href="/master/profile"
+                      href="/profile-setting"
                       onClick={toggleDrawer(false)}
                     >
                       <ListItemIcon>

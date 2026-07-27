@@ -176,7 +176,7 @@ const PosOutletNav = ({ auth, logout }) => {
               >
                 <MenuItem
                   component={Link}
-                  href="/profile-setting"
+                  href="/pos-outlet/profile-setting"
                   onClick={handleProfileMenuClose}
                 >
                   Profile Settings
