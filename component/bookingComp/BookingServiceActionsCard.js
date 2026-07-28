@@ -354,7 +354,7 @@ export default function BookingServiceActionsCard({
               sx={{ textTransform: 'none' }}
               onClick={() =>
                 router.push(
-                  `/front-office/room-booking/room-transfer?bookingId=${booking?.documentId}`,
+                  `/front-office/room-booking/edit-room?bookingId=${booking?.documentId}`,
                 )
               }
               disabled={
@@ -362,7 +362,7 @@ export default function BookingServiceActionsCard({
                 booking.booking_status === 'Blocked'
               }
             >
-              Room Transfer
+              Edit Room
             </Button>
           </Grid>
           {/* Manage Services */}
