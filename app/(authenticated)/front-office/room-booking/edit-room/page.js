@@ -234,11 +234,11 @@ const RoomTransferPage = () => {
           >
             <Box>
               <Typography variant="h5" fontWeight={700} color="primary">
-                <SwapHorizIcon sx={{ mr: 1, verticalAlign: 'middle' }} /> Room
-                Transfer
+                <SwapHorizIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Edit Room
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                First select the token(s) you want to transfer, then assign an
+                First select the token(s) you want to edit, then assign an
                 available replacement room for each one.
               </Typography>
             </Box>

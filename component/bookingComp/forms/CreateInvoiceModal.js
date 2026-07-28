@@ -32,31 +32,51 @@ import { GetCurrentTime } from '@/utils/Timefetcher';
 import { CreateNewData, UpdateData } from '@/utils/ApiFunctions';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
+const getFinancialYear = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+
+  let startYear;
+  let endYear;
+
+  if (month >= 4) {
+    startYear = year;
+    endYear = year + 1;
+  } else {
+    startYear = year - 1;
+    endYear = year;
+  }
+
+  return `${String(startYear).slice(-2)}-${String(endYear).slice(-2)}`;
+};
+
 const generateNextInvoiceNo = (roomInvoices, hotel) => {
   const prefix = hotel?.hotel_inv_prefix?.trim() || 'INVOICE';
+  const financialYear = getFinancialYear();
 
   if (!roomInvoices || roomInvoices.length === 0) {
-    return `${prefix}-1`;
+    return `${prefix}/${financialYear}/01`;
   }
 
   const numbers = roomInvoices
     .map((inv) => {
       const invoiceNo = inv?.invoice_no || '';
-      const numericPart = invoiceNo.replace(
-        new RegExp(`^${prefix}-?`, 'i'),
-        '',
+
+      // Match: PREFIX/25-26/01
+      const regex = new RegExp(
+        `^${prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\/${financialYear}\\/(\\d+)$`,
+        'i',
       );
-      const parsed = parseInt(numericPart, 10);
-      return Number.isNaN(parsed) ? null : parsed;
+
+      const match = invoiceNo.match(regex);
+
+      return match ? parseInt(match[1], 10) : null;
     })
     .filter((n) => n !== null);
 
-  if (numbers.length === 0) {
-    return `${prefix}-1`;
-  }
+  const nextNumber = numbers.length > 0 ? Math.max(...numbers) + 1 : 1;
 
-  const maxNumber = Math.max(...numbers);
-  return `${prefix}-${maxNumber + 1}`;
+  return `${prefix}/${financialYear}/${String(nextNumber).padStart(2, '0')}`;
 };
 
 export default function CreateInvoiceModal({

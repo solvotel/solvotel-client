@@ -46,31 +46,46 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 import { Add } from '@mui/icons-material';
 
-const generateNextInvoiceNo = (invoices, profileData) => {
-  const prefix = profileData?.res_inv_prefix?.trim() || 'INV';
+const getFinancialYear = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
 
-  if (!invoices || invoices.length === 0) {
-    return `${prefix}-1`;
+  let startYear;
+  let endYear;
+
+  if (month >= 4) {
+    // April onwards
+    startYear = year;
+    endYear = year + 1;
+  } else {
+    // January to March
+    startYear = year - 1;
+    endYear = year;
   }
 
-  const numbers = invoices
+  return `${String(startYear).slice(-2)}-${String(endYear).slice(-2)}`;
+};
+
+const generateNextInvoiceNo = (invoices, profileData) => {
+  const prefix = profileData?.res_inv_prefix?.trim() || 'INV';
+  const fy = getFinancialYear();
+
+  const serials = (invoices || [])
     .map((inv) => {
       const invoiceNo = inv?.invoice_no || '';
-      const numericPart = invoiceNo.replace(
-        new RegExp(`^${prefix}-?`, 'i'),
-        '',
-      );
-      const parsed = parseInt(numericPart, 10);
-      return Number.isNaN(parsed) ? null : parsed;
+
+      // Match: INV/25-26/01
+      const regex = new RegExp(`^${prefix}\\/${fy}\\/(\\d+)$`, 'i');
+
+      const match = invoiceNo.match(regex);
+
+      return match ? parseInt(match[1], 10) : null;
     })
     .filter((n) => n !== null);
 
-  if (numbers.length === 0) {
-    return `${prefix}-1`;
-  }
+  const nextSerial = serials.length ? Math.max(...serials) + 1 : 1;
 
-  const maxNumber = Math.max(...numbers);
-  return `${prefix}-${maxNumber + 1}`;
+  return `${prefix}/${fy}/${String(nextSerial).padStart(2, '0')}`;
 };
 
 const Page = () => {

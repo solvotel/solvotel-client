@@ -47,31 +47,42 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 import { Add } from '@mui/icons-material';
 
+const getFinancialYear = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+
+  const startYear = month >= 4 ? year : year - 1;
+  const endYear = startYear + 1;
+
+  return `${String(startYear).slice(-2)}-${String(endYear).slice(-2)}`;
+};
+
 const generateNextInvoiceNo = (invoices, profileData) => {
   const prefix = profileData?.inv_prefix?.trim() || 'BILL';
+  const financialYear = getFinancialYear();
 
   if (!invoices || invoices.length === 0) {
-    return `${prefix}-1`;
+    return `${prefix}/${financialYear}/01`;
   }
+
+  const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   const numbers = invoices
     .map((inv) => {
       const invoiceNo = inv?.invoice_no || '';
-      const numericPart = invoiceNo.replace(
-        new RegExp(`^${prefix}-?`, 'i'),
-        '',
+
+      // Match: BILL/25-26/01
+      const match = invoiceNo.match(
+        new RegExp(`^${escapedPrefix}\\/${financialYear}\\/(\\d+)$`, 'i'),
       );
-      const parsed = parseInt(numericPart, 10);
-      return Number.isNaN(parsed) ? null : parsed;
+
+      return match ? parseInt(match[1], 10) : null;
     })
     .filter((n) => n !== null);
 
-  if (numbers.length === 0) {
-    return `${prefix}-1`;
-  }
+  const nextNumber = numbers.length ? Math.max(...numbers) + 1 : 1;
 
-  const maxNumber = Math.max(...numbers);
-  return `${prefix}-${maxNumber + 1}`;
+  return `${prefix}/${financialYear}/${String(nextNumber).padStart(2, '0')}`;
 };
 
 const Page = () => {
