@@ -273,6 +273,7 @@ const BookingListPage = () => {
                 <TableRow sx={{ backgroundColor: 'grey.100' }}>
                   {[
                     '#ID',
+                    'Booking Ref',
                     'Guest',
                     'Room No',
                     'Check In/Out',
@@ -281,7 +282,6 @@ const BookingListPage = () => {
                     'Meal Plan',
                     'Notes',
                     'Status',
-                    'Actions',
                   ].map((item, index) => (
                     <TableCell key={index} sx={{ fontWeight: 'bold' }}>
                       {item}
@@ -314,12 +314,21 @@ const BookingListPage = () => {
                     >
                       <TableCell>{row.booking_id}</TableCell>
                       <TableCell>
+                        {row?.booking_referance || 'N/A'}
+                        <br />
+                        {row?.reference_no || 'N/A'}
+                      </TableCell>
+                      <TableCell>
                         {row?.customer?.name}
                         <br />
                         {row?.customer?.mobile}
                       </TableCell>
                       <TableCell
-                        sx={{ display: 'flex', justifyContent: 'center' }}
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          width: '350px',
+                        }}
                       >
                         <Stack
                           direction="row"
@@ -384,7 +393,7 @@ const BookingListPage = () => {
                       </TableCell>
 
                       {/* Stop row click for actions */}
-                      <TableCell
+                      {/* <TableCell
                         sx={{ width: '50px' }}
                         align="center"
                         onClick={(e) => e.stopPropagation()}
@@ -413,7 +422,7 @@ const BookingListPage = () => {
                             <EditIcon fontSize="inherit" />
                           </IconButton>
                         </Tooltip>
-                      </TableCell>
+                      </TableCell> */}
                     </TableRow>
                   );
                 })}

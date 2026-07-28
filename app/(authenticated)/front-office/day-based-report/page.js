@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context';
 import { GetDataList } from '@/utils/ApiFunctions';
 import { GetTodaysDate, isDateInRange } from '@/utils/DateFetcher';
@@ -113,6 +114,7 @@ const DayBasedReportPage = () => {
           bookingId: booking.booking_id || 'N/A',
           guestName: booking.customer?.name || 'N/A',
           status: '',
+          documentId: booking.documentId,
         };
 
         occupiedRoomNos.add(token.room);
@@ -339,7 +341,18 @@ const DayBasedReportPage = () => {
                           }}
                         />
                       </TableCell>
-                      <TableCell>{row.bookingId}</TableCell>
+                      <TableCell>
+                        {row.documentId ? (
+                          <Link
+                            href={`/front-office/room-booking/${row.documentId}`}
+                            passHref
+                          >
+                            {row.bookingId}
+                          </Link>
+                        ) : (
+                          row.bookingId
+                        )}
+                      </TableCell>
                       <TableCell>{row.guestName}</TableCell>
                     </TableRow>
                   ))
