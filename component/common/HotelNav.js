@@ -132,7 +132,7 @@ const HotelNav = ({ auth, logout }) => {
                   <DropdownMenu
                     items={[
                       {
-                        href: '/profile-setting',
+                        href: '/master/profile',
                         icon: <UserCircle size={16} />,
                         label: 'Profile',
                       },
