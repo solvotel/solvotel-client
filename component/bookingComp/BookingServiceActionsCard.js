@@ -26,6 +26,7 @@ import {
   Hotel as HotelIcon,
   Login as LoginIcon,
   Logout as LogoutIcon,
+  SwapHoriz as SwapHorizIcon,
 } from '@mui/icons-material';
 
 import {
@@ -343,7 +344,27 @@ export default function BookingServiceActionsCard({
               Print Booking Slip
             </Button>
           </Grid>
-
+          {/* Room Transfer */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="warning"
+              startIcon={<SwapHorizIcon />}
+              sx={{ textTransform: 'none' }}
+              onClick={() =>
+                router.push(
+                  `/front-office/room-booking/room-transfer?bookingId=${booking?.documentId}`,
+                )
+              }
+              disabled={
+                booking.booking_status === 'Cancelled' ||
+                booking.booking_status === 'Blocked'
+              }
+            >
+              Room Transfer
+            </Button>
+          </Grid>
           {/* Manage Services */}
           <Grid size={{ xs: 12, md: 4 }}>
             <Button

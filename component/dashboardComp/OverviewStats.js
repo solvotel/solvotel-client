@@ -1,6 +1,6 @@
 'use client';
 
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetTodaysDate, isDateInRange } from '@/utils/DateFetcher';
 import { Box, Grid, Card, CardContent, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
 import {
@@ -17,7 +17,7 @@ const MotionCard = motion(Card);
 const OverviewStats = ({ bookings, rooms }) => {
   const todaysDate = GetTodaysDate().dateString;
   const GetStats = () => {
-    const today = new Date(todaysDate);
+    const today = todaysDate;
 
     let checkedIn = 0;
     let confirmed = 0;
@@ -27,25 +27,25 @@ const OverviewStats = ({ bookings, rooms }) => {
 
     const occupiedNos = new Set();
 
-    const isSameDay = (d1, d2) => d1.toDateString() === d2.toDateString();
-
     bookings?.forEach((bk) => {
-      const checkIn = new Date(bk.checkin_date);
-      const checkOut = new Date(bk.checkout_date);
+      const checkIn = bk.checkin_date;
+      const checkOut = bk.checkout_date;
 
       // ⛔ Fully checked-out bookings do not affect stats
       if (bk.checked_out === true) return;
+
+      const bookingAppliesToToday = isDateInRange(today, checkIn, checkOut);
+      if (!bookingAppliesToToday) return;
 
       // -------------------------------------------------
       // 📌 Process room tokens for today's status
       // -------------------------------------------------
       bk.room_tokens?.forEach((token) => {
-        const tokenInDate = new Date(token.in_date);
-        const tokenOutDate = new Date(token.out_date);
+        const tokenInDate = token.in_date;
+        const tokenOutDate = token.out_date;
 
         // Check if token applies to today
-        const tokenAppliesToToday =
-          today >= tokenInDate && today < tokenOutDate;
+        const tokenAppliesToToday = isDateInRange(today, tokenInDate, tokenOutDate);
 
         if (!tokenAppliesToToday) return;
 
@@ -85,8 +85,7 @@ const OverviewStats = ({ bookings, rooms }) => {
         bk.checked_out !== true
       ) {
         bk.room_tokens?.forEach((token) => {
-          const tokenInDate = new Date(token.in_date);
-          if (isSameDay(tokenInDate, today)) {
+          if (token.in_date === today) {
             expectedCheckins += 1;
           }
         });
@@ -101,8 +100,7 @@ const OverviewStats = ({ bookings, rooms }) => {
         bk.checked_out !== true
       ) {
         bk.room_tokens?.forEach((token) => {
-          const tokenOutDate = new Date(token.out_date);
-          if (isSameDay(tokenOutDate, today)) {
+          if (token.out_date === today) {
             expectedCheckouts += 1;
           }
         });

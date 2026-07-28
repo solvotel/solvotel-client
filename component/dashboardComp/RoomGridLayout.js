@@ -17,7 +17,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { motion } from 'framer-motion';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetTodaysDate, isDateInRange } from '@/utils/DateFetcher';
 import AddIcon from '@mui/icons-material/Add';
 import Link from 'next/link';
 
@@ -61,8 +61,6 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
     setStartDate(next.toISOString().split('T')[0]);
   };
 
-  const isSameDay = (d1, d2) => d1.toDateString() === d2.toDateString();
-
   // 🔹 For each date, compute filtered data based on room_tokens
   const getDayWiseData = (selectedDate) => {
     const checkedInRooms = [];
@@ -71,25 +69,21 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
     const occupiedRoomNos = new Set();
 
     bookings?.forEach((bk) => {
-      const checkIn = new Date(bk.checkin_date);
-      const checkOut = new Date(bk.checkout_date);
-      const isSameDay = checkIn.toDateString() === checkOut.toDateString();
+      const checkIn = bk.checkin_date;
+      const checkOut = bk.checkout_date;
 
       // Check if this booking applies to the selected date (include same-day bookings)
-      const bookingAppliesToDate =
-        (selectedDate >= checkIn && selectedDate < checkOut) ||
-        (isSameDay && selectedDate.toDateString() === checkIn.toDateString());
+      const bookingAppliesToDate = isDateInRange(selectedDate, checkIn, checkOut);
 
       if (!bookingAppliesToDate) return;
 
       // Process room_tokens instead of rooms array
       bk.room_tokens?.forEach((token) => {
-        const tokenInDate = new Date(token.in_date);
-        const tokenOutDate = new Date(token.out_date);
+        const tokenInDate = token.in_date;
+        const tokenOutDate = token.out_date;
 
         // Check if this specific token applies to the selected date
-        const tokenAppliesToDate =
-          selectedDate >= tokenInDate && selectedDate < tokenOutDate;
+        const tokenAppliesToDate = isDateInRange(selectedDate, tokenInDate, tokenOutDate);
 
         if (!tokenAppliesToDate) return;
 

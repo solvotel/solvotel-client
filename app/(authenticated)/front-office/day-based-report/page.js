@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/context';
 import { GetDataList } from '@/utils/ApiFunctions';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetTodaysDate, isDateInRange } from '@/utils/DateFetcher';
 import { Loader } from '@/component/common';
 import { motion } from 'framer-motion';
 import {
@@ -28,6 +28,13 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 const statusConfig = [
+  {
+    key: 'available',
+    label: 'Available',
+    color: '#16a34a',
+    bg: '#ecfdf5',
+    chipBg: '#bbf7d0',
+  },
   {
     key: 'checkedIn',
     label: 'Checked In',
@@ -72,7 +79,7 @@ const toInputDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
-const Page = () => {
+const DayBasedReportPage = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
   const [selectedDate, setSelectedDate] = useState(todaysDate);
@@ -85,22 +92,17 @@ const Page = () => {
       statusConfig.map((item) => [item.key, []]),
     );
 
+    const occupiedRoomNos = new Set();
+
     bookings?.forEach((booking) => {
-      const checkIn = new Date(booking.checkin_date);
-      const checkOut = new Date(booking.checkout_date);
-      const selected = new Date(selectedDate);
-      const isSameDay = checkIn.toDateString() === checkOut.toDateString();
-      const appliesToDate =
-        (selected >= checkIn && selected < checkOut) ||
-        (isSameDay && selected.toDateString() === checkIn.toDateString());
-
-      if (!appliesToDate) return;
-
       booking.room_tokens?.forEach((token) => {
-        const tokenInDate = new Date(token.in_date);
-        const tokenOutDate = new Date(token.out_date);
-        const tokenAppliesToDate =
-          selected >= tokenInDate && selected < tokenOutDate;
+        const tokenInDate = token.in_date;
+        const tokenOutDate = token.out_date;
+        const tokenAppliesToDate = isDateInRange(
+          selectedDate,
+          tokenInDate,
+          tokenOutDate,
+        );
 
         if (!tokenAppliesToDate) return;
 
@@ -109,9 +111,11 @@ const Page = () => {
           room_no: token.room,
           category: roomInfo?.category?.name || 'Uncategorized',
           bookingId: booking.booking_id || 'N/A',
-          guestName: booking.customer.name || 'N/A',
+          guestName: booking.customer?.name || 'N/A',
           status: '',
         };
+
+        occupiedRoomNos.add(token.room);
 
         if (booking.checked_out === true) {
           record.status = 'Checked Out';
@@ -131,6 +135,19 @@ const Page = () => {
         }
       });
     });
+
+    const availableRooms =
+      rooms
+        ?.filter((room) => !occupiedRoomNos.has(room.room_no))
+        .map((room) => ({
+          room_no: room.room_no,
+          category: room.category?.name || 'Uncategorized',
+          bookingId: 'N/A',
+          guestName: 'Available',
+          status: 'Available',
+        })) || [];
+
+    groups.available.push(...availableRooms);
 
     return groups;
   }, [bookings, rooms, selectedDate]);
@@ -230,7 +247,7 @@ const Page = () => {
             {statusConfig.map((item) => {
               const data = reportData[item.key] || [];
               return (
-                <Grid key={item.key} size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
+                <Grid key={item.key} size={{ xs: 12, sm: 6, md: 4 }}>
                   <Paper
                     sx={{
                       p: 2,
@@ -252,17 +269,24 @@ const Page = () => {
                       }}
                     >
                       {data.length > 0 ? (
-                        data.map((room) => (
-                          <Chip
-                            key={`${room.room_no}-${room.bookingId}`}
-                            label={room.room_no}
-                            size="small"
-                            sx={{ bgcolor: item.chipBg, fontWeight: 600 }}
-                          />
-                        ))
+                        data
+                          .slice(0, 8)
+                          .map((room) => (
+                            <Chip
+                              key={`${room.room_no}-${room.bookingId}`}
+                              label={room.room_no}
+                              size="small"
+                              sx={{ bgcolor: item.chipBg, fontWeight: 600 }}
+                            />
+                          ))
                       ) : (
                         <Typography variant="body2" color="text.secondary">
                           No rooms
+                        </Typography>
+                      )}
+                      {data.length > 8 && (
+                        <Typography variant="body2" color="text.secondary">
+                          +{data.length - 8} more
                         </Typography>
                       )}
                     </Box>
@@ -339,4 +363,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default DayBasedReportPage;
