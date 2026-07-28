@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context';
 import { GetDataList, GetSingleData, UpdateData } from '@/utils/ApiFunctions';
@@ -15,7 +15,6 @@ import {
   CardContent,
   Chip,
   Divider,
-  Grid,
   Paper,
   Stack,
   Typography,
@@ -23,12 +22,13 @@ import {
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
-const Page = () => {
+const RoomTransferPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bookingId = searchParams.get('bookingId');
   const { auth } = useAuth();
-  const [selectedRooms, setSelectedRooms] = useState([]);
+  const [transferSelectionKeys, setTransferSelectionKeys] = useState(new Set());
+  const [replacementAssignments, setReplacementAssignments] = useState({});
   const [loading, setLoading] = useState(false);
 
   const booking = GetSingleData({
@@ -37,72 +37,37 @@ const Page = () => {
     id: bookingId,
   });
   const rooms = GetDataList({ auth, endPoint: 'rooms' });
-  const categories = GetDataList({ auth, endPoint: 'room-categories' });
   const allBookings = GetDataList({ auth, endPoint: 'room-bookings' });
 
-  const dateRange = useMemo(() => {
-    if (!booking?.checkin_date || !booking?.checkout_date) return [];
+  const bookingTokens = useMemo(
+    () =>
+      booking?.room_tokens
+        ?.map((token) => ({
+          ...token,
+          key: `${token.room}-${token.in_date}-${token.out_date}`,
+        }))
+        .sort((a, b) => {
+          if (a.in_date !== b.in_date)
+            return a.in_date.localeCompare(b.in_date);
+          if (a.room !== b.room) return a.room.localeCompare(b.room);
+          return 0;
+        }) || [],
+    [booking?.room_tokens],
+  );
 
-    const dates = [];
-    let current = dayjs(booking.checkin_date);
-    const checkout = dayjs(booking.checkout_date);
+  const getTokenKey = (token) => token.key;
 
-    while (current.isBefore(checkout, 'day')) {
-      dates.push(current.format('YYYY-MM-DD'));
-      current = current.add(1, 'day');
-    }
+  const getTokenRange = (token) => ({
+    inDate: dayjs(token.in_date),
+    outDate: dayjs(token.out_date),
+  });
 
-    return dates;
-  }, [booking?.checkin_date, booking?.checkout_date]);
+  const rangesOverlap = (a, b) =>
+    a.inDate.isBefore(b.outDate, 'day') && b.inDate.isBefore(a.outDate, 'day');
 
-  const initializeSelectedRooms = () => {
-    if (!booking?.room_tokens?.length || !rooms?.length) return [];
-
-    const selections = [];
-
-    booking.room_tokens.forEach((token) => {
-      const inDate = dayjs(token.in_date);
-      const outDate = dayjs(token.out_date);
-      let current = inDate;
-
-      while (current.isBefore(outDate, 'day')) {
-        const dateString = current.format('YYYY-MM-DD');
-        selections.push({
-          date: dateString,
-          room_no: token.room,
-          roomDocumentId: rooms.find((room) => room.room_no === token.room)
-            ?.documentId,
-        });
-        current = current.add(1, 'day');
-      }
-    });
-
-    return selections;
-  };
-
-  useEffect(() => {
-    if (!booking?.documentId || selectedRooms.length > 0) return;
-    setSelectedRooms(initializeSelectedRooms());
-  }, [booking?.documentId, selectedRooms.length, booking?.room_tokens, rooms]);
-
-  const roomsByCategory = useMemo(() => {
-    if (!rooms || !categories) return {};
-
-    const grouped = {};
-    categories.forEach((cat) => {
-      grouped[cat.documentId] = {
-        name: cat.name,
-        rooms: rooms.filter(
-          (room) => room.category?.documentId === cat.documentId,
-        ),
-      };
-    });
-    return grouped;
-  }, [rooms, categories]);
-
-  const getOccupiedRoomNosForDate = (date) => {
+  const getOccupiedRoomNosForToken = (token) => {
     const occupied = new Set();
-    const selectedDate = dayjs(date);
+    const tokenRange = getTokenRange(token);
 
     allBookings?.forEach((otherBooking) => {
       if (
@@ -113,15 +78,9 @@ const Page = () => {
         return;
       }
 
-      otherBooking?.room_tokens?.forEach((token) => {
-        const inDate = dayjs(token.in_date);
-        const outDate = dayjs(token.out_date);
-        const occupiedOnDate =
-          selectedDate.isSame(inDate, 'day') ||
-          (selectedDate.isAfter(inDate, 'day') &&
-            selectedDate.isBefore(outDate, 'day'));
-
-        if (!occupiedOnDate) return;
+      otherBooking?.room_tokens?.forEach((otherToken) => {
+        const otherRange = getTokenRange(otherToken);
+        if (!rangesOverlap(tokenRange, otherRange)) return;
 
         const shouldBlock =
           otherBooking.booking_status === 'Blocked' ||
@@ -129,103 +88,93 @@ const Page = () => {
             otherBooking.checked_out !== true);
 
         if (shouldBlock) {
-          occupied.add(token.room);
+          occupied.add(otherToken.room);
         }
       });
+    });
+
+    booking?.room_tokens?.forEach((otherToken) => {
+      const otherRange = getTokenRange(otherToken);
+      if (!rangesOverlap(tokenRange, otherRange)) return;
+      if (
+        otherToken.room === token.room &&
+        otherToken.in_date === token.in_date &&
+        otherToken.out_date === token.out_date
+      ) {
+        return;
+      }
+      occupied.add(otherToken.room);
     });
 
     return occupied;
   };
 
-  const getAvailableRoomsForDate = (date) => {
-    const occupied = getOccupiedRoomNosForDate(date);
-    return Object.values(roomsByCategory).flatMap((catData) =>
-      catData.rooms.filter((room) => !occupied.has(room.room_no)),
+  const getAvailableReplacementRoomsForToken = (token) => {
+    const occupied = getOccupiedRoomNosForToken(token);
+    return rooms?.filter(
+      (room) => room.room_no !== token.room && !occupied.has(room.room_no),
     );
   };
 
-  const getCurrentSelectionForDate = (date) => {
-    return selectedRooms.find((item) => item.date === date);
-  };
-
-  const handleSelectRoomForDate = (date, room) => {
-    setSelectedRooms((prev) => {
-      const existing = prev.find((item) => item.date === date);
-      if (existing && existing.room_no === room.room_no) {
-        return prev.filter((item) => item.date !== date);
-      }
-      return prev
-        .filter((item) => item.date !== date)
-        .concat({
-          date,
-          room_no: room.room_no,
-          roomDocumentId: room.documentId,
+  const handleToggleTokenSelection = (token) => {
+    const key = getTokenKey(token);
+    setTransferSelectionKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+        setReplacementAssignments((assignments) => {
+          const nextAssignments = { ...assignments };
+          delete nextAssignments[key];
+          return nextAssignments;
         });
+      } else {
+        next.add(key);
+      }
+      return next;
     });
   };
 
-  const buildRoomTokens = () => {
-    const grouped = selectedRooms.reduce((acc, selection) => {
-      const roomKey = selection.room_no;
-      if (!acc[roomKey]) acc[roomKey] = [];
-      acc[roomKey].push(selection.date);
-      return acc;
-    }, {});
+  const handleAssignReplacement = (token, room) => {
+    const key = getTokenKey(token);
+    setTransferSelectionKeys((prev) => new Set(prev).add(key));
+    setReplacementAssignments((prev) => ({
+      ...prev,
+      [key]: {
+        room_no: room.room_no,
+        roomDocumentId: room.documentId,
+      },
+    }));
+  };
 
-    const tokens = [];
+  const getReplacementForToken = (token) =>
+    replacementAssignments[getTokenKey(token)] || null;
 
-    Object.entries(grouped).forEach(([roomNo, dates]) => {
-      const sortedDates = [...new Set(dates)].sort();
-      if (!sortedDates.length) return;
-
-      let currentBlock = [sortedDates[0]];
-
-      const pushToken = (blockDates) => {
-        const in_date = blockDates[0];
-        const outDateObj = new Date(blockDates[blockDates.length - 1]);
-        outDateObj.setDate(outDateObj.getDate() + 1);
-        const out_date = outDateObj.toISOString().split('T')[0];
-        const days = blockDates.length;
-        const currentRoom = rooms?.find((room) => room.room_no === roomNo);
-        const category = currentRoom?.category;
-        const rate = currentRoom?.rate ?? category?.tariff ?? 0;
-        const gst = currentRoom?.gst ?? category?.gst ?? 0;
-
-        tokens.push({
-          room: roomNo,
-          hsn: category?.hsn || '',
-          item: category?.name || 'Room',
-          rate,
-          gst,
-          amount: (rate + (rate * gst) / 100) * days,
-          days,
-          invoice: false,
-          in_date,
-          out_date,
-        });
+  const buildRoomTokens = () =>
+    booking?.room_tokens?.map((token) => {
+      const replacement = getReplacementForToken(token);
+      if (!replacement) return token;
+      return {
+        ...token,
+        room: replacement.room_no,
       };
-
-      for (let i = 1; i < sortedDates.length; i++) {
-        const prev = new Date(sortedDates[i - 1]);
-        const curr = new Date(sortedDates[i]);
-        if ((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24) === 1) {
-          currentBlock.push(sortedDates[i]);
-        } else {
-          pushToken(currentBlock);
-          currentBlock = [sortedDates[i]];
-        }
-      }
-      pushToken(currentBlock);
-    });
-
-    return tokens;
-  };
+    }) || [];
 
   const handleSave = async () => {
     if (!booking?.documentId) return;
 
-    if (selectedRooms.length === 0) {
-      ErrorToast('Please select at least one room for the booking.');
+    const selectedKeys = Array.from(transferSelectionKeys);
+    if (!selectedKeys.length) {
+      ErrorToast('Please select at least one room to transfer.');
+      return;
+    }
+
+    const missingReplacement = selectedKeys.some(
+      (key) => !replacementAssignments[key],
+    );
+    if (missingReplacement) {
+      ErrorToast(
+        'Please assign a replacement room for every selected transfer.',
+      );
       return;
     }
 
@@ -234,7 +183,12 @@ const Page = () => {
       const roomTokens = buildRoomTokens();
       const uniqueRoomIds = [
         ...new Set(
-          selectedRooms.map((item) => item.roomDocumentId).filter(Boolean),
+          roomTokens
+            .map(
+              (token) =>
+                rooms.find((room) => room.room_no === token.room)?.documentId,
+            )
+            .filter(Boolean),
         ),
       ];
 
@@ -284,8 +238,8 @@ const Page = () => {
                 Transfer
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Review the current room assignment and move the booking to an
-                available room for the selected dates.
+                First select the token(s) you want to transfer, then assign an
+                available replacement room for each one.
               </Typography>
             </Box>
             <Chip
@@ -310,59 +264,97 @@ const Page = () => {
           </Paper>
 
           <AnimatePresence mode="popLayout">
-            {dateRange.map((date, index) => {
-              const selection = getCurrentSelectionForDate(date);
-              const availableRooms = getAvailableRoomsForDate(date);
+            {bookingTokens.map((token, index) => {
+              const availableReplacements =
+                getAvailableReplacementRoomsForToken(token);
+              const replacement = getReplacementForToken(token);
+              const selected = transferSelectionKeys.has(getTokenKey(token));
+
               return (
                 <motion.div
-                  key={date}
+                  key={token.key}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
                   <Card sx={{ mb: 2, borderRadius: 2, overflow: 'hidden' }}>
                     <CardContent>
-                      <Stack
-                        direction={{ xs: 'column', md: 'row' }}
-                        justifyContent="space-between"
-                        alignItems={{ xs: 'flex-start', md: 'center' }}
-                        spacing={2}
-                      >
-                        <Box>
-                          <Typography fontWeight={700}>
-                            {dayjs(date).format('ddd, DD MMM YYYY')}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Current room: {selection?.room_no || 'Not selected'}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {availableRooms.length > 0 ? (
-                            availableRooms.map((room) => {
-                              const isSelected =
-                                selection?.room_no === room.room_no;
-                              return (
-                                <Button
-                                  key={`${room.documentId}-${date}`}
-                                  variant={
-                                    isSelected ? 'contained' : 'outlined'
-                                  }
-                                  size="small"
-                                  onClick={() =>
-                                    handleSelectRoomForDate(date, room)
-                                  }
-                                  sx={{ borderRadius: 2 }}
-                                >
-                                  {room.room_no}
-                                </Button>
-                              );
-                            })
-                          ) : (
-                            <Typography variant="body2" color="text.secondary">
-                              No available rooms for this date.
+                      <Stack spacing={2}>
+                        <Stack
+                          direction={{ xs: 'column', md: 'row' }}
+                          justifyContent="space-between"
+                          alignItems={{ xs: 'flex-start', md: 'center' }}
+                          spacing={2}
+                        >
+                          <Box>
+                            <Typography fontWeight={700}>
+                              Room {token.room}
                             </Typography>
-                          )}
-                        </Box>
+                            <Typography variant="body2" color="text.secondary">
+                              {dayjs(token.in_date).format('DD MMM YYYY')} to{' '}
+                              {dayjs(token.out_date).format('DD MMM YYYY')}
+                            </Typography>
+                          </Box>
+                          <Button
+                            variant={selected ? 'contained' : 'outlined'}
+                            onClick={() => handleToggleTokenSelection(token)}
+                          >
+                            {selected
+                              ? 'Selected for transfer'
+                              : 'Select to transfer'}
+                          </Button>
+                        </Stack>
+
+                        {selected && (
+                          <Box>
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight={700}
+                              sx={{ mb: 1 }}
+                            >
+                              Assign replacement room
+                            </Typography>
+                            <Stack direction="row" flexWrap="wrap" gap={1}>
+                              {availableReplacements.length > 0 ? (
+                                availableReplacements.map((room) => {
+                                  const assigned =
+                                    replacement?.room_no === room.room_no;
+                                  return (
+                                    <Button
+                                      key={`${room.documentId}-${token.key}`}
+                                      variant={
+                                        assigned ? 'contained' : 'outlined'
+                                      }
+                                      size="small"
+                                      onClick={() =>
+                                        handleAssignReplacement(token, room)
+                                      }
+                                    >
+                                      {room.room_no}
+                                    </Button>
+                                  );
+                                })
+                              ) : (
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  No available replacement rooms for this range.
+                                </Typography>
+                              )}
+                            </Stack>
+
+                            {replacement && (
+                              <Box sx={{ mt: 1 }}>
+                                <Chip
+                                  label={`Replacement: ${replacement.room_no}`}
+                                  size="small"
+                                  color="success"
+                                />
+                              </Box>
+                            )}
+                          </Box>
+                        )}
                       </Stack>
                     </CardContent>
                   </Card>
@@ -390,4 +382,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default RoomTransferPage;
