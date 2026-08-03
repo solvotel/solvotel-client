@@ -73,7 +73,11 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
       const checkOut = bk.checkout_date;
 
       // Check if this booking applies to the selected date (include same-day bookings)
-      const bookingAppliesToDate = isDateInRange(selectedDate, checkIn, checkOut);
+      const bookingAppliesToDate = isDateInRange(
+        selectedDate,
+        checkIn,
+        checkOut,
+      );
 
       if (!bookingAppliesToDate) return;
 
@@ -83,7 +87,11 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
         const tokenOutDate = token.out_date;
 
         // Check if this specific token applies to the selected date
-        const tokenAppliesToDate = isDateInRange(selectedDate, tokenInDate, tokenOutDate);
+        const tokenAppliesToDate = isDateInRange(
+          selectedDate,
+          tokenInDate,
+          tokenOutDate,
+        );
 
         if (!tokenAppliesToDate) return;
 
@@ -211,38 +219,63 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
               }}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography sx={{ fontWeight: 600, flex: 1 }}>
-                  📆 {formatDate(date)}
-                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    width: '100%',
+                    gap: 1,
+                  }}
+                >
+                  <Typography
+                    sx={{ fontWeight: 600, flex: { xs: 'none', sm: 1 } }}
+                  >
+                    📆 {formatDate(date)}
+                  </Typography>
 
-                <Typography
-                  variant="body2"
-                  color="green"
-                  sx={{ fontWeight: 500, mr: 4 }}
-                >
-                  Available ({availableCount})
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="#0284c7"
-                  sx={{ fontWeight: 500, mr: 4 }}
-                >
-                  Checked In ({checkedInCount})
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="purple"
-                  sx={{ fontWeight: 500, mr: 4 }}
-                >
-                  Confirmed ({confirmedCount})
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="orange"
-                  sx={{ fontWeight: 500 }}
-                >
-                  Blocked ({blockedCount})
-                </Typography>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      color="green"
+                      sx={{ fontWeight: 500, mr: { xs: 0, sm: 4 } }}
+                    >
+                      Available ({availableCount})
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      color="#0284c7"
+                      sx={{ fontWeight: 500, mr: { xs: 0, sm: 4 } }}
+                    >
+                      Checked In ({checkedInCount})
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      color="purple"
+                      sx={{ fontWeight: 500, mr: { xs: 0, sm: 4 } }}
+                    >
+                      Confirmed ({confirmedCount})
+                    </Typography>
+
+                    <Typography
+                      variant="body2"
+                      color="orange"
+                      sx={{ fontWeight: 500 }}
+                    >
+                      Blocked ({blockedCount})
+                    </Typography>
+                  </Box>
+                </Box>
               </AccordionSummary>
 
               <AccordionDetails>

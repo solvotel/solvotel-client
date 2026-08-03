@@ -49,6 +49,7 @@ import {
   PartyPopper,
   LogOut,
   HandPlatter,
+  CalendarIcon,
 } from 'lucide-react';
 import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutlined';
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
@@ -245,7 +246,7 @@ const HotelNav = ({ auth, logout }) => {
                       },
                       {
                         href: '/front-office/day-based-report',
-                        icon: <CalendarMonthIcon size={16} />,
+                        icon: <CalendarIcon size={16} />,
                         label: 'Day Based Report',
                       },
                     ]}
@@ -727,6 +728,18 @@ const HotelNav = ({ auth, logout }) => {
                         <ClipboardList size={16} />
                       </ListItemIcon>
                       <ListItemText primary="Invoice Report" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href="/front-office/day-based-report"
+                      onClick={toggleDrawer(false)}
+                    >
+                      <ListItemIcon>
+                        <CalendarIcon size={16} />
+                      </ListItemIcon>
+                      <ListItemText primary="Day Based Report" />
                     </ListItemButton>
                   </ListItem>
                 </List>

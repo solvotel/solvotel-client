@@ -362,7 +362,7 @@ export default function BookingServiceActionsCard({
                 booking.booking_status === 'Blocked'
               }
             >
-              Edit Room
+              Shift Room
             </Button>
           </Grid>
           {/* Manage Services */}

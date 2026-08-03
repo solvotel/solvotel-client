@@ -235,10 +235,10 @@ const RoomTransferPage = () => {
             <Box>
               <Typography variant="h5" fontWeight={700} color="primary">
                 <SwapHorizIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                Edit Room
+                Shift Room
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                First select the token(s) you want to edit, then assign an
+                First select the token(s) you want to shift, then assign an
                 available replacement room for each one.
               </Typography>
             </Box>
