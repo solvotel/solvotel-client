@@ -271,24 +271,17 @@ const DayBasedReportPage = () => {
                       }}
                     >
                       {data.length > 0 ? (
-                        data
-                          .slice(0, 8)
-                          .map((room) => (
-                            <Chip
-                              key={`${room.room_no}-${room.bookingId}`}
-                              label={room.room_no}
-                              size="small"
-                              sx={{ bgcolor: item.chipBg, fontWeight: 600 }}
-                            />
-                          ))
+                        data.map((room) => (
+                          <Chip
+                            key={`${room.room_no}-${room.bookingId}`}
+                            label={room.room_no}
+                            size="small"
+                            sx={{ bgcolor: item.chipBg, fontWeight: 600 }}
+                          />
+                        ))
                       ) : (
                         <Typography variant="body2" color="text.secondary">
                           No rooms
-                        </Typography>
-                      )}
-                      {data.length > 8 && (
-                        <Typography variant="body2" color="text.secondary">
-                          +{data.length - 8} more
                         </Typography>
                       )}
                     </Box>
