@@ -46,9 +46,10 @@ const BookingListPage = () => {
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const searchParams = useSearchParams();
   const paramsStatus = searchParams.get('bookingStatus');
+  const paramsDate = searchParams.get('date');
   const todaysDate = GetTodaysDate().dateString;
   const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState(todaysDate);
+  const [endDate, setEndDate] = useState(paramsDate || todaysDate);
   const [bookingStatus, setBookingStatus] = useState('');
   const [searchBookingId, setSearchBookingId] = useState('');
   const data = GetDataList({

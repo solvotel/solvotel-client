@@ -318,7 +318,7 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
                       <Link
                         href={
                           !col.title.startsWith('Available')
-                            ? `/front-office/room-booking?bookingStatus=${col.title}`
+                            ? `/front-office/room-booking?bookingStatus=${col.title}&date=${date.toISOString().split('T')[0]}`
                             : '/front-office/room-booking'
                         }
                         style={{ textDecoration: 'none' }}

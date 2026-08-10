@@ -32,6 +32,13 @@ const Highlight = styled(Typography)({
   fontWeight: 600,
 });
 
+const mealPlan = [
+  { value: 'EP', label: 'EP (Room Only)' },
+  { value: 'CP', label: 'CP (Room + Breakfast)' },
+  { value: 'AP', label: 'AP (Room + Breakfast + Lunch + Dinners)' },
+  { value: 'MAP', label: 'MAP (Room + Breakfast + Lunch or Dinner)' },
+];
+
 const BookingSlip = React.forwardRef((props, ref) => {
   const { booking, hotel } = props;
 
@@ -157,7 +164,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
           flexDirection: { xs: 'column', sm: 'row' },
         }}
       >
-        <Box sx={{ flex: 2, border: '1px solid #747474ff', p: 2 }}>
+        <Box sx={{ flex: 1.5, border: '1px solid #747474ff', p: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
             Guest Information
           </Typography>
@@ -182,10 +189,12 @@ const BookingSlip = React.forwardRef((props, ref) => {
             Booking Details
           </Typography>
           <Typography>
-            <b>Check‑In:</b> {GetCustomDate(booking?.checkin_date)}
+            <b>Check‑In:</b> {GetCustomDate(booking?.checkin_date)}{' '}
+            {booking?.checkin_time || ''}
           </Typography>
           <Typography>
-            <b>Check‑Out:</b> {GetCustomDate(booking?.checkout_date)}
+            <b>Check‑Out:</b> {GetCustomDate(booking?.checkout_date)}{' '}
+            {booking?.checkout_time || ''}
           </Typography>
           {/* <Typography>
             <b>Type:</b> {booking?.booking_type}
@@ -200,10 +209,12 @@ const BookingSlip = React.forwardRef((props, ref) => {
           </Typography>
           <Typography>
             <b>No. of Guest:</b> {booking?.adult || '0'} Adults,{' '}
-            {booking?.child || '0'} Child
+            {booking?.children || '0'} Child
           </Typography>
           <Typography>
-            <b>Meal Plan:</b> {booking?.meal_plan || '-'}
+            <b>Meal Plan:</b>{' '}
+            {mealPlan.find((plan) => plan.value === booking?.meal_plan)
+              ?.label || '-'}
           </Typography>
         </Box>
       </Box>
@@ -215,7 +226,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
           flexDirection: { xs: 'column', sm: 'row' },
         }}
       >
-        <Box sx={{ flex: 2, border: '1px solid #747474ff', p: 2 }}>
+        <Box sx={{ flex: 1.5, border: '1px solid #747474ff', p: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
             Payment Summary
           </Typography>
