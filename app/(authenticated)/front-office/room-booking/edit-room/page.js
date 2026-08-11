@@ -153,24 +153,10 @@ const RoomTransferPage = () => {
 
   const getRoomTokenDetailsFromRoom = (room) => {
     const category = room.category || {};
-    const item = category.name || room.item || room.room_type || 'Room';
-    const rate = category.tariff ?? room.rate;
-    const gst = category.gst ?? room.gst;
-    const hsn = category.hsn ?? room.hsn;
 
-    const replacement = {
-      item,
-      hsn,
+    return {
+      item: category.name || room.item || room.room_type || 'Room',
     };
-
-    if (rate !== undefined && rate !== null) replacement.rate = Number(rate);
-    if (gst !== undefined && gst !== null) replacement.gst = Number(gst);
-    if (replacement.rate !== undefined && replacement.gst !== undefined) {
-      replacement.amount =
-        replacement.rate + (replacement.rate * replacement.gst) / 100;
-    }
-
-    return replacement;
   };
 
   const expandedBookingDays = useMemo(() => {
@@ -261,13 +247,20 @@ const RoomTransferPage = () => {
 
     expandedBookingDays.forEach((row) => {
       const replacement = getReplacementForRow(row);
+
+      // Only room number and category/item come from replacement room.
+      // All billing values remain from the original token.
       const room = replacement?.room_no || row.room;
-      const date = dayjs(row.date);
-      const rate = replacement?.rate ?? row.rate;
-      const gst = replacement?.gst ?? row.gst;
       const item = replacement?.item ?? row.item;
-      const hsn = replacement?.hsn ?? row.hsn;
-      const amount = replacement?.amount ?? row.amount ?? row.perDayAmount;
+
+      // IMPORTANT:
+      // Keep these values from the OLD room/token.
+      const rate = row.rate;
+      const gst = row.gst;
+      const hsn = row.hsn;
+      const amount = row.amount ?? row.perDayAmount;
+
+      const date = dayjs(row.date);
 
       const baseToken = {
         room,
@@ -275,6 +268,8 @@ const RoomTransferPage = () => {
         gst,
         item,
         hsn,
+        in_date: row.date,
+        out_date: date.add(1, 'day').format('YYYY-MM-DD'),
         invoice: row.invoice,
         amount,
       };
@@ -283,6 +278,7 @@ const RoomTransferPage = () => {
         const in_date = tokenData.in_date;
         const out_date = tokenData.out_date;
         const days = dayjs(out_date).diff(dayjs(in_date), 'day');
+
         mergedTokens.push({
           ...tokenData,
           id: `${tokenData.room}-${in_date}-${out_date}`,
@@ -291,31 +287,30 @@ const RoomTransferPage = () => {
       };
 
       if (!mergedTokens.length) {
-        addToken({
-          ...baseToken,
-          in_date: date.format('YYYY-MM-DD'),
-          out_date: date.add(1, 'day').format('YYYY-MM-DD'),
-        });
+        addToken(baseToken);
         return;
       }
 
       const lastToken = mergedTokens[mergedTokens.length - 1];
       const lastOutDate = dayjs(lastToken.out_date);
 
-      if (lastToken.room === room && date.isSame(lastOutDate, 'day')) {
+      if (
+        lastToken.room === room &&
+        lastToken.item === item &&
+        date.isSame(lastOutDate, 'day')
+      ) {
         lastToken.out_date = date.add(1, 'day').format('YYYY-MM-DD');
+
         lastToken.amount = (lastToken.amount || 0) + amount;
+
         lastToken.days = dayjs(lastToken.out_date).diff(
           dayjs(lastToken.in_date),
           'day',
         );
+
         lastToken.id = `${lastToken.room}-${lastToken.in_date}-${lastToken.out_date}`;
       } else {
-        addToken({
-          ...baseToken,
-          in_date: date.format('YYYY-MM-DD'),
-          out_date: date.add(1, 'day').format('YYYY-MM-DD'),
-        });
+        addToken(baseToken);
       }
     });
 
