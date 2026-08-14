@@ -70,10 +70,16 @@ const RoomAvailabilityStep = ({
     return dates;
   }, [bookingDetails.checkin_date, bookingDetails.checkout_date]);
 
-  const [expandedDates, setExpandedDates] = useState(() => new Set());
+  const [expandedDates, setExpandedDates] = useState(() => {
+    const s = new Set();
+    if (dateRange && dateRange.length > 0) s.add(dateRange[0]);
+    return s;
+  });
 
   useEffect(() => {
-    setExpandedDates(new Set());
+    const s = new Set();
+    if (dateRange && dateRange.length > 0) s.add(dateRange[0]);
+    setExpandedDates(s);
   }, [dateRange]);
 
   const toggleDateExpansion = (date) => {
