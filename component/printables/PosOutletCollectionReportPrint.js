@@ -124,7 +124,11 @@ const PosOutletCollectionReportPrint = React.forwardRef((props, ref) => {
                   {new Date(payment.time_stamp).toLocaleString()}
                 </BodyCell>
                 <BodyCell>{payment.customer_name || 'N/A'}</BodyCell>
-                <BodyCell>{payment.mop}</BodyCell>
+                <BodyCell>
+                  {payment.mop
+                    ? `${payment.mop}${payment.remarks ? `: ${payment.remarks}` : ''}`
+                    : 'N/A'}
+                </BodyCell>
                 <BodyCell>₹{payment.amount.toFixed(2)}</BodyCell>
               </TableRow>
             ))}

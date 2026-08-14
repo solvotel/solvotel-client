@@ -184,6 +184,7 @@ export default function Page({ params }) {
                   <TableCell>Timestamp</TableCell>
                   <TableCell>MOP</TableCell>
                   <TableCell>Amount</TableCell>
+                  <TableCell>Remark</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -196,6 +197,7 @@ export default function Page({ params }) {
                     <TableCell>
                       ₹{parseFloat(payment.amount).toFixed(2)}
                     </TableCell>
+                    <TableCell>{payment.remark}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

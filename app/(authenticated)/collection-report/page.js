@@ -138,6 +138,7 @@ const CollectionReportPage = () => {
               time_stamp: p.time_stamp,
               mop: p.mop,
               amount: Number(p.amount) || 0,
+              remarks: p.remark || '',
             });
           }
         });

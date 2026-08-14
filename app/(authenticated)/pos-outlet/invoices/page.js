@@ -217,6 +217,7 @@ const Page = () => {
       time_stamp: new Date().toISOString(),
       mop: '',
       amount: due,
+      remark: '',
     };
     setFormData({
       ...formData,
@@ -1059,9 +1060,11 @@ const Page = () => {
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      {['Timestamp', 'MOP', 'Amount', 'Actions'].map((h) => (
-                        <TableCell key={h}>{h}</TableCell>
-                      ))}
+                      {['Timestamp', 'MOP', 'Amount', 'Remark', 'Actions'].map(
+                        (h) => (
+                          <TableCell key={h}>{h}</TableCell>
+                        ),
+                      )}
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -1111,6 +1114,21 @@ const Page = () => {
                               />
                             </TableCell>
                             <TableCell>
+                              <TextField
+                                size="small"
+                                value={payment.remark ?? ''}
+                                inputProps={{ inputMode: 'text' }}
+                                onChange={(e) =>
+                                  handleUpdatePayment(
+                                    idx,
+                                    'remark',
+                                    e.target.value,
+                                  )
+                                }
+                                sx={{ width: 200 }}
+                              />
+                            </TableCell>
+                            <TableCell>
                               <IconButton
                                 color="error"
                                 onClick={() => handleRemovePayment(idx)}
@@ -1124,13 +1142,13 @@ const Page = () => {
                       </>
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} align="center">
+                        <TableCell colSpan={5} align="center">
                           Payment not added yet!!
                         </TableCell>
                       </TableRow>
                     )}
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={5} align="center">
                         <Button
                           variant="outlined"
                           color="secondary"

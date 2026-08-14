@@ -64,6 +64,7 @@ const CollectionReportClient = () => {
               customer_name: invoice.customer_name || 'N/A',
               time_stamp: payment.time_stamp,
               mop: payment.mop,
+              remarks: payment.remark || '',
               amount: parseFloat(payment.amount) || 0,
             });
           }
@@ -111,7 +112,9 @@ const CollectionReportClient = () => {
       'Invoice No': payment.invoice_no,
       'Date & Time': new Date(payment.time_stamp).toLocaleString(),
       'Customer Name': payment.customer_name,
-      'Payment Method': payment.mop,
+      'Payment Method': payment.mop
+        ? `${payment.mop}${payment.remarks ? `: ${payment.remarks}` : ''}`
+        : 'N/A',
       'Amount ₹': payment.amount,
     }));
 
@@ -279,7 +282,11 @@ const CollectionReportClient = () => {
                         {new Date(payment.time_stamp).toLocaleString()}
                       </TableCell>
                       <TableCell>{payment.customer_name}</TableCell>
-                      <TableCell>{payment.mop}</TableCell>
+                      <TableCell>
+                        {payment.mop
+                          ? `${payment.mop}${payment.remarks ? `: ${payment.remarks}` : ''}`
+                          : 'N/A'}
+                      </TableCell>
                       <TableCell>
                         <Typography fontWeight="bold" color="success.main">
                           ₹{payment.amount.toFixed(2)}
