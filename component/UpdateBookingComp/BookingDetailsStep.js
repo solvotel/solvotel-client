@@ -202,6 +202,7 @@ export default function BookingDetailsStep({
           fullWidth
           value={bookingDetails.checkin_time || ''}
           onChange={(e) => handleChange('checkin_time', e.target.value)}
+          type="time"
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>
@@ -210,6 +211,7 @@ export default function BookingDetailsStep({
           fullWidth
           value={bookingDetails.checkout_time || ''}
           onChange={(e) => handleChange('checkout_time', e.target.value)}
+          type="time"
         />
       </Grid>
       <Grid size={{ xs: 12, sm: 6 }}>

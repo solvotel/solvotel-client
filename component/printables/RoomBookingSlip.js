@@ -15,6 +15,7 @@ import { styled } from '@mui/system';
 import { GetCustomDate } from '@/utils/DateFetcher';
 import { CalculateDays } from '@/utils/CalculateDays';
 import { amountToWords } from '@/utils/AmountToWords';
+import { ConvertTo12HourFormat } from '@/utils/Timefetcher';
 
 // Replace theme colors with fixed hex values
 
@@ -190,11 +191,15 @@ const BookingSlip = React.forwardRef((props, ref) => {
           </Typography>
           <Typography>
             <b>Check‑In:</b> {GetCustomDate(booking?.checkin_date)}{' '}
-            {booking?.checkin_time || ''}
+            {booking?.checkin_time
+              ? `(${ConvertTo12HourFormat(booking.checkin_time)})`
+              : ''}
           </Typography>
           <Typography>
             <b>Check‑Out:</b> {GetCustomDate(booking?.checkout_date)}{' '}
-            {booking?.checkout_time || ''}
+            {booking?.checkout_time
+              ? `(${ConvertTo12HourFormat(booking.checkout_time)})`
+              : ''}
           </Typography>
           {/* <Typography>
             <b>Type:</b> {booking?.booking_type}

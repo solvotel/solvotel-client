@@ -14,6 +14,7 @@ import {
   SupervisedUserCircle,
 } from '@mui/icons-material';
 import { GetCustomDate } from '@/utils/DateFetcher';
+import { ConvertTo12HourFormat } from '@/utils/Timefetcher';
 
 const getStatusConfig = (status) => {
   switch (status) {
@@ -90,19 +91,29 @@ export default function BookingDetailsCard({ booking }) {
       <Box sx={{ p: 2 }}>
         <Stack spacing={1} divider={<Divider />}>
           {/* Dates & Contact */}
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            flexWrap="wrap"
+            spacing={5}
+          >
             <Stack direction="row" spacing={1} alignItems="center">
               <CalendarMonth color="success" />
               <Typography variant="body2">
                 <strong>Check-In:</strong>{' '}
-                {GetCustomDate(booking?.checkin_date)}
+                {GetCustomDate(booking?.checkin_date)}{' '}
+                {booking?.checkin_time
+                  ? `(${ConvertTo12HourFormat(booking.checkin_time)})`
+                  : ''}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               <CalendarMonth color="error" />
               <Typography variant="body2">
                 <strong>Check-Out:</strong>{' '}
-                {GetCustomDate(booking?.checkout_date)}
+                {GetCustomDate(booking?.checkout_date)}{' '}
+                {booking?.checkout_time
+                  ? `(${ConvertTo12HourFormat(booking.checkout_time)})`
+                  : ''}
               </Typography>
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
