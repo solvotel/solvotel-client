@@ -354,7 +354,7 @@ export default function BookingServiceActionsCard({
               sx={{ textTransform: 'none' }}
               onClick={() =>
                 router.push(
-                  `/front-office/room-booking/edit-room?bookingId=${booking?.documentId}`,
+                  `/front-office/room-booking/shift-room?bookingId=${booking?.documentId}`,
                 )
               }
               disabled={
