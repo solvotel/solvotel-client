@@ -71,9 +71,30 @@ export function amountToWords(num) {
   const numericValue = Number(num);
   if (Number.isNaN(numericValue)) return 'INR Zero Only';
 
-  const absoluteValue = Math.floor(Math.abs(numericValue));
-  const words = numberToIndianWords(absoluteValue);
-  const formatted = words.charAt(0).toUpperCase() + words.slice(1);
+  const absoluteValue = Math.abs(numericValue);
+  const rupees = Math.floor(absoluteValue);
+  const paise = Math.round((absoluteValue - rupees) * 100);
 
-  return `INR ${formatted} Only`;
+  let result = '';
+
+  if (rupees > 0) {
+    const rupeesWords = numberToIndianWords(rupees);
+    result = rupeesWords.charAt(0).toUpperCase() + rupeesWords.slice(1);
+  }
+
+  if (paise > 0) {
+    const paiseWords = numberToIndianWords(paise);
+    if (result) {
+      result += ` and ${paiseWords} paise`;
+    } else {
+      result =
+        paiseWords.charAt(0).toUpperCase() + paiseWords.slice(1) + ' paise';
+    }
+  }
+
+  if (!result) {
+    result = 'Zero';
+  }
+
+  return `INR ${result} Only`;
 }

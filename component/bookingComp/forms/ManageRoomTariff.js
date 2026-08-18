@@ -16,6 +16,10 @@ import {
   Stack,
   Fade,
   Button,
+  Card,
+  CardContent,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { SuccessToast } from '@/utils/GenerateToast';
@@ -31,10 +35,64 @@ export default function ManageRoomTariff({
   const { mutate } = useSWRConfig();
   const [roomTokens, setRoomTokens] = useState([...booking?.room_tokens]);
   const [highlightedIndex, setHighlightedIndex] = useState(null);
+  const [useBulkPrice, setUseBulkPrice] = useState(false);
+  const [bulkPrice, setBulkPrice] = useState('');
+  const [bulkGst, setBulkGst] = useState('');
 
   useEffect(() => {
     setRoomTokens([...(booking?.room_tokens || [])]);
   }, [booking?.room_tokens]);
+
+  const applyBulkChanges = React.useCallback(
+    (priceValue, gstValue) => {
+      const numericPrice = parseFloat(priceValue) || 0;
+      const numericGst = parseFloat(gstValue) || 0;
+      const hasPrice = priceValue !== '' && numericPrice >= 0;
+      const hasGst = gstValue !== '' && numericGst >= 0;
+
+      if (useBulkPrice && (hasPrice || hasGst)) {
+        const updated = roomTokens.map((room) => {
+          const rate = hasPrice ? numericPrice : parseFloat(room.rate) || 0;
+          const gst = hasGst ? numericGst : parseFloat(room.gst) || 0;
+          const days = parseFloat(room.days) || 1;
+          const newAmount = (rate + (rate * gst) / 100) * days;
+
+          return {
+            ...room,
+            rate: parseFloat(rate.toFixed(2)),
+            gst: parseFloat(gst.toFixed(2)),
+            amount: parseFloat(newAmount.toFixed(2)),
+          };
+        });
+        setRoomTokens(updated);
+      }
+    },
+    [roomTokens, setRoomTokens, useBulkPrice],
+  );
+
+  useEffect(() => {
+    if (useBulkPrice) {
+      applyBulkChanges(bulkPrice, bulkGst);
+    }
+  }, [useBulkPrice, bulkPrice, bulkGst, applyBulkChanges]);
+
+  const handleBulkModeChange = (checked) => {
+    setUseBulkPrice(checked);
+    if (!checked) {
+      setBulkPrice('');
+      setBulkGst('');
+    }
+  };
+
+  const handleBulkPriceChange = (value) => {
+    setBulkPrice(value);
+    applyBulkChanges(value, bulkGst);
+  };
+
+  const handleBulkGstChange = (value) => {
+    setBulkGst(value);
+    applyBulkChanges(bulkPrice, value);
+  };
 
   const handleInlineChange = (index, field, value) => {
     const updated = [...roomTokens];
@@ -121,6 +179,47 @@ export default function ManageRoomTariff({
             <CloseIcon />
           </IconButton>
         </Box>
+
+        {/* Bulk Price Section */}
+        <Card sx={{ mb: 2, borderRadius: 2, background: '#f5e6ff' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={useBulkPrice}
+                    onChange={(e) => handleBulkModeChange(e.target.checked)}
+                  />
+                }
+                label="Set bulk price and GST"
+              />
+            </Box>
+            {useBulkPrice && (
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                <TextField
+                  type="number"
+                  label="Enter price for all rooms"
+                  placeholder="0.00"
+                  value={bulkPrice}
+                  onChange={(e) => handleBulkPriceChange(e.target.value)}
+                  size="small"
+                  sx={{ width: 250 }}
+                  inputProps={{ step: '0.01', min: '0' }}
+                />
+                <TextField
+                  type="number"
+                  label="Enter GST % for all rooms"
+                  placeholder="0.00"
+                  value={bulkGst}
+                  onChange={(e) => handleBulkGstChange(e.target.value)}
+                  size="small"
+                  sx={{ width: 250 }}
+                  inputProps={{ step: '0.01', min: '0', max: '100' }}
+                />
+              </Box>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Table */}
         <Paper

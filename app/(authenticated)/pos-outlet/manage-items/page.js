@@ -417,14 +417,16 @@ const Page = () => {
                       const value = e.target.value;
 
                       if (/^\d*\.?\d*$/.test(value)) {
-                        const rate = value === '' ? '' : parseFloat(value);
+                        const rate = value;
+                        const numericRate = parseFloat(value) || 0;
                         const cgst = parseFloat(formData.cgst) || 0;
                         const sgst = parseFloat(formData.sgst) || 0;
 
                         setFormData({
                           ...formData,
                           rate,
-                          total: rate ? rate + (rate * (cgst + sgst)) / 100 : 0,
+                          total:
+                            numericRate + (numericRate * (cgst + sgst)) / 100,
                         });
                       }
                     }}
@@ -444,17 +446,15 @@ const Page = () => {
                       const value = e.target.value;
 
                       if (/^\d*\.?\d*$/.test(value)) {
-                        const cgst = value === '' ? '' : parseFloat(value);
+                        const cgst = value;
+                        const numericCgst = parseFloat(value) || 0;
                         const rate = parseFloat(formData.rate) || 0;
                         const sgst = parseFloat(formData.sgst) || 0;
 
                         setFormData({
                           ...formData,
                           cgst,
-                          total: rate
-                            ? rate +
-                              (rate * ((parseFloat(cgst) || 0) + sgst)) / 100
-                            : 0,
+                          total: rate + (rate * (numericCgst + sgst)) / 100,
                         });
                       }
                     }}
@@ -474,17 +474,15 @@ const Page = () => {
                       const value = e.target.value;
 
                       if (/^\d*\.?\d*$/.test(value)) {
-                        const sgst = value === '' ? '' : parseFloat(value);
+                        const sgst = value;
+                        const numericSgst = parseFloat(value) || 0;
                         const rate = parseFloat(formData.rate) || 0;
                         const cgst = parseFloat(formData.cgst) || 0;
 
                         setFormData({
                           ...formData,
                           sgst,
-                          total: rate
-                            ? rate +
-                              (rate * (cgst + (parseFloat(sgst) || 0))) / 100
-                            : 0,
+                          total: rate + (rate * (cgst + numericSgst)) / 100,
                         });
                       }
                     }}

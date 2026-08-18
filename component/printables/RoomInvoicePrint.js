@@ -1,3 +1,4 @@
+import { amountToWords } from '@/utils/AmountToWords';
 import { GetCustomDate } from '@/utils/DateFetcher';
 import {
   Box,
@@ -141,7 +142,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
   // 'Less' is the fractional part (after decimal) of totalAmount, rounded to 2 decimals
   const less = parseFloat((totalAmount - Math.floor(totalAmount)).toFixed(2));
   // Payable amount is totalAmount minus the fractional part (i.e., integer rupees)
-  const payableAmount = parseFloat((totalAmount - less).toFixed(2));
+  const payableAmount = parseFloat(totalAmount.toFixed(2));
 
   // Use payableAmount (integer rupees) for words
   let totalInWords = toWords?.convert(payableAmount || 0);
@@ -545,7 +546,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                       {totalAmount.toFixed(2)}
                     </Typography>
                   </Box>
-                  <Box
+                  {/* <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -556,8 +557,8 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     <Typography variant="body2" fontWeight={600}>
                       {less.toFixed(2)}
                     </Typography>
-                  </Box>
-                  <Box
+                  </Box> */}
+                  {/* <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -568,11 +569,11 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                     <Typography variant="body2" fontWeight={600}>
                       {payableAmount.toFixed(2)}
                     </Typography>
-                  </Box>
+                  </Box> */}
                   <Box sx={{ borderTop: '1px solid #cecece' }}>
                     <Typography variant="body2">Amount In Words:</Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {totalInWords} Only
+                      {amountToWords(totalAmount)} Only
                     </Typography>
                   </Box>
                 </CustomTableCell>

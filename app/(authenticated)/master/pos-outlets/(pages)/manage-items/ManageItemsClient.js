@@ -413,19 +413,28 @@ const ManagaItemsClient = () => {
                     label="Rate"
                     fullWidth
                     value={formData.rate ?? ''}
-                    inputProps={{ inputMode: 'decimal' }}
+                    inputProps={{
+                      inputMode: 'decimal',
+                    }}
                     onChange={(e) => {
                       const value = e.target.value;
 
+                      // Only positive integers and decimals
                       if (/^\d*\.?\d*$/.test(value)) {
-                        const rate = value === '' ? '' : parseFloat(value);
                         const cgst = parseFloat(formData.cgst) || 0;
                         const sgst = parseFloat(formData.sgst) || 0;
+
+                        const rate = value === '' ? '' : value;
+                        const numericRate = parseFloat(value) || 0;
 
                         setFormData({
                           ...formData,
                           rate,
-                          total: rate ? rate + (rate * (cgst + sgst)) / 100 : 0,
+                          total:
+                            value === ''
+                              ? 0
+                              : numericRate +
+                                (numericRate * (cgst + sgst)) / 100,
                         });
                       }
                     }}
@@ -444,18 +453,17 @@ const ManagaItemsClient = () => {
                     onChange={(e) => {
                       const value = e.target.value;
 
+                      // Allow only positive integers and decimals
                       if (/^\d*\.?\d*$/.test(value)) {
-                        const cgst = value === '' ? '' : parseFloat(value);
+                        const cgst = value;
                         const rate = parseFloat(formData.rate) || 0;
                         const sgst = parseFloat(formData.sgst) || 0;
+                        const numericCgst = parseFloat(cgst) || 0;
 
                         setFormData({
                           ...formData,
                           cgst,
-                          total: rate
-                            ? rate +
-                              (rate * ((parseFloat(cgst) || 0) + sgst)) / 100
-                            : 0,
+                          total: rate + (rate * (numericCgst + sgst)) / 100,
                         });
                       }
                     }}
@@ -474,18 +482,17 @@ const ManagaItemsClient = () => {
                     onChange={(e) => {
                       const value = e.target.value;
 
+                      // Allow only positive integers and decimals
                       if (/^\d*\.?\d*$/.test(value)) {
-                        const sgst = value === '' ? '' : parseFloat(value);
+                        const sgst = value;
                         const rate = parseFloat(formData.rate) || 0;
                         const cgst = parseFloat(formData.cgst) || 0;
+                        const numericSgst = parseFloat(sgst) || 0;
 
                         setFormData({
                           ...formData,
                           sgst,
-                          total: rate
-                            ? rate +
-                              (rate * (cgst + (parseFloat(sgst) || 0))) / 100
-                            : 0,
+                          total: rate + (rate * (cgst + numericSgst)) / 100,
                         });
                       }
                     }}
