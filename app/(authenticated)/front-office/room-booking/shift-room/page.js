@@ -467,7 +467,7 @@ const RoomTransferPage = () => {
                 px: 1.5,
                 py: 2.5,
                 borderRadius: 2,
-                background: (theme) => alpha(theme.palette.primary.main, 0.08),
+                // background: (theme) => alpha(theme.palette.primary.main, 0.08),
                 border: '1px solid',
                 borderColor: 'primary.main',
               }}

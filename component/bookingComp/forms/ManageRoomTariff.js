@@ -33,65 +33,161 @@ export default function ManageRoomTariff({
   handleManageRoomTariff,
 }) {
   const { mutate } = useSWRConfig();
-  const [roomTokens, setRoomTokens] = useState([...booking?.room_tokens]);
+  const [roomTokens, setRoomTokens] = useState([
+    ...(booking?.room_tokens || []),
+  ]);
   const [highlightedIndex, setHighlightedIndex] = useState(null);
   const [useBulkPrice, setUseBulkPrice] = useState(false);
   const [bulkPrice, setBulkPrice] = useState('');
   const [bulkGst, setBulkGst] = useState('');
+  const [bulkTotal, setBulkTotal] = useState('');
 
   useEffect(() => {
     setRoomTokens([...(booking?.room_tokens || [])]);
   }, [booking?.room_tokens]);
 
   const applyBulkChanges = React.useCallback(
-    (priceValue, gstValue) => {
+    (priceValue, gstValue, totalValue) => {
       const numericPrice = parseFloat(priceValue) || 0;
       const numericGst = parseFloat(gstValue) || 0;
+      const numericTotal = parseFloat(totalValue) || 0;
       const hasPrice = priceValue !== '' && numericPrice >= 0;
       const hasGst = gstValue !== '' && numericGst >= 0;
+      const hasTotal = totalValue !== '' && numericTotal >= 0;
 
-      if (useBulkPrice && (hasPrice || hasGst)) {
-        const updated = roomTokens.map((room) => {
-          const rate = hasPrice ? numericPrice : parseFloat(room.rate) || 0;
-          const gst = hasGst ? numericGst : parseFloat(room.gst) || 0;
-          const days = parseFloat(room.days) || 1;
-          const newAmount = (rate + (rate * gst) / 100) * days;
+      if (useBulkPrice && (hasPrice || hasGst || hasTotal)) {
+        setRoomTokens((currentRoomTokens) =>
+          currentRoomTokens.map((room) => {
+            const rate = hasPrice
+              ? numericPrice
+              : hasTotal
+                ? hasGst
+                  ? numericTotal / (1 + numericGst / 100)
+                  : numericTotal
+                : parseFloat(room.rate) || 0;
+            const gst = hasGst
+              ? numericGst
+              : hasTotal && hasPrice
+                ? (numericTotal / numericPrice - 1) * 100
+                : parseFloat(room.gst) || 0;
+            const days = parseFloat(room.days) || 1;
+            const newAmount = (rate + (rate * gst) / 100) * days;
 
-          return {
-            ...room,
-            rate: parseFloat(rate.toFixed(2)),
-            gst: parseFloat(gst.toFixed(2)),
-            amount: parseFloat(newAmount.toFixed(2)),
-          };
-        });
-        setRoomTokens(updated);
+            return {
+              ...room,
+              rate: parseFloat(rate.toFixed(2)),
+              gst: parseFloat(gst.toFixed(2)),
+              amount: parseFloat(newAmount.toFixed(2)),
+            };
+          }),
+        );
       }
     },
-    [roomTokens, setRoomTokens, useBulkPrice],
+    [useBulkPrice],
   );
 
   useEffect(() => {
     if (useBulkPrice) {
-      applyBulkChanges(bulkPrice, bulkGst);
+      applyBulkChanges(bulkPrice, bulkGst, bulkTotal);
     }
-  }, [useBulkPrice, bulkPrice, bulkGst, applyBulkChanges]);
+  }, [useBulkPrice, bulkPrice, bulkGst, bulkTotal, applyBulkChanges]);
 
   const handleBulkModeChange = (checked) => {
     setUseBulkPrice(checked);
     if (!checked) {
       setBulkPrice('');
       setBulkGst('');
+      setBulkTotal('');
     }
   };
 
+  const formatBulkValue = (value) => {
+    const number = Number(value);
+    return Number.isInteger(number) ? String(number) : number.toFixed(2);
+  };
+
+  const getBulkValues = (field, value) => {
+    let price = field === 'price' ? value : bulkPrice;
+    let gst = field === 'gst' ? value : bulkGst;
+    let total = field === 'total' ? value : bulkTotal;
+
+    const numericPrice = parseFloat(price);
+    const numericGst = parseFloat(gst);
+    const numericTotal = parseFloat(total);
+
+    if (field === 'price') {
+      if (
+        gst !== '' &&
+        Number.isFinite(numericPrice) &&
+        Number.isFinite(numericGst)
+      ) {
+        total = formatBulkValue(numericPrice * (1 + numericGst / 100));
+      } else if (
+        total !== '' &&
+        Number.isFinite(numericTotal) &&
+        numericPrice > 0
+      ) {
+        gst = formatBulkValue((numericTotal / numericPrice - 1) * 100);
+      }
+    }
+
+    if (field === 'gst') {
+      if (
+        price !== '' &&
+        Number.isFinite(numericPrice) &&
+        Number.isFinite(numericGst)
+      ) {
+        total = formatBulkValue(numericPrice * (1 + numericGst / 100));
+      } else if (
+        total !== '' &&
+        Number.isFinite(numericTotal) &&
+        Number.isFinite(numericGst)
+      ) {
+        price = formatBulkValue(numericTotal / (1 + numericGst / 100));
+      }
+    }
+
+    if (field === 'total') {
+      if (
+        gst !== '' &&
+        Number.isFinite(numericTotal) &&
+        Number.isFinite(numericGst)
+      ) {
+        price = formatBulkValue(numericTotal / (1 + numericGst / 100));
+      } else if (
+        price !== '' &&
+        Number.isFinite(numericTotal) &&
+        numericPrice > 0
+      ) {
+        gst = formatBulkValue((numericTotal / numericPrice - 1) * 100);
+      }
+    }
+
+    return { price, gst, total };
+  };
+
   const handleBulkPriceChange = (value) => {
-    setBulkPrice(value);
-    applyBulkChanges(value, bulkGst);
+    const values = getBulkValues('price', value);
+    setBulkPrice(values.price);
+    setBulkGst(values.gst);
+    setBulkTotal(values.total);
+    applyBulkChanges(values.price, values.gst, values.total);
   };
 
   const handleBulkGstChange = (value) => {
-    setBulkGst(value);
-    applyBulkChanges(bulkPrice, value);
+    const values = getBulkValues('gst', value);
+    setBulkPrice(values.price);
+    setBulkGst(values.gst);
+    setBulkTotal(values.total);
+    applyBulkChanges(values.price, values.gst, values.total);
+  };
+
+  const handleBulkTotalChange = (value) => {
+    const values = getBulkValues('total', value);
+    setBulkPrice(values.price);
+    setBulkGst(values.gst);
+    setBulkTotal(values.total);
+    applyBulkChanges(values.price, values.gst, values.total);
   };
 
   const handleInlineChange = (index, field, value) => {
@@ -215,6 +311,16 @@ export default function ManageRoomTariff({
                   size="small"
                   sx={{ width: 250 }}
                   inputProps={{ step: '0.01', min: '0', max: '100' }}
+                />
+                <TextField
+                  type="number"
+                  label="Total price for all rooms"
+                  placeholder="0.00"
+                  value={bulkTotal}
+                  onChange={(e) => handleBulkTotalChange(e.target.value)}
+                  size="small"
+                  sx={{ width: 250 }}
+                  inputProps={{ step: '0.01', min: '0' }}
                 />
               </Box>
             )}

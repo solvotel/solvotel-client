@@ -48,7 +48,7 @@ const BookingListPage = () => {
   const paramsStatus = searchParams.get('bookingStatus');
   const paramsDate = searchParams.get('date');
   const todaysDate = GetTodaysDate().dateString;
-  const [startDate, setStartDate] = useState('');
+  const [startDate, setStartDate] = useState(paramsDate || '');
   const [endDate, setEndDate] = useState(paramsDate || todaysDate);
   const [bookingStatus, setBookingStatus] = useState('');
   const [searchBookingId, setSearchBookingId] = useState('');
@@ -59,6 +59,13 @@ const BookingListPage = () => {
   useEffect(() => {
     setBookingStatus(paramsStatus || '');
   }, [paramsStatus]);
+
+  useEffect(() => {
+    if (paramsDate) {
+      setStartDate(paramsDate);
+      setEndDate(paramsDate);
+    }
+  }, [paramsDate]);
 
   // filter data by name
   const filteredData = useMemo(() => {
@@ -143,7 +150,13 @@ const BookingListPage = () => {
       const isInRange = (date) =>
         date && (!start || date >= start) && (!end || date <= end);
 
-      return isInRange(createdAt) || isInRange(checkin) || isInRange(checkout);
+      const bookingCoversDate =
+        checkin &&
+        checkout &&
+        (!start || checkout >= start) &&
+        (!end || checkin <= end);
+
+      return isInRange(createdAt) || bookingCoversDate;
     });
   }, [data, startDate, endDate, bookingStatus, searchBookingId]);
 

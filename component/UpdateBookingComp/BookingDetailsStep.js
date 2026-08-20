@@ -30,28 +30,72 @@ export default function BookingDetailsStep({
       ((field === 'checkin_date' && bookingDetails.checkin_date !== value) ||
         (field === 'checkout_date' && bookingDetails.checkout_date !== value))
     ) {
-      // compute new date window
       const newCheckin =
         field === 'checkin_date' ? value : bookingDetails.checkin_date;
       const newCheckout =
         field === 'checkout_date' ? value : bookingDetails.checkout_date;
-
-      // normalize as Date objects
       const newCheckinDate = new Date(newCheckin);
       const newCheckoutDate = new Date(newCheckout);
+      const hasValidDateRange =
+        newCheckin &&
+        newCheckout &&
+        !Number.isNaN(newCheckinDate.getTime()) &&
+        !Number.isNaN(newCheckoutDate.getTime()) &&
+        newCheckinDate <= newCheckoutDate;
+
+      // Native date inputs can emit an empty value while a date is typed.
+      // Keep the existing room state until both dates are valid.
+      if (!hasValidDateRange) {
+        setBookingDetails({ ...bookingDetails, [field]: value });
+        return;
+      }
+
+      // compute new date window
       const isSameDay =
         newCheckinDate.toDateString() === newCheckoutDate.toDateString();
 
-      // filter selectedRooms to keep only dates in [newCheckin, newCheckout) or same-day booking
-      const remainingSelections = (selectedRooms || []).filter((sel) => {
-        const d = new Date(sel.date);
-        return (
-          (d >= newCheckinDate && d < newCheckoutDate) ||
-          (isSameDay && d.toDateString() === newCheckinDate.toDateString())
-        );
+      const dates = [];
+      const currentDate = new Date(newCheckinDate);
+      while (
+        currentDate < newCheckoutDate ||
+        (isSameDay && dates.length === 0)
+      ) {
+        dates.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      // Preserve each room and apply the new date range to its selections.
+      const roomSelections = new Map();
+      (selectedRooms || []).forEach((selection) => {
+        if (!roomSelections.has(selection.room_no)) {
+          roomSelections.set(selection.room_no, selection);
+        }
       });
 
-      // rebuild roomTokens from remainingSelections
+      (roomTokens || []).forEach((token) => {
+        if (!roomSelections.has(token.room)) {
+          roomSelections.set(token.room, {
+            room_no: token.room,
+            rate: token.rate,
+            gst: token.gst,
+            item: token.item,
+            hsn: token.hsn,
+            invoice: token.invoice,
+          });
+        }
+      });
+
+      const remainingSelections = [...roomSelections.entries()].flatMap(
+        ([roomNo, selection]) =>
+          dates.map((date) => ({
+            ...selection,
+            key: `${roomNo}-${date}`,
+            room_no: roomNo,
+            date,
+          })),
+      );
+
+      // Rebuild roomTokens from the preserved rooms and new date range.
       const grouped = {};
       remainingSelections.forEach((s) => {
         if (!grouped[s.room_no]) grouped[s.room_no] = [];

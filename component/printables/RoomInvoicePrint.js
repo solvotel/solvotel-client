@@ -573,7 +573,7 @@ const RoomInvoicePrint = React.forwardRef((props, ref) => {
                   <Box sx={{ borderTop: '1px solid #cecece' }}>
                     <Typography variant="body2">Amount In Words:</Typography>
                     <Typography variant="body2" fontWeight={600}>
-                      {amountToWords(totalAmount)} Only
+                      {amountToWords(totalAmount)}
                     </Typography>
                   </Box>
                 </CustomTableCell>

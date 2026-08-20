@@ -507,7 +507,14 @@ const ManagaItemsClient = () => {
                     type="number"
                     fullWidth
                     value={formData.total}
-                    InputProps={{ readOnly: true }}
+                    slotProps={{
+                      inputLabel: {
+                        shrink: true,
+                      },
+                      input: {
+                        readOnly: true,
+                      },
+                    }}
                   />
                 </Grid>
               </Grid>
