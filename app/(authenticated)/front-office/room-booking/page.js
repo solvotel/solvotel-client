@@ -1,12 +1,7 @@
 'use client';
 
 import { useAuth } from '@/context';
-import {
-  DeleteData,
-  GetDataList,
-  CreateNewData,
-  UpdateData,
-} from '@/utils/ApiFunctions';
+import { GetDataList } from '@/utils/ApiFunctions';
 import { useState, useMemo, Suspense, useEffect } from 'react';
 
 // mui
@@ -139,7 +134,6 @@ const BookingListPage = () => {
       // 🔹 DATE FILTER
       if (!start && !end) return true;
 
-      const createdAt = booking.createdAt ? new Date(booking.createdAt) : null;
       const checkin = booking.checkin_date
         ? new Date(booking.checkin_date)
         : null;
@@ -147,16 +141,13 @@ const BookingListPage = () => {
         ? new Date(booking.checkout_date)
         : null;
 
-      const isInRange = (date) =>
-        date && (!start || date >= start) && (!end || date <= end);
-
       const bookingCoversDate =
         checkin &&
         checkout &&
         (!start || checkout >= start) &&
         (!end || checkin <= end);
 
-      return isInRange(createdAt) || bookingCoversDate;
+      return bookingCoversDate;
     });
   }, [data, startDate, endDate, bookingStatus, searchBookingId]);
 

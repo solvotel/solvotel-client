@@ -42,9 +42,20 @@ export default function ManageRoomTariff({
   const [bulkGst, setBulkGst] = useState('');
   const [bulkTotal, setBulkTotal] = useState('');
 
+  const resetBulkFields = () => {
+    setUseBulkPrice(false);
+    setBulkPrice('');
+    setBulkGst('');
+    setBulkTotal('');
+  };
+
   useEffect(() => {
     setRoomTokens([...(booking?.room_tokens || [])]);
   }, [booking?.room_tokens]);
+
+  useEffect(() => {
+    resetBulkFields();
+  }, [open]);
 
   const applyBulkChanges = React.useCallback(
     (priceValue, gstValue, totalValue) => {
@@ -236,6 +247,7 @@ export default function ManageRoomTariff({
         );
       }
       SuccessToast('Room Tariff updated successfully');
+      resetBulkFields();
       setOpen(false);
     } catch (err) {
       console.error('ManageRoomTariff save error', err);
@@ -243,6 +255,7 @@ export default function ManageRoomTariff({
   };
 
   const handleClose = () => {
+    resetBulkFields();
     setOpen(false);
   };
 
