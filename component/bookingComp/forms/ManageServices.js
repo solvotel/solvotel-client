@@ -36,7 +36,7 @@ export default function ManageServices({
   const handleAddRow = () => {
     setServices((prev) => [
       ...prev,
-      { item: '', hsn: '', rate: '', gst: '', amount: '' },
+      { item: '', hsn: '996311', rate: '', gst: '', amount: '' },
     ]);
     setHighlightedIndex(services.length);
     setTimeout(() => setHighlightedIndex(null), 1200);

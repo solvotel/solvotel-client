@@ -47,6 +47,7 @@ export default function ManageRoomTariff({
     setBulkPrice('');
     setBulkGst('');
     setBulkTotal('');
+    setRoomTokens([...(booking?.room_tokens || [])]);
   };
 
   useEffect(() => {
@@ -97,11 +98,11 @@ export default function ManageRoomTariff({
     [useBulkPrice],
   );
 
-  useEffect(() => {
-    if (useBulkPrice) {
-      applyBulkChanges(bulkPrice, bulkGst, bulkTotal);
-    }
-  }, [useBulkPrice, bulkPrice, bulkGst, bulkTotal, applyBulkChanges]);
+  // useEffect(() => {
+  //   if (useBulkPrice) {
+  //     applyBulkChanges(bulkPrice, bulkGst, bulkTotal);
+  //   }
+  // }, [useBulkPrice, bulkPrice, bulkGst, bulkTotal, applyBulkChanges]);
 
   const handleBulkModeChange = (checked) => {
     setUseBulkPrice(checked);

@@ -64,74 +64,53 @@ export default function BookingDetailsStep({
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
-      // Preserve each room and apply the new date range to its selections.
-      const roomSelections = new Map();
-      (selectedRooms || []).forEach((selection) => {
-        if (!roomSelections.has(selection.room_no)) {
-          roomSelections.set(selection.room_no, selection);
-        }
-      });
-
-      (roomTokens || []).forEach((token) => {
-        if (!roomSelections.has(token.room)) {
-          roomSelections.set(token.room, {
-            room_no: token.room,
-            rate: token.rate,
-            gst: token.gst,
-            item: token.item,
-            hsn: token.hsn,
-            invoice: token.invoice,
-          });
-        }
-      });
-
-      const remainingSelections = [...roomSelections.entries()].flatMap(
-        ([roomNo, selection]) =>
-          dates.map((date) => ({
-            ...selection,
-            key: `${roomNo}-${date}`,
-            room_no: roomNo,
-            date,
-          })),
+      // Keep only selections that still fall within the new booking range.
+      // Newly extended dates are left unselected so the user must choose rooms manually.
+      const validDates = new Set(dates);
+      const remainingSelections = (selectedRooms || []).filter((selection) =>
+        validDates.has(selection.date),
       );
 
-      // Rebuild roomTokens from the preserved rooms and new date range.
+      // Rebuild roomTokens from only the preserved selections.
       const grouped = {};
       remainingSelections.forEach((s) => {
         if (!grouped[s.room_no]) grouped[s.room_no] = [];
         grouped[s.room_no].push(s.date);
       });
 
-      const newTokens = Object.entries(grouped).map(([roomNo, dates]) => {
-        const sorted = dates.sort();
-        const inDate = sorted[0];
-        const lastDate = sorted[sorted.length - 1];
-        const outDateObj = new Date(lastDate);
-        outDateObj.setDate(outDateObj.getDate() + 1);
-        const outDate = outDateObj.toISOString().split('T')[0];
+      const newTokens = Object.entries(grouped)
+        .map(([roomNo, datesForRoom]) => {
+          const sorted = [...new Set(datesForRoom)].sort();
+          if (!sorted.length) return null;
 
-        // try preserve existing token fields (rate, gst, item, hsn, invoice)
-        const existing =
-          (roomTokens || []).find((t) => t.room === roomNo) || {};
+          const inDate = sorted[0];
+          const lastDate = sorted[sorted.length - 1];
+          const outDateObj = new Date(lastDate);
+          outDateObj.setDate(outDateObj.getDate() + 1);
+          const outDate = outDateObj.toISOString().split('T')[0];
 
-        const rate = Number(existing.rate) || 0;
-        const gst = Number(existing.gst) || 0;
-        const days = sorted.length;
-        const amount = parseFloat(
-          ((rate + (rate * gst) / 100) * days).toFixed(2),
-        );
+          const existing =
+            (roomTokens || []).find((t) => t.room === roomNo) || {};
 
-        return {
-          ...existing,
-          room: roomNo,
-          in_date: inDate,
-          out_date: outDate,
-          days,
-          rate,
-          gst,
-          amount,
-        };
-      });
+          const rate = Number(existing.rate) || 0;
+          const gst = Number(existing.gst) || 0;
+          const days = sorted.length;
+          const amount = parseFloat(
+            ((rate + (rate * gst) / 100) * days).toFixed(2),
+          );
+
+          return {
+            ...existing,
+            room: roomNo,
+            in_date: inDate,
+            out_date: outDate,
+            days,
+            rate,
+            gst,
+            amount,
+          };
+        })
+        .filter(Boolean);
 
       // apply updates
       setSelectedRooms?.(remainingSelections);
