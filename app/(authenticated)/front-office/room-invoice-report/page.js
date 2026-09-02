@@ -89,6 +89,7 @@ const Page = () => {
         Checkin: `${GetCustomDate(row.checkin_date)}`,
         Checkout: `${GetCustomDate(row.checkout_date)}`,
         'Customer Name': row?.customer_name,
+        Address: row?.customer_address,
         GSTIN: row?.customer_gst,
         'Taxable Amount': row.total_amount.toFixed(2),
         SGST: row.tax / 2,
@@ -226,6 +227,7 @@ const Page = () => {
                       'Checkin',
                       'Checkout',
                       'Customer Name',
+                      'Address',
                       'GSTIN',
                       'Taxable Amount',
                       'SGST',
@@ -255,6 +257,7 @@ const Page = () => {
                           {GetCustomDate(row.checkout_date) || '-'}
                         </TableCell>
                         <TableCell>{row?.customer_name || 'NA'}</TableCell>
+                        <TableCell>{row?.customer_address || 'NA'}</TableCell>
                         <TableCell>{row?.customer_gst || 'NA'}</TableCell>
                         <TableCell>{row.total_amount.toFixed(2)}</TableCell>
                         <TableCell>{row.tax / 2}</TableCell>

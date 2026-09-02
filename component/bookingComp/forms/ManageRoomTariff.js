@@ -110,6 +110,7 @@ export default function ManageRoomTariff({
       setBulkPrice('');
       setBulkGst('');
       setBulkTotal('');
+      setRoomTokens([...(booking?.room_tokens || [])]);
     }
   };
 

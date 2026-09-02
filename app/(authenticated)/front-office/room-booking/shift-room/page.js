@@ -648,7 +648,7 @@ const RoomTransferPage = () => {
                                 variant="body2"
                                 color="text.secondary"
                               >
-                                Current: <strong>{row.room}</strong>
+                                Current Room: <strong>{row.room}</strong>
                               </Typography>
                               {isChanged && (
                                 <>

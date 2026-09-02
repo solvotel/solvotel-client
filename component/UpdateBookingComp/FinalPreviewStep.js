@@ -296,7 +296,7 @@ const FinalPreviewStep = ({
       </Card>
 
       {/* Bulk Price Feature */}
-      {roomTokens.length > 0 && (
+      {/* {roomTokens.length > 0 && (
         <Card sx={{ mb: 2, borderRadius: 3, background: '#f5e6ff' }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -350,7 +350,7 @@ const FinalPreviewStep = ({
             )}
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Rooms Table */}
       <TableContainer
