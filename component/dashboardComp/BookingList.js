@@ -11,6 +11,7 @@ import {
 import { motion } from 'framer-motion';
 
 import { Hotel, LogIn, LogOut } from 'lucide-react';
+import { ConvertTo12HourFormat } from '@/utils/Timefetcher';
 
 const MotionBox = motion(Box);
 
@@ -52,8 +53,22 @@ const BookingList = ({ stayOver, expectedCheckin, expectedCheckout }) => {
             Phone No: {bk.customer?.mobile || 'N/A'}
           </Typography>
           <Typography variant="body2">
-            Rooms: {bk.rooms?.map((r) => r.room_no).join(', ') || '—'}
+            Rooms:{' '}
+            {bk.room_tokens?.map((token) => token.room).join(', ') || '—'}
           </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Typography variant="body2">
+              Check-in: {ConvertTo12HourFormat(bk.checkin_time)}
+            </Typography>
+            <Typography variant="body2">
+              Check-out: {ConvertTo12HourFormat(bk.checkout_time)}
+            </Typography>
+          </Box>
         </Paper>
       </Link>
     </MotionBox>

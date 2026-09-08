@@ -36,7 +36,7 @@ const Highlight = styled(Typography)({
 const mealPlan = [
   { value: 'EP', label: 'EP (Room Only)' },
   { value: 'CP', label: 'CP (Room + Breakfast)' },
-  { value: 'AP', label: 'AP (Room + Breakfast + Lunch + Dinners)' },
+  { value: 'AP', label: 'AP (Room + Breakfast + Lunch + Dinner)' },
   { value: 'MAP', label: 'MAP (Room + Breakfast + Lunch or Dinner)' },
 ];
 

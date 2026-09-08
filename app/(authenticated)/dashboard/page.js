@@ -37,31 +37,34 @@ const Page = () => {
   const yesterday = new Date(selectedDate);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  const stayOver = bookings?.filter((bk) => {
-    return (
-      bk.checked_in === true &&
-      bk.checked_out !== true &&
-      selected.isAfter(dayjs(bk.checkin_date), 'day') &&
-      selected.isBefore(dayjs(bk.checkout_date), 'day')
-    );
-  });
+  const getBookingsForTokens = (bookingPredicate, tokenPredicate) =>
+    bookings
+      ?.filter(bookingPredicate)
+      .map((bk) => ({
+        ...bk,
+        room_tokens: bk.room_tokens?.filter(tokenPredicate) || [],
+      }))
+      .filter((bk) => bk.room_tokens.length > 0);
 
-  const expectedCheckin = bookings?.filter((bk) => {
-    return (
+  const stayOver = getBookingsForTokens(
+    (bk) => bk.checked_in === true && bk.checked_out !== true,
+    (token) =>
+      !selected.isBefore(dayjs(token.in_date), 'day') &&
+      selected.isBefore(dayjs(token.out_date), 'day'),
+  );
+
+  const expectedCheckin = getBookingsForTokens(
+    (bk) =>
       bk.booking_status === 'Confirmed' &&
       bk.checked_in !== true &&
-      bk.checked_out !== true &&
-      selected.isSame(dayjs(bk.checkin_date), 'day')
-    );
-  });
+      bk.checked_out !== true,
+    (token) => selected.isSame(dayjs(token.in_date), 'day'),
+  );
 
-  const expectedCheckout = bookings?.filter((bk) => {
-    return (
-      bk.checked_in === true &&
-      bk.checked_out !== true &&
-      selected.isSame(dayjs(bk.checkout_date), 'day')
-    );
-  });
+  const expectedCheckout = getBookingsForTokens(
+    (bk) => bk.checked_in === true && bk.checked_out !== true,
+    (token) => selected.isSame(dayjs(token.out_date), 'day'),
+  );
 
   if (!bookings || !rooms) {
     return <Loader />;
