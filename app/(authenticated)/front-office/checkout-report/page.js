@@ -30,7 +30,7 @@ import { useReactToPrint } from 'react-to-print';
 import { RoomBookingReportPrint } from '@/component/printables/RoomBookingReportPrint';
 import { exportToExcel } from '@/utils/exportToExcel';
 
-const Page = () => {
+const CheckoutReportPage = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
   const data = GetDataList({
@@ -50,7 +50,9 @@ const Page = () => {
       if (!searchBookingId) return;
     }
 
-    let filteredInvoices = data || [];
+    let filteredInvoices = (data || []).filter(
+      (booking) => booking.checked_out === true,
+    );
 
     // 🔹 BOOKING ID FILTER
     if (searchBookingId) {
@@ -350,4 +352,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default CheckoutReportPage;
