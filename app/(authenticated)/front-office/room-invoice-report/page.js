@@ -114,7 +114,7 @@ const Page = () => {
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
-    documentTitle: 'stock-report',
+    documentTitle: 'room-invoice-report',
   });
   const handleExport = () => {
     exportToExcel(dataToExport, 'room_invoice_report');

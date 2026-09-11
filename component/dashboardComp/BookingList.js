@@ -46,28 +46,36 @@ const BookingList = ({ stayOver, expectedCheckin, expectedCheckout }) => {
           {/* <Typography variant="subtitle2" fontWeight="bold">
             Booking ID: {bk.booking_id}
           </Typography> */}
-          <Typography variant="subtitle2" fontWeight="bold">
-            Guest Name: {bk.customer?.name || 'N/A'}
-          </Typography>
-          <Typography variant="subtitle2" fontWeight="bold">
-            Phone No: {bk.customer?.mobile || 'N/A'}
-          </Typography>
-          <Typography variant="body2">
-            Rooms:{' '}
-            {bk.room_tokens?.map((token) => token.room).join(', ') || '—'}
-          </Typography>
+
           <Box
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
             }}
           >
-            <Typography variant="body2">
-              Check-in: {ConvertTo12HourFormat(bk.checkin_time)}
-            </Typography>
-            <Typography variant="body2">
-              Check-out: {ConvertTo12HourFormat(bk.checkout_time)}
-            </Typography>
+            <Box>
+              <Typography variant="subtitle2" fontWeight="bold">
+                Guest Name: {bk.customer?.name || 'N/A'}
+              </Typography>
+              <Typography variant="subtitle2" fontWeight="bold">
+                Phone No: {bk.customer?.mobile || 'N/A'}
+              </Typography>
+              <Typography variant="body2">
+                Rooms:{' '}
+                {bk.room_tokens?.map((token) => token.room).join(', ') || '—'}
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: 'right' }}>
+              <Typography variant="body2" fontWeight="bold">
+                #ID: {bk.booking_id || 'N/A'}
+              </Typography>
+              <Typography variant="body2">
+                Check-in: {ConvertTo12HourFormat(bk.checkin_time)}
+              </Typography>
+              <Typography variant="body2">
+                Check-out: {ConvertTo12HourFormat(bk.checkout_time)}
+              </Typography>
+            </Box>
           </Box>
         </Paper>
       </Link>
@@ -207,7 +215,7 @@ const BookingList = ({ stayOver, expectedCheckin, expectedCheckout }) => {
                 <Box display="flex" alignItems="center" gap={1.2} mb={2}>
                   <LogOut size={22} color="#b71c1c" />
                   <Typography variant="h6" fontWeight="bold" color="#b71c1c">
-                    Expected Checkout ({expectedCheckout?.length || 0})
+                    Expected Check-Out ({expectedCheckout?.length || 0})
                   </Typography>
                 </Box>
 

@@ -72,16 +72,18 @@ export default function EditRoomInvoiceDialog({
 
   // --- CALCULATIONS ---
 
-  const calcAmount = (rate, gst) => {
+  const calcAmount = (rate, gst, days = 1) => {
     const r = parseFloat(rate) || 0;
     const g = parseFloat(gst) || 0;
-    return +(r + (r * g) / 100).toFixed(2);
+    const d = parseFloat(days) || 1;
+    return +((r + (r * g) / 100) * d).toFixed(2);
   };
 
-  const calcRateFromAmount = (amount, gst) => {
+  const calcRateFromAmount = (amount, gst, days = 1) => {
     const a = parseFloat(amount) || 0;
     const g = parseFloat(gst) || 0;
-    return +(a / (1 + g / 100)).toFixed(2);
+    const d = parseFloat(days) || 1;
+    return +(a / (d * (1 + g / 100))).toFixed(2);
   };
 
   const calcTotals = (items) => {
@@ -108,9 +110,9 @@ export default function EditRoomInvoiceDialog({
     item[field] = value;
 
     if (field === 'rate' || field === 'gst') {
-      item.amount = calcAmount(item.rate, item.gst);
+      item.amount = calcAmount(item.rate, item.gst, item.days);
     } else if (field === 'amount') {
-      item.rate = calcRateFromAmount(value, item.gst);
+      item.rate = calcRateFromAmount(value, item.gst, item.days);
     }
 
     setRoomTokens(updated);
@@ -157,9 +159,25 @@ export default function EditRoomInvoiceDialog({
     // Validation
     const errors = {};
 
+    const recalculatedServiceTokens = serviceTokens.map((token) => ({
+      ...token,
+      ...calcTotals(token.items || []),
+    }));
+    const recalculatedFoodTokens = foodTokens.map((token) => ({
+      ...token,
+      ...calcTotals(token.items || []),
+    }));
+    const recalculatedRoomTokens = roomTokens.map((room) => ({
+      ...room,
+      amount: calcAmount(room.rate, room.gst, room.days),
+    }));
+
     // Calculate payable amount
-    const serviceAndFood = [...foodTokens, ...serviceTokens];
-    const totalRoomAmount = roomTokens.reduce(
+    const serviceAndFood = [
+      ...recalculatedFoodTokens,
+      ...recalculatedServiceTokens,
+    ];
+    const totalRoomAmount = recalculatedRoomTokens.reduce(
       (sum, item) => sum + (parseFloat(item.amount) || 0),
       0,
     );
@@ -167,7 +185,7 @@ export default function EditRoomInvoiceDialog({
       (sum, item) => sum + (parseFloat(item.total_amount) || 0),
       0,
     );
-    const payableAmount = totalOtherAmount + totalRoomAmount;
+    const payableAmount = +(totalOtherAmount + totalRoomAmount).toFixed(2);
 
     setFormErrors(errors);
 
@@ -176,8 +194,9 @@ export default function EditRoomInvoiceDialog({
       return;
     }
 
-    const totalRoomRate = roomTokens.reduce(
-      (sum, item) => sum + (parseFloat(item.rate * item.days) || 0),
+    const totalRoomRate = recalculatedRoomTokens.reduce(
+      (sum, item) =>
+        sum + (parseFloat(item.rate) || 0) * (parseFloat(item.days) || 1),
       0,
     );
     const totalRoomGst = totalRoomAmount - totalRoomRate;
@@ -185,21 +204,23 @@ export default function EditRoomInvoiceDialog({
       (sum, item) => sum + (parseFloat(item.total_gst) || 0),
       0,
     );
-    const totalGst = totalRoomGst + totalOtherGst;
+    const totalGst = +(totalRoomGst + totalOtherGst).toFixed(2);
 
     try {
       setLoading(true);
-      const cleanedRoomTokens = roomTokens.map(({ id, ...rest }) => rest);
+      const cleanedRoomTokens = recalculatedRoomTokens.map(
+        ({ id, ...rest }) => rest,
+      );
 
       const payload = {
         data: {
           ...invData,
           room_tokens: cleanedRoomTokens,
-          food_tokens: foodTokens,
-          service_tokens: serviceTokens,
+          food_tokens: recalculatedFoodTokens,
+          service_tokens: recalculatedServiceTokens,
           payable_amount: payableAmount,
           tax: totalGst,
-          total_amount: payableAmount - totalGst,
+          total_amount: +(payableAmount - totalGst).toFixed(2),
         },
       };
       await UpdateData({

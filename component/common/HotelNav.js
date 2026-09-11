@@ -453,20 +453,17 @@ const HotelNav = ({ auth, logout }) => {
                 aria-controls={profileMenuAnchor ? 'profile-menu' : undefined}
                 aria-haspopup="true"
                 aria-expanded={profileMenuAnchor ? 'true' : undefined}
-                sx={{
-                  p: 0.5,
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: '50%',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.12)' },
-                }}
               >
                 <Avatar
+                  src={'/user-settings.png'}
+                  alt={auth?.user?.username || 'User'}
                   sx={{
-                    width: 34,
-                    height: 34,
+                    width: 40,
+                    height: 40,
                     bgcolor: '#f59e0b',
                     fontSize: 14,
                     fontWeight: 700,
+                    p: 0.5,
                   }}
                 >
                   {auth?.user?.username?.charAt(0)?.toUpperCase() || 'U'}

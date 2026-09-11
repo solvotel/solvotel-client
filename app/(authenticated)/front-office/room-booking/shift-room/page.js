@@ -190,34 +190,45 @@ const RoomTransferPage = () => {
   };
 
   const expandedBookingDays = useMemo(() => {
-    return bookingTokens.flatMap((token) => {
-      const rows = [];
-      let currentDate = dayjs(token.in_date);
-      const endDate = dayjs(token.out_date);
-      const tokenDays = dayjs(token.out_date).diff(dayjs(token.in_date), 'day');
-      const perDayAmount = token.amount
-        ? token.amount / Math.max(tokenDays, 1)
-        : token.rate * (1 + (token.gst || 0) / 100);
+    return bookingTokens
+      .flatMap((token) => {
+        const rows = [];
+        let currentDate = dayjs(token.in_date);
+        const endDate = dayjs(token.out_date);
+        const tokenDays = dayjs(token.out_date).diff(
+          dayjs(token.in_date),
+          'day',
+        );
+        const perDayAmount = token.amount
+          ? token.amount / Math.max(tokenDays, 1)
+          : token.rate * (1 + (token.gst || 0) / 100);
 
-      while (currentDate.isBefore(endDate, 'day')) {
-        rows.push({
-          key: getDateKey(token, currentDate),
-          tokenKey: token.key,
-          date: currentDate.format('YYYY-MM-DD'),
-          room: token.room,
-          rate: token.rate,
-          gst: token.gst,
-          item: token.item,
-          hsn: token.hsn,
-          invoice: token.invoice,
-          perDayAmount,
-          amount: perDayAmount,
-        });
-        currentDate = currentDate.add(1, 'day');
-      }
+        while (currentDate.isBefore(endDate, 'day')) {
+          rows.push({
+            key: getDateKey(token, currentDate),
+            tokenKey: token.key,
+            date: currentDate.format('YYYY-MM-DD'),
+            room: token.room,
+            rate: token.rate,
+            gst: token.gst,
+            item: token.item,
+            hsn: token.hsn,
+            invoice: token.invoice,
+            perDayAmount,
+            amount: perDayAmount,
+          });
+          currentDate = currentDate.add(1, 'day');
+        }
 
-      return rows;
-    });
+        return rows;
+      })
+      .sort(
+        (a, b) =>
+          String(a.room).localeCompare(String(b.room), undefined, {
+            numeric: true,
+            sensitivity: 'base',
+          }) || a.date.localeCompare(b.date),
+      );
   }, [bookingTokens]);
 
   const availableRoomsForBookingRange = useMemo(() => {
