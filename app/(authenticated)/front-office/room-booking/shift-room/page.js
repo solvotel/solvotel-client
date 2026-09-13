@@ -224,10 +224,11 @@ const RoomTransferPage = () => {
       })
       .sort(
         (a, b) =>
+          a.date.localeCompare(b.date) ||
           String(a.room).localeCompare(String(b.room), undefined, {
             numeric: true,
             sensitivity: 'base',
-          }) || a.date.localeCompare(b.date),
+          }),
       );
   }, [bookingTokens]);
 
