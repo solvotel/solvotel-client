@@ -17,6 +17,8 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Card,
+  CardContent,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
@@ -41,6 +43,33 @@ const InvoiceReportClient = () => {
   const [endDate, setEndDate] = useState(todaysDate);
   const [filteredData, setfilteredData] = useState([]);
   const [dataToExport, setDataToExport] = useState([]);
+
+  const invoiceStats = filteredData.reduce(
+    (totals, invoice) => {
+      totals.taxable += Number(invoice.taxable) || 0;
+      totals.sgst += Number(invoice.sgst) || 0;
+      totals.cgst += Number(invoice.cgst) || 0;
+      totals.payable += Number(invoice.payable) || 0;
+      return totals;
+    },
+    {
+      taxable: 0,
+      sgst: 0,
+      cgst: 0,
+      payable: 0,
+    },
+  );
+
+  const stats = {
+    invoiceCount: filteredData.length,
+    ...invoiceStats,
+  };
+
+  const formatAmount = (amount) =>
+    `₹${amount.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   const handleSearch = () => {
     if (!startDate || !endDate) return;
@@ -163,6 +192,44 @@ const InvoiceReportClient = () => {
               </Box>
             </Box>
 
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, 1fr)',
+                  lg: 'repeat(5, 1fr)',
+                },
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              {[
+                { label: 'Invoices', value: stats.invoiceCount },
+                {
+                  label: 'Taxable Amount',
+                  value: formatAmount(stats.taxable),
+                },
+                { label: 'SGST', value: formatAmount(stats.sgst) },
+                { label: 'CGST', value: formatAmount(stats.cgst) },
+                {
+                  label: 'Payable Amount',
+                  value: formatAmount(stats.payable),
+                },
+              ].map((stat) => (
+                <Card key={stat.label} elevation={2}>
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      {stat.label}
+                    </Typography>
+                    <Typography variant="h6" fontWeight={700} mt={0.5}>
+                      {stat.value}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+
             {/* Data Table */}
             <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
               <Table>
@@ -216,6 +283,7 @@ const InvoiceReportClient = () => {
               ref={componentRef}
               startDate={startDate}
               endDate={endDate}
+              stats={stats}
             />
           </Box>
         </>

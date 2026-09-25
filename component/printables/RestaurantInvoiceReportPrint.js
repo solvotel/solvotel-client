@@ -30,7 +30,13 @@ const CustomTableContainer = styled(TableContainer)``;
 
 // forwardRef is required for react-to-print
 const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
-  const { filteredData, startDate, endDate } = props;
+  const { filteredData, startDate, endDate, stats } = props;
+
+  const formatAmount = (amount = 0) =>
+    `₹${Number(amount).toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   return (
     <Box
@@ -53,6 +59,26 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
           <span style={{ fontWeight: 600 }}>{GetCustomDate(endDate)}</span>
         </Typography>
       </Box>
+      <TableContainer sx={{ mb: 2 }}>
+        <Table>
+          <TableBody>
+            <TableRow>
+              <HeadingCell>Invoices</HeadingCell>
+              <HeadingCell>Taxable Amount</HeadingCell>
+              <HeadingCell>SGST</HeadingCell>
+              <HeadingCell>CGST</HeadingCell>
+              <HeadingCell>Payable Amount</HeadingCell>
+            </TableRow>
+            <TableRow>
+              <BodyCell>{stats?.invoiceCount || 0}</BodyCell>
+              <BodyCell>{formatAmount(stats?.taxableAmount)}</BodyCell>
+              <BodyCell>{formatAmount(stats?.sgst)}</BodyCell>
+              <BodyCell>{formatAmount(stats?.cgst)}</BodyCell>
+              <BodyCell>{formatAmount(stats?.payableAmount)}</BodyCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
       <CustomTableContainer>
         <Table>
           <TableBody>

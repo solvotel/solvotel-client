@@ -120,7 +120,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover', // ensures it's always a perfect square crop
+                    objectFit: 'contain', // ensures it's always a perfect square crop
                   }}
                 />
               </Box>

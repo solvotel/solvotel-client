@@ -139,6 +139,9 @@ export default function BookingDetailsCard({ booking }) {
             <Typography variant="body2">
               <strong>Meal Plan:</strong> {booking?.meal_plan}
             </Typography>
+            <Typography variant="body2">
+              <strong>Booked By:</strong> {booking?.user_created}
+            </Typography>
           </Stack>
 
           {/* Guests */}

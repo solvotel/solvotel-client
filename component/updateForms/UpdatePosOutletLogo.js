@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { UploadImage } from '@/utils/UploadImage';
 import CreateIcon from '@mui/icons-material/Create';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useState } from 'react';
 import styled from '@emotion/styled';
 import { UpdateData } from '@/utils/ApiFunctions';
@@ -117,6 +118,31 @@ const UpdatePosOutletLogo = ({ data, auth }) => {
       ErrorToast('Something went wrong');
     }
   };
+
+  const handleRemove = async () => {
+    try {
+      setLoading(true);
+      await UpdateData({
+        auth,
+        endPoint: 'pos-outlets',
+        id: data.documentId,
+        payload: {
+          data: {
+            logo: null,
+          },
+        },
+      });
+      setPreviewImage(null);
+      setProfileImage(undefined);
+      setUpload(false);
+      SuccessToast('Logo removed successfully');
+    } catch (err) {
+      console.log(`error removing outlet Logo: ${err}`);
+      ErrorToast('Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <motion.div
@@ -164,14 +190,24 @@ const UpdatePosOutletLogo = ({ data, auth }) => {
               />
             </EditIconWrapper>
           </ImageContainer>
-          <Button
-            sx={{ mt: 2 }}
-            onClick={handleSave}
-            variant="contained"
-            disabled={loading || !upload}
-          >
-            {loading ? 'Updating...' : 'Update'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+            <Button
+              onClick={handleSave}
+              variant="contained"
+              disabled={loading || !upload}
+            >
+              {loading ? 'Updating...' : 'Update'}
+            </Button>
+            <Button
+              onClick={handleRemove}
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              disabled={loading || !previewImage}
+            >
+              {loading ? 'Removing...' : 'Remove'}
+            </Button>
+          </Box>
         </Paper>
       </motion.div>
     </>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { UploadImage } from '@/utils/UploadImage';
 import CreateIcon from '@mui/icons-material/Create';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useState } from 'react';
 import styled from '@emotion/styled';
 import { UpdateData } from '@/utils/ApiFunctions';
@@ -52,7 +53,7 @@ const UpdateHotelLogo = ({ data, auth }) => {
   //   handle image change
   const [upload, setUpload] = useState(false);
   const [previewImage, setPreviewImage] = useState(
-    data?.hotel_logo?.url || null
+    data?.hotel_logo?.url || null,
   );
   const [profileImage, setProfileImage] = useState();
 
@@ -119,6 +120,31 @@ const UpdateHotelLogo = ({ data, auth }) => {
       ErrorToast('Something went wrong');
     }
   };
+
+  const handleRemove = async () => {
+    try {
+      setLoading(true);
+      await UpdateData({
+        auth,
+        endPoint: 'hotels',
+        id: auth?.user?.hotel_id,
+        payload: {
+          data: {
+            hotel_logo: null,
+          },
+        },
+      });
+      setPreviewImage(null);
+      setProfileImage(undefined);
+      setUpload(false);
+      SuccessToast('Logo removed successfully');
+    } catch (err) {
+      console.log(`error removing hotel Logo: ${err}`);
+      ErrorToast('Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <motion.div
@@ -166,14 +192,24 @@ const UpdateHotelLogo = ({ data, auth }) => {
               />
             </EditIconWrapper>
           </ImageContainer>
-          <Button
-            sx={{ mt: 2 }}
-            onClick={handleSave}
-            variant="contained"
-            disabled={loading || !upload}
-          >
-            {loading ? 'Updating...' : 'Update'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+            <Button
+              onClick={handleSave}
+              variant="contained"
+              disabled={loading || !upload}
+            >
+              {loading ? 'Updating...' : 'Update'}
+            </Button>
+            <Button
+              onClick={handleRemove}
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              disabled={loading || !previewImage}
+            >
+              {loading ? 'Removing...' : 'Remove'}
+            </Button>
+          </Box>
         </Paper>
       </motion.div>
     </>

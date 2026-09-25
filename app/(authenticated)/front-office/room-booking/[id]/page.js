@@ -25,10 +25,12 @@ import {
 } from '@/component/bookingComp';
 import { BookingSlip } from '@/component/printables/RoomBookingSlip';
 import { useReactToPrint } from 'react-to-print';
+import { CheckUserPermission } from '@/utils/UserPermissions';
 
 export default function RoomBookings({ params }) {
   const { auth } = useAuth();
   const { id } = use(params);
+  const permissions = CheckUserPermission(auth?.user?.permissions);
 
   const hotel = GetSingleData({
     endPoint: 'hotels',
@@ -94,7 +96,11 @@ export default function RoomBookings({ params }) {
             <Grid container spacing={1}>
               <Grid size={{ xs: 12, md: 6 }}>
                 <BookingDetailsCard booking={data} />
-                <BillingSummaryCard booking={data} hotel={hotel} />
+                <BillingSummaryCard
+                  booking={data}
+                  hotel={hotel}
+                  permissions={permissions}
+                />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <BookingServiceActionsCard

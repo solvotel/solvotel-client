@@ -28,7 +28,7 @@ import { useAuth } from '@/context';
 import { GetCustomDate } from '@/utils/DateFetcher';
 import BillingSummaryPrint from '@/component/printables/BillingSummaryPrint';
 
-export default function BillingSummaryCard({ booking, hotel }) {
+export default function BillingSummaryCard({ booking, hotel, permissions }) {
   const { auth } = useAuth();
   const roomTokens = booking?.room_tokens || [];
   const services = booking?.service_tokens || [];
@@ -324,7 +324,9 @@ export default function BillingSummaryCard({ booking, hotel }) {
                           </TableCell>
                           <TableCell align="right">
                             <IconButton
-                              disabled={service?.invoice}
+                              disabled={
+                                service?.invoice || !permissions.canDelete
+                              }
                               size="small"
                               color="error"
                               onClick={() => deleteServices(index)}
@@ -409,7 +411,7 @@ export default function BillingSummaryCard({ booking, hotel }) {
                           </TableCell>
                           <TableCell align="right">
                             <IconButton
-                              disabled={food?.invoice}
+                              disabled={food?.invoice || !permissions.canDelete}
                               size="small"
                               color="error"
                               onClick={() =>

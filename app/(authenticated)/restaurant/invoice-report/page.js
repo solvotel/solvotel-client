@@ -19,6 +19,8 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Card,
+  CardContent,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
@@ -29,7 +31,7 @@ import { useReactToPrint } from 'react-to-print';
 import { RestaurantInvoiceReportPrint } from '@/component/printables/RestaurantInvoiceReportPrint';
 import { exportToExcel } from '@/utils/exportToExcel';
 
-const Page = () => {
+const InvoiceReportPage = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
   const data = GetDataList({
@@ -42,6 +44,33 @@ const Page = () => {
   const [searchText, setSearchText] = useState('');
   const [filteredData, setfilteredData] = useState([]);
   const [dataToExport, setDataToExport] = useState([]);
+
+  const invoiceStats = filteredData.reduce(
+    (totals, invoice) => {
+      totals.taxableAmount += Number(invoice.total_amount) || 0;
+      totals.tax += Number(invoice.tax) || 0;
+      totals.payableAmount += Number(invoice.payable_amount) || 0;
+      return totals;
+    },
+    {
+      taxableAmount: 0,
+      tax: 0,
+      payableAmount: 0,
+    },
+  );
+
+  const stats = {
+    invoiceCount: filteredData.length,
+    ...invoiceStats,
+    sgst: invoiceStats.tax / 2,
+    cgst: invoiceStats.tax / 2,
+  };
+
+  const formatAmount = (amount) =>
+    `₹${amount.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
   const handleSearch = () => {
     if ((!startDate || !endDate) && !searchText.trim()) return;
@@ -210,6 +239,44 @@ const Page = () => {
               </Box>
             </Box>
 
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, 1fr)',
+                  lg: 'repeat(5, 1fr)',
+                },
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              {[
+                { label: 'Invoices', value: stats.invoiceCount },
+                {
+                  label: 'Taxable Amount',
+                  value: formatAmount(stats.taxableAmount),
+                },
+                { label: 'SGST', value: formatAmount(stats.sgst) },
+                { label: 'CGST', value: formatAmount(stats.cgst) },
+                {
+                  label: 'Payable Amount',
+                  value: formatAmount(stats.payableAmount),
+                },
+              ].map((stat) => (
+                <Card key={stat.label} elevation={2}>
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">
+                      {stat.label}
+                    </Typography>
+                    <Typography variant="h6" fontWeight={700} mt={0.5}>
+                      {stat.value}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+
             {/* Data Table */}
             <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
               <Table>
@@ -263,6 +330,7 @@ const Page = () => {
               ref={componentRef}
               startDate={startDate}
               endDate={endDate}
+              stats={stats}
             />
           </Box>
         </>
@@ -271,4 +339,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default InvoiceReportPage;
