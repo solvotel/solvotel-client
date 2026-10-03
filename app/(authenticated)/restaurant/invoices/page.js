@@ -33,6 +33,7 @@ import {
   TableRow,
   Paper,
   Grid,
+  TablePagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -88,7 +89,7 @@ const generateNextInvoiceNo = (invoices, profileData) => {
   return `${prefix}/${fy}/${String(nextSerial).padStart(2, '0')}`;
 };
 
-const Page = () => {
+const RestaurantInvoiceListPage = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
@@ -113,6 +114,8 @@ const Page = () => {
   });
 
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -145,6 +148,21 @@ const Page = () => {
       item.invoice_no?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
+
+  const paginatedData = useMemo(
+    () =>
+      filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [filteredData, page, rowsPerPage],
+  );
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const handleItemSelect = () => {
     if (!selectedItem) return;
@@ -480,7 +498,10 @@ const Page = () => {
               label="Search by invoice no"
               variant="outlined"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
             />
             <Button
               variant="contained"
@@ -519,7 +540,7 @@ const Page = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData?.map((row) => (
+                {paginatedData.map((row) => (
                   <TableRow key={row.documentId}>
                     <TableCell>{row.invoice_no}</TableCell>
                     <TableCell>
@@ -577,13 +598,22 @@ const Page = () => {
                 ))}
                 {filteredData?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={11} align="center">
+                    <TableCell colSpan={12} align="center">
                       No invoice found
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </TableContainer>
 
           {/* Delete Confirmation Dialog */}
@@ -1186,4 +1216,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default RestaurantInvoiceListPage;

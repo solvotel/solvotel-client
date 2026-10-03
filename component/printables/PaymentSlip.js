@@ -65,12 +65,12 @@ const PaymentSlip = React.forwardRef((props, ref) => {
                   src={
                     hotel?.hotel_logo?.url ||
                     'https://res.cloudinary.com/deyxdpnom/image/upload/v1760012402/demo_hpzblb.png'
-                  } // fallback image
+                  }
                   alt="Hotel Logo"
                   style={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover', // ensures it's always a perfect square crop
+                    objectFit: 'contain',
                   }}
                 />
               </Box>

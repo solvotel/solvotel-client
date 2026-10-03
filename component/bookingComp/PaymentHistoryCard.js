@@ -31,7 +31,12 @@ import { useReactToPrint } from 'react-to-print';
 import { UpdateData } from '@/utils/ApiFunctions';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 
-export default function PaymentHistoryCard({ booking, hotel, auth }) {
+export default function PaymentHistoryCard({
+  booking,
+  hotel,
+  auth,
+  permissions,
+}) {
   const payments = booking?.payment_tokens || [];
   const roomTokens = booking?.room_tokens || [];
   const services = booking?.service_tokens || [];
@@ -334,6 +339,7 @@ export default function PaymentHistoryCard({ booking, hotel, auth }) {
                           color="error"
                           size="small"
                           onClick={() => handleOpenDeleteDialog(p)}
+                          disabled={!permissions.canDelete}
                         >
                           <Delete fontSize="inherit" />
                         </IconButton>

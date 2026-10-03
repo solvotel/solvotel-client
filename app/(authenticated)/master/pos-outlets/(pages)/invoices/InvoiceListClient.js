@@ -34,6 +34,7 @@ import {
   TableRow,
   Paper,
   Grid,
+  TablePagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -125,6 +126,8 @@ const InvoiceListClient = () => {
   const [search, setSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
@@ -173,6 +176,21 @@ const InvoiceListClient = () => {
       return true;
     });
   }, [data, search, startDate, endDate]);
+
+  const paginatedData = useMemo(
+    () =>
+      filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [filteredData, page, rowsPerPage],
+  );
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const handleItemSelect = () => {
     if (!selectedItem) return;
@@ -500,7 +518,10 @@ const InvoiceListClient = () => {
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ max: todaysDate }}
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setPage(0);
+                }}
               />
               <TextField
                 size="small"
@@ -509,14 +530,20 @@ const InvoiceListClient = () => {
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ max: todaysDate }}
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setPage(0);
+                }}
               />
               <TextField
                 size="small"
                 label="Search by invoice no"
                 variant="outlined"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(0);
+                }}
               />
 
               <Button
@@ -527,6 +554,7 @@ const InvoiceListClient = () => {
                   setSearch('');
                   setStartDate('');
                   setEndDate(todaysDate);
+                  setPage(0);
                 }}
               >
                 Reset
@@ -569,7 +597,7 @@ const InvoiceListClient = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData?.map((row) => (
+                {paginatedData.map((row) => (
                   <TableRow key={row.documentId}>
                     <TableCell>{row.invoice_no}</TableCell>
                     <TableCell>
@@ -634,6 +662,15 @@ const InvoiceListClient = () => {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </TableContainer>
 
           {/* Delete Confirmation Dialog */}

@@ -23,6 +23,7 @@ import {
   TableRow,
   Paper,
   Stack,
+  TablePagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -47,6 +48,8 @@ const BookingListPage = () => {
   const [endDate, setEndDate] = useState(paramsDate || todaysDate);
   const [bookingStatus, setBookingStatus] = useState('');
   const [searchBookingId, setSearchBookingId] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const data = GetDataList({
     auth,
     endPoint: 'room-bookings',
@@ -61,6 +64,10 @@ const BookingListPage = () => {
       setEndDate(paramsDate);
     }
   }, [paramsDate]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [startDate, endDate, bookingStatus, searchBookingId]);
 
   // filter data by name
   const filteredData = useMemo(() => {
@@ -150,6 +157,21 @@ const BookingListPage = () => {
       return bookingCoversDate;
     });
   }, [data, startDate, endDate, bookingStatus, searchBookingId]);
+
+  const paginatedData = useMemo(
+    () =>
+      filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [filteredData, page, rowsPerPage],
+  );
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   const getStatus = (booking) => {
     // Destructure for easier reading
@@ -295,7 +317,7 @@ const BookingListPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData?.map((row) => {
+                {paginatedData.map((row) => {
                   let currentStatus = getStatus(row);
 
                   return (
@@ -440,6 +462,15 @@ const BookingListPage = () => {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </TableContainer>
         </Box>
       )}

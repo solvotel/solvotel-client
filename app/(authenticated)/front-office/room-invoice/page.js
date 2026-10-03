@@ -18,6 +18,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   TextField,
   Tooltip,
   Typography,
@@ -42,11 +43,13 @@ import RoomInvoiceViewDialog from '@/component/bookingComp/RoomInvoiceViewDialog
 import EditRoomInvoiceDialog from '@/component/bookingComp/RoomInvoiceEditDialog';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 
-const Page = () => {
+const RoomInvoiceListPage = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [viewOpen, setViewOpen] = useState(false);
@@ -78,6 +81,21 @@ const Page = () => {
       item.invoice_no?.toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
+
+  const paginatedData = useMemo(
+    () =>
+      filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [filteredData, page, rowsPerPage],
+  );
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   // handle delete
   const handleDeleteClick = (row) => {
@@ -188,7 +206,10 @@ const Page = () => {
               label="Search by invoice no"
               variant="outlined"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(0);
+              }}
             />
           </Box>
 
@@ -214,7 +235,7 @@ const Page = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredData?.map((row) => {
+                {paginatedData.map((row) => {
                   return (
                     <TableRow key={row.documentId}>
                       <TableCell>{row.invoice_no}</TableCell>
@@ -264,13 +285,22 @@ const Page = () => {
                 })}
                 {filteredData?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
+                    <TableCell colSpan={8} align="center">
                       No invoice found
                     </TableCell>
                   </TableRow>
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
           </TableContainer>
 
           {/* Delete Confirmation Dialog */}
@@ -319,4 +349,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default RoomInvoiceListPage;

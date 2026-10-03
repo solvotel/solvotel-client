@@ -113,7 +113,12 @@ export default function RoomBookings({ params }) {
                   allBookings={allBookings}
                   hotel={hotel}
                 />
-                <PaymentHistoryCard booking={data} hotel={hotel} auth={auth} />
+                <PaymentHistoryCard
+                  booking={data}
+                  hotel={hotel}
+                  auth={auth}
+                  permissions={permissions}
+                />
                 <InvoiceListCard
                   booking={data}
                   roomInvoices={roomInvoices}
