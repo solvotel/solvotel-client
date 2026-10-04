@@ -132,6 +132,8 @@ const RoomAvailabilityStep = ({
             item: savedToken?.item,
             hsn: savedToken?.hsn,
             invoice: savedToken?.invoice,
+            checked_in: savedToken?.checked_in ?? false,
+            checked_out: savedToken?.checked_out ?? false,
           });
 
           current = current.add(1, 'day');
@@ -322,6 +324,8 @@ const RoomAvailabilityStep = ({
             amount: (rate + (rate * gst) / 100) * days,
             days,
             invoice: false,
+            checked_in: room.checked_in ?? false,
+            checked_out: room.checked_out ?? false,
             in_date,
             out_date,
           });

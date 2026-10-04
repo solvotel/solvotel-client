@@ -108,6 +108,8 @@ export default function BookingDetailsStep({
             rate,
             gst,
             amount,
+            checked_in: existing.checked_in ?? false,
+            checked_out: existing.checked_out ?? false,
           };
         })
         .filter(Boolean);

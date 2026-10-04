@@ -252,6 +252,8 @@ const RoomAvailabilityStep = ({
             amount: (rate + (rate * gst) / 100) * days,
             days,
             invoice: false,
+            checked_in: false,
+            checked_out: false,
             in_date,
             out_date,
           });

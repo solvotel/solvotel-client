@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Paper,
@@ -39,7 +39,8 @@ import {
 import { UpdateData } from '@/utils/ApiFunctions';
 import CancelBookingDialog from './CancelBookingDialog';
 
-import { SuccessToast } from '@/utils/GenerateToast';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
+import { GetTodaysDate } from '@/utils/DateFetcher';
 import CheckoutDialog from './CheckoutDialog';
 import CheckinDialog from './CheckinDialog';
 import BookingConflictDialog from './BookingConflictDialog';
@@ -62,9 +63,56 @@ export default function BookingServiceActionsCard({
   const [roomTariffDialog, setRoomTariffDialog] = useState(false);
   const [cancelDialog, setCancelDialog] = useState(false);
   const [checkinDialogOpen, setCheckinDialogOpen] = useState(false);
+  const [selectedCheckinTokenKeys, setSelectedCheckinTokenKeys] = useState([]);
+  const [checkinSaving, setCheckinSaving] = useState(false);
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
+  const [selectedCheckoutTokenKeys, setSelectedCheckoutTokenKeys] = useState(
+    [],
+  );
+  const [checkoutSaving, setCheckoutSaving] = useState(false);
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
   const [conflictingBookings, setConflictingBookings] = useState([]);
+  const today = GetTodaysDate().dateString;
+  const checkinCandidates = useMemo(
+    () =>
+      (booking?.room_tokens || [])
+        .map((token, index) => ({
+          key: String(
+            token.id ||
+              `${index}-${token.room}-${token.in_date}-${token.out_date}`,
+          ),
+          room: token.room,
+          in_date: token.in_date,
+          out_date: token.out_date,
+          checked_in: token.checked_in,
+        }))
+        .filter(
+          (token) => token.in_date === today && token.checked_in !== true,
+        ),
+    [booking?.room_tokens, today],
+  );
+  const checkoutCandidates = useMemo(
+    () =>
+      (booking?.room_tokens || [])
+        .map((token, index) => ({
+          key: String(
+            token.id ||
+              `${index}-${token.room}-${token.in_date}-${token.out_date}`,
+          ),
+          room: token.room,
+          in_date: token.in_date,
+          out_date: token.out_date,
+          checked_in: token.checked_in,
+          checked_out: token.checked_out,
+        }))
+        .filter(
+          (token) =>
+            token.out_date === today &&
+            token.checked_in === true &&
+            token.checked_out !== true,
+        ),
+    [booking?.room_tokens, today],
+  );
 
   // update service tokens
   const handleManageService = async (service) => {
@@ -140,19 +188,46 @@ export default function BookingServiceActionsCard({
   };
 
   const handleCheckin = async () => {
-    await UpdateData({
-      endPoint: 'room-bookings',
-      auth,
-      id: booking?.documentId,
-      payload: {
-        data: {
-          checked_in: true,
-          checkin_timeStamp: new Date().toISOString(),
-        },
-      },
+    if (!selectedCheckinTokenKeys.length) return;
+
+    const selectedKeys = new Set(selectedCheckinTokenKeys);
+    const roomTokens = (booking?.room_tokens || []).map((token, index) => {
+      const key = String(
+        token.id || `${index}-${token.room}-${token.in_date}-${token.out_date}`,
+      );
+
+      return {
+        ...token,
+        checked_in: selectedKeys.has(key) ? true : (token.checked_in ?? false),
+        checked_out: token.checked_out ?? false,
+      };
     });
-    setCheckinDialogOpen(false);
-    SuccessToast('Checked In Successfully');
+
+    try {
+      setCheckinSaving(true);
+      await UpdateData({
+        endPoint: 'room-bookings',
+        auth,
+        id: booking?.documentId,
+        payload: {
+          data: {
+            room_tokens: roomTokens,
+            checked_in: true,
+            ...(!booking?.checked_in && {
+              checkin_timeStamp: new Date().toISOString(),
+            }),
+          },
+        },
+      });
+      setCheckinDialogOpen(false);
+      setSelectedCheckinTokenKeys([]);
+      SuccessToast('Checked In Successfully');
+    } catch (err) {
+      console.error(err);
+      ErrorToast('Unable to mark selected rooms as checked in.');
+    } finally {
+      setCheckinSaving(false);
+    }
   };
 
   const findConflictingBookings = () => {
@@ -220,19 +295,50 @@ export default function BookingServiceActionsCard({
   };
 
   const handleCheckout = async () => {
-    await UpdateData({
-      endPoint: 'room-bookings',
-      auth,
-      id: booking?.documentId,
-      payload: {
-        data: {
-          checked_out: true,
-          checkout_timeStamp: new Date().toISOString(),
-        },
-      },
+    if (!selectedCheckoutTokenKeys.length) return;
+
+    const selectedKeys = new Set(selectedCheckoutTokenKeys);
+    const roomTokens = (booking?.room_tokens || []).map((token, index) => {
+      const key = String(
+        token.id || `${index}-${token.room}-${token.in_date}-${token.out_date}`,
+      );
+
+      return {
+        ...token,
+        checked_in: token.checked_in ?? false,
+        checked_out: selectedKeys.has(key)
+          ? true
+          : (token.checked_out ?? false),
+      };
     });
-    setCheckoutDialogOpen(false);
-    SuccessToast('Checked Out Successfully');
+    const allRoomsCheckedOut =
+      roomTokens.length > 0 && roomTokens.every((token) => token.checked_out);
+
+    try {
+      setCheckoutSaving(true);
+      await UpdateData({
+        endPoint: 'room-bookings',
+        auth,
+        id: booking?.documentId,
+        payload: {
+          data: {
+            room_tokens: roomTokens,
+            ...(allRoomsCheckedOut && {
+              checked_out: true,
+              checkout_timeStamp: new Date().toISOString(),
+            }),
+          },
+        },
+      });
+      setCheckoutDialogOpen(false);
+      setSelectedCheckoutTokenKeys([]);
+      SuccessToast('Checked Out Successfully');
+    } catch (err) {
+      console.error(err);
+      ErrorToast('Unable to mark selected rooms as checked out.');
+    } finally {
+      setCheckoutSaving(false);
+    }
   };
   return (
     <>
@@ -288,44 +394,40 @@ export default function BookingServiceActionsCard({
               Cancel Booking
             </Button>
           </Grid>
-          {!booking.checked_in && (
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Button
-                fullWidth
-                variant="outlined"
-                color="success"
-                startIcon={<LoginIcon />}
-                sx={{ textTransform: 'none' }}
-                disabled={
-                  booking.booking_status === 'Cancelled' ||
-                  booking.booking_status === 'Blocked'
-                }
-                onClick={handleCheckinClick}
-              >
-                Mark Check-In
-              </Button>
-            </Grid>
-          )}
 
-          {booking.checked_in && !booking.checked_out ? (
-            <>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  color="error"
-                  startIcon={<LogoutIcon />}
-                  sx={{ textTransform: 'none' }}
-                  onClick={() => setCheckoutDialogOpen(true)}
-                  disabled={booking.booking_status === 'Blocked'}
-                >
-                  Mark Check-Out
-                </Button>
-              </Grid>
-            </>
-          ) : (
-            <></>
-          )}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="success"
+              startIcon={<LoginIcon />}
+              sx={{ textTransform: 'none' }}
+              disabled={
+                booking.booking_status === 'Cancelled' ||
+                booking.booking_status === 'Blocked'
+              }
+              onClick={handleCheckinClick}
+            >
+              Mark Check-In
+            </Button>
+          </Grid>
+
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Button
+              fullWidth
+              variant="outlined"
+              color="error"
+              startIcon={<LogoutIcon />}
+              sx={{ textTransform: 'none' }}
+              onClick={() => {
+                setSelectedCheckoutTokenKeys([]);
+                setCheckoutDialogOpen(true);
+              }}
+              disabled={booking.booking_status === 'Blocked'}
+            >
+              Mark Check-Out
+            </Button>
+          </Grid>
 
           {/* Print */}
           <Grid size={{ xs: 12, md: 4 }}>
@@ -500,11 +602,22 @@ export default function BookingServiceActionsCard({
       <CheckinDialog
         open={checkinDialogOpen}
         setOpen={setCheckinDialogOpen}
+        rooms={checkinCandidates}
+        selectedRoomKeys={selectedCheckinTokenKeys}
+        setSelectedRoomKeys={setSelectedCheckinTokenKeys}
+        saving={checkinSaving}
         handleSave={handleCheckin}
       />
       <CheckoutDialog
         open={checkoutDialogOpen}
-        setOpen={setCheckoutDialogOpen}
+        setOpen={(open) => {
+          setCheckoutDialogOpen(open);
+          if (!open) setSelectedCheckoutTokenKeys([]);
+        }}
+        rooms={checkoutCandidates}
+        selectedRoomKeys={selectedCheckoutTokenKeys}
+        setSelectedRoomKeys={setSelectedCheckoutTokenKeys}
+        saving={checkoutSaving}
         handleSave={handleCheckout}
       />
       <BookingConflictDialog

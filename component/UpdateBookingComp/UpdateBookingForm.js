@@ -75,6 +75,8 @@ const UpdateBookingForm = ({
       const tokenItem = token.item ?? roomRef?.room_type ?? '';
       const tokenHsn = token.hsn ?? roomRef?.hsn ?? '';
       const tokenInvoice = token.invoice ?? false;
+      const tokenCheckedIn = token.checked_in ?? false;
+      const tokenCheckedOut = token.checked_out ?? false;
 
       // Generate dates from in_date to day-before-out_date (include at least in_date for same-day)
       let currentDate = new Date(inDate);
@@ -92,6 +94,8 @@ const UpdateBookingForm = ({
           item: tokenItem,
           hsn: tokenHsn,
           invoice: tokenInvoice,
+          checked_in: tokenCheckedIn,
+          checked_out: tokenCheckedOut,
         });
 
         currentDate.setDate(currentDate.getDate() + 1);
@@ -103,7 +107,13 @@ const UpdateBookingForm = ({
   };
 
   const [selectedRooms, setSelectedRooms] = useState(initializeSelectedRooms());
-  const cleanedTokens = bookingData.room_tokens.map(({ id, ...rest }) => rest);
+  const cleanedTokens = bookingData.room_tokens.map(
+    ({ id, ...token }) => ({
+      ...token,
+      checked_in: token.checked_in ?? false,
+      checked_out: token.checked_out ?? false,
+    }),
+  );
   const [roomTokens, setRoomTokens] = useState([...cleanedTokens]);
   const normalizeAdvancePayments = () => {
     const payments = bookingData?.advance_payment;

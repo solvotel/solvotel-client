@@ -214,6 +214,8 @@ const RoomTransferPage = () => {
             item: token.item,
             hsn: token.hsn,
             invoice: token.invoice,
+            checked_in: token.checked_in ?? false,
+            checked_out: token.checked_out ?? false,
             perDayAmount,
             amount: perDayAmount,
           });
@@ -320,6 +322,8 @@ const RoomTransferPage = () => {
         in_date: row.date,
         out_date: date.add(1, 'day').format('YYYY-MM-DD'),
         invoice: row.invoice,
+        checked_in: row.checked_in ?? false,
+        checked_out: row.checked_out ?? false,
         amount,
       };
 
