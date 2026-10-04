@@ -1,7 +1,4 @@
 'use client';
-
-import { useState } from 'react';
-
 import { useAuth } from '@/context';
 import { GetDataList } from '@/utils/ApiFunctions';
 import { GetTodaysDate } from '@/utils/DateFetcher';
@@ -13,15 +10,11 @@ import {
 } from '@/component/dashboardComp';
 import { Loader } from '@/component/common';
 import { CheckUserPermission } from '@/utils/UserPermissions';
-import dayjs from 'dayjs';
 
 const Page = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
-  const today = new Date(todaysDate);
-  const [selectedDate, setSelectedDate] = useState(today);
-  const selected = dayjs(selectedDate);
 
   // Fetch all bookings
   const bookings = GetDataList({
@@ -33,10 +26,6 @@ const Page = () => {
     endPoint: 'rooms',
   });
 
-  // 🔹 Filter Logic
-  const yesterday = new Date(selectedDate);
-  yesterday.setDate(yesterday.getDate() - 1);
-
   const getBookingsForTokens = (bookingPredicate, tokenPredicate) =>
     bookings
       ?.filter(bookingPredicate)
@@ -47,23 +36,35 @@ const Page = () => {
       .filter((bk) => bk.room_tokens.length > 0);
 
   const stayOver = getBookingsForTokens(
-    (bk) => bk.checked_in === true && bk.checked_out !== true,
+    (bk) =>
+      bk.booking_status !== 'Cancelled' &&
+      bk.booking_status !== 'Blocked' &&
+      bk.checked_out !== true,
     (token) =>
-      !selected.isBefore(dayjs(token.in_date), 'day') &&
-      selected.isBefore(dayjs(token.out_date), 'day'),
+      token.in_date < todaysDate &&
+      token.out_date > todaysDate &&
+      token.checked_in === true &&
+      token.checked_out !== true,
   );
 
   const expectedCheckin = getBookingsForTokens(
     (bk) =>
       bk.booking_status === 'Confirmed' &&
-      bk.checked_in !== true &&
       bk.checked_out !== true,
-    (token) => selected.isSame(dayjs(token.in_date), 'day'),
+    (token) =>
+      token.in_date === todaysDate &&
+      token.checked_in !== true &&
+      token.checked_out !== true,
   );
 
   const expectedCheckout = getBookingsForTokens(
-    (bk) => bk.checked_in === true && bk.checked_out !== true,
-    (token) => selected.isSame(dayjs(token.out_date), 'day'),
+    (bk) =>
+      bk.booking_status === 'Confirmed' &&
+      bk.checked_out !== true,
+    (token) =>
+      token.out_date === todaysDate &&
+      token.checked_in === true &&
+      token.checked_out !== true,
   );
 
   if (!bookings || !rooms) {
@@ -82,7 +83,6 @@ const Page = () => {
         expectedCheckin={expectedCheckin}
         expectedCheckout={expectedCheckout}
         stayOver={stayOver}
-        selectedDate={selectedDate}
       />
     </>
   );
