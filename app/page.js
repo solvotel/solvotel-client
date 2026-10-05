@@ -109,14 +109,14 @@ export default function Home() {
           background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Grid container spacing={6} alignItems="center">
             <Grid size={{ xs: 12, md: 5 }}>
               <Typography
                 variant="h4"
                 sx={{
                   fontWeight: 800,
-                  fontSize: { xs: '2.5rem', md: '2.5rem' },
+                  fontSize: { xs: '2rem', md: '2rem' },
                   background:
                     'linear-gradient(135deg, #1e293b 0%, #2563eb 100%)',
                   backgroundClip: 'text',
@@ -129,7 +129,7 @@ export default function Home() {
               </Typography>
               <Typography
                 variant="h6"
-                sx={{ color: '#64748b', mb: 4, fontSize: '1.2rem' }}
+                sx={{ color: '#64748b', mb: 4, fontSize: '1rem' }}
               >
                 Welcome to Solvotel, the best hotel management software trusted
                 by hotels, resorts, hostels, and boutique properties across
@@ -147,7 +147,7 @@ export default function Home() {
                     backgroundColor: '#2563eb',
                     px: 4,
                     py: 1.5,
-                    fontSize: '1.1rem',
+                    fontSize: '1rem',
                     fontWeight: 600,
                     '&:hover': { backgroundColor: '#1d4ed8' },
                   }}
@@ -177,8 +177,8 @@ export default function Home() {
             <Grid size={{ xs: 12, md: 7 }}>
               <Box
                 sx={{
-                  background:
-                    'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+                  // background:
+                  //   'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
                   borderRadius: 4,
                   height: 400,
                   display: 'flex',
@@ -189,12 +189,12 @@ export default function Home() {
               >
                 <Box
                   component="img"
-                  src="https://res.cloudinary.com/deyxdpnom/image/upload/v1763418043/banner-1_s2tjtr.png"
+                  src="https://res.cloudinary.com/djfusimul/image/upload/v1791139460/banner_d405c680a6.jpg"
                   alt="App Dashboard Preview"
                   sx={{
                     width: '100%',
                     height: '100%',
-                    objectFit: 'cover', // keeps aspect ratio and fills the box
+                    objectFit: 'contain', // keeps aspect ratio and fills the box
                     borderRadius: 4,
                   }}
                 />

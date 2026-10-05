@@ -41,7 +41,7 @@ const socialLinks = [
   {
     name: 'YouTube',
     icon: <YouTubeIcon sx={{ fontSize: 20, color: 'white' }} />,
-    url: 'https://youtube.com/@solvotels?si=ac0DfuU5nUxVhDea',
+    url: 'https://www.youtube.com/@Solvotel',
     hoverColor: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
   },
 ];
