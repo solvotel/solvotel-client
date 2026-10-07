@@ -28,15 +28,6 @@ const OverviewStats = ({ bookings, rooms }) => {
     const occupiedNos = new Set();
 
     bookings?.forEach((bk) => {
-      const checkIn = bk.checkin_date;
-      const checkOut = bk.checkout_date;
-
-      // ⛔ Fully checked-out bookings do not affect stats
-      if (bk.checked_out === true) return;
-
-      const bookingAppliesToToday = isDateInRange(today, checkIn, checkOut);
-      if (!bookingAppliesToToday) return;
-
       // -------------------------------------------------
       // 📌 Process room tokens for today's status
       // -------------------------------------------------
@@ -52,7 +43,12 @@ const OverviewStats = ({ bookings, rooms }) => {
         // -------------------------------------------------
         // 📌 Checked-in rooms (today)
         // -------------------------------------------------
-        if (bk.checked_in === true && bk.checked_out !== true) {
+        if (
+          bk.booking_status !== 'Cancelled' &&
+          bk.booking_status !== 'Blocked' &&
+          token.checked_in === true &&
+          token.checked_out !== true
+        ) {
           checkedIn += 1;
           occupiedNos.add(token.room);
         }
@@ -60,9 +56,9 @@ const OverviewStats = ({ bookings, rooms }) => {
         // 📌 Confirmed rooms (today, not checked in)
         // -------------------------------------------------
         else if (
-          bk.checked_in !== true &&
-          bk.checked_out !== true &&
-          bk.booking_status === 'Confirmed'
+          bk.booking_status === 'Confirmed' &&
+          token.checked_in !== true &&
+          token.checked_out !== true
         ) {
           confirmed += 1;
           occupiedNos.add(token.room);
@@ -79,32 +75,30 @@ const OverviewStats = ({ bookings, rooms }) => {
       // -------------------------------------------------
       // 📌 Expected Check-ins (token-based)
       // -------------------------------------------------
-      if (
-        bk.booking_status === 'Confirmed' &&
-        bk.checked_in !== true &&
-        bk.checked_out !== true
-      ) {
-        bk.room_tokens?.forEach((token) => {
-          if (token.in_date === today) {
-            expectedCheckins += 1;
-          }
-        });
-      }
+      bk.room_tokens?.forEach((token) => {
+        if (
+          bk.booking_status === 'Confirmed' &&
+          token.in_date === today &&
+          token.checked_in !== true &&
+          token.checked_out !== true
+        ) {
+          expectedCheckins += 1;
+        }
+      });
 
       // -------------------------------------------------
       // 📌 Expected Check-outs (token-based)
       // -------------------------------------------------
-      if (
-        bk.booking_status === 'Confirmed' &&
-        bk.checked_in === true &&
-        bk.checked_out !== true
-      ) {
-        bk.room_tokens?.forEach((token) => {
-          if (token.out_date === today) {
-            expectedCheckouts += 1;
-          }
-        });
-      }
+      bk.room_tokens?.forEach((token) => {
+        if (
+          bk.booking_status === 'Confirmed' &&
+          token.out_date === today &&
+          token.checked_in === true &&
+          token.checked_out !== true
+        ) {
+          expectedCheckouts += 1;
+        }
+      });
     });
 
     // -------------------------------------------------

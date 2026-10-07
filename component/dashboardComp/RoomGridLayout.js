@@ -69,18 +69,6 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
     const occupiedRoomNos = new Set();
 
     bookings?.forEach((bk) => {
-      const checkIn = bk.checkin_date;
-      const checkOut = bk.checkout_date;
-
-      // Check if this booking applies to the selected date (include same-day bookings)
-      const bookingAppliesToDate = isDateInRange(
-        selectedDate,
-        checkIn,
-        checkOut,
-      );
-
-      if (!bookingAppliesToDate) return;
-
       // Process room_tokens instead of rooms array
       bk.room_tokens?.forEach((token) => {
         const tokenInDate = token.in_date;
@@ -105,15 +93,20 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
         };
 
         // 🟢 Checked-in
-        if (bk.checked_in === true && bk.checked_out !== true) {
+        if (
+          bk.booking_status !== 'Cancelled' &&
+          bk.booking_status !== 'Blocked' &&
+          token.checked_in === true &&
+          token.checked_out !== true
+        ) {
           checkedInRooms.push(roomData);
           occupiedRoomNos.add(token.room);
         }
         // 🟡 Confirmed (not checked-in yet)
         else if (
-          bk.checked_in !== true &&
-          bk.checked_out !== true &&
-          bk.booking_status === 'Confirmed'
+          bk.booking_status === 'Confirmed' &&
+          token.checked_in !== true &&
+          token.checked_out !== true
         ) {
           confirmedRooms.push(roomData);
           occupiedRoomNos.add(token.room);
