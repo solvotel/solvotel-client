@@ -24,12 +24,15 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { RestaurantInvoiceReportPrint } from '@/component/printables/RestaurantInvoiceReportPrint';
 import { exportToExcel } from '@/utils/exportToExcel';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const InvoiceReportPage = () => {
   const { auth } = useAuth();
@@ -141,6 +144,75 @@ const InvoiceReportPage = () => {
     exportToExcel(dataToExport, 'restaurant_invoice_report');
   };
 
+  const handleExportPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const formatPdfAmount = (amount) =>
+      `INR ${Number(amount || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+
+    doc.setFontSize(16);
+    doc.text('Restaurant Invoice Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(
+      `Start Date: ${GetCustomDate(startDate) || '-'}    End Date: ${GetCustomDate(endDate) || '-'}`,
+      14,
+      24,
+    );
+    doc.text(
+      `Invoices: ${stats.invoiceCount}    Taxable Amount: ${formatPdfAmount(stats.taxableAmount)}    SGST: ${formatPdfAmount(stats.sgst)}    CGST: ${formatPdfAmount(stats.cgst)}    Payable Amount: ${formatPdfAmount(stats.payableAmount)}`,
+      14,
+      31,
+    );
+
+    autoTable(doc, {
+      startY: 38,
+      head: [
+        [
+          'Invoice No',
+          'Date/Time',
+          'Customer Name',
+          'GSTIN',
+          'Taxable Amount',
+          'SGST',
+          'CGST',
+          'Payable Amount',
+        ],
+      ],
+      body: filteredData.map((invoice) => [
+        invoice.invoice_no || '-',
+        `${GetCustomDate(invoice.date) || '-'} ${invoice.time || ''}`.trim(),
+        invoice.customer_name || 'NA',
+        invoice.customer_gst || 'NA',
+        formatPdfAmount(invoice.total_amount),
+        formatPdfAmount(Number(invoice.tax || 0) / 2),
+        formatPdfAmount(Number(invoice.tax || 0) / 2),
+        formatPdfAmount(invoice.payable_amount),
+      ]),
+      styles: {
+        fontSize: 8,
+        cellPadding: 2,
+        overflow: 'linebreak',
+      },
+      headStyles: {
+        fillColor: [55, 71, 79],
+      },
+      margin: { top: 38, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('restaurant_invoice_report.pdf');
+  };
+
   return (
     <>
       <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
@@ -219,7 +291,7 @@ const InvoiceReportPage = () => {
               <Box>
                 <Button
                   variant="contained"
-                  color="error"
+                  color="warning"
                   startIcon={<PrintIcon />}
                   disabled={filteredData.length === 0}
                   onClick={handlePrint}
@@ -232,9 +304,19 @@ const InvoiceReportPage = () => {
                   disabled={filteredData.length === 0}
                   variant="contained"
                   color="success"
-                  startIcon={<FileDownloadIcon />}
+                  startIcon={<TableViewIcon />}
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={handleExportPdf}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="error"
+                  startIcon={<PictureAsPdfIcon />}
+                  sx={{ ml: 1 }}
+                >
+                  Download
                 </Button>
               </Box>
             </Box>

@@ -26,7 +26,7 @@ import { SuccessToast } from '@/utils/GenerateToast';
 import { IncomeExpenseReportPrint } from '@/component/printables/IncomeExpenseReportPrint';
 import { useReactToPrint } from 'react-to-print';
 
-const Page = () => {
+const IncomeExpenseReportPage = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
 
@@ -396,4 +396,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default IncomeExpenseReportPage;

@@ -11,19 +11,25 @@ import {
   Stack,
   Chip,
   IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import {
   CheckCircleRounded,
   MeetingRoomRounded,
   CloseRounded,
   DoneAllRounded,
+  ExpandMoreRounded,
   LogoutRounded,
 } from '@mui/icons-material';
+import { toDateKey } from '@/utils/DateFetcher';
 
 const CheckoutDialog = ({
   open,
   setOpen,
   rooms,
+  forceCheckoutRooms = [],
   selectedRoomKeys,
   setSelectedRoomKeys,
   saving,
@@ -37,16 +43,124 @@ const CheckoutDialog = ({
     );
   };
 
-  const selectAllRooms = () => {
-    setSelectedRoomKeys(rooms.map((room) => room.key));
+  const toggleRoomSelection = (roomList) => {
+    const roomKeys = roomList.map((room) => room.key);
+    const allSelected =
+      roomKeys.length > 0 &&
+      roomKeys.every((key) => selectedRoomKeys.includes(key));
+
+    setSelectedRoomKeys((selected) =>
+      allSelected
+        ? selected.filter((key) => !roomKeys.includes(key))
+        : [...new Set([...selected, ...roomKeys])],
+    );
   };
 
-  const clearAllRooms = () => {
-    setSelectedRoomKeys([]);
-  };
+  const renderRoomCards = (roomList, description) =>
+    roomList.map((room) => {
+      const selected = selectedRoomKeys.includes(room.key);
 
-  const allSelected =
-    rooms.length > 0 && selectedRoomKeys.length === rooms.length;
+      return (
+        <Box
+          key={room.key}
+          onClick={() => !saving && toggleRoom(room.key)}
+          sx={{
+            position: 'relative',
+            cursor: saving ? 'default' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            p: 1.5,
+            borderRadius: 2.5,
+            border: '1px solid',
+            borderColor: selected ? '#ff6b6b' : '#e9ecef',
+            backgroundColor: selected ? '#fff0f0' : '#fff',
+            transition: 'all 0.2s ease',
+            boxShadow: selected
+              ? '0 5px 18px rgba(224,49,49,0.12)'
+              : '0 2px 8px rgba(0,0,0,0.035)',
+            '&:hover': {
+              borderColor: '#ff6b6b',
+              transform: saving ? 'none' : 'translateY(-1px)',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.07)',
+            },
+          }}
+        >
+          <Checkbox
+            checked={selected}
+            onChange={() => toggleRoom(room.key)}
+            disabled={saving}
+            onClick={(event) => event.stopPropagation()}
+            icon={
+              <Box
+                sx={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: 1.5,
+                  border: '2px solid #ced4da',
+                }}
+              />
+            }
+            checkedIcon={
+              <CheckCircleRounded sx={{ fontSize: 25, color: '#e03131' }} />
+            }
+            sx={{ p: 0 }}
+          />
+
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              flexShrink: 0,
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: selected ? '#ffe3e3' : '#f1f3f5',
+              color: selected ? '#c92a2a' : '#495057',
+            }}
+          >
+            <MeetingRoomRounded fontSize="small" />
+          </Box>
+
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="body1" fontWeight={800} color="text.primary">
+              Room {room.room}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {selected
+                ? 'Ready for checkout'
+                : typeof description === 'function'
+                  ? description(room)
+                  : description}
+            </Typography>
+          </Box>
+
+          {selected && (
+            <CheckCircleRounded sx={{ color: '#e03131', fontSize: 20 }} />
+          )}
+        </Box>
+      );
+    });
+
+  const renderEmptyRoomList = (message) => (
+    <Box
+      sx={{
+        py: 3,
+        px: 2,
+        textAlign: 'center',
+        borderRadius: 3,
+        border: '1px dashed #ced4da',
+        backgroundColor: '#fff',
+      }}
+    >
+      <Typography variant="body2" color="text.secondary">
+        {message}
+      </Typography>
+    </Box>
+  );
+
+  const totalRooms = rooms.length + forceCheckoutRooms.length;
 
   return (
     <Dialog
@@ -162,10 +276,10 @@ const CheckoutDialog = ({
             </Typography>
           </Box>
 
-          {rooms.length > 0 && (
+          {totalRooms > 0 && (
             <Chip
               icon={<LogoutRounded sx={{ fontSize: 18 }} />}
-              label={`${selectedRoomKeys.length} of ${rooms.length} selected`}
+              label={`${selectedRoomKeys.length} of ${totalRooms} selected`}
               sx={{
                 fontWeight: 700,
                 borderRadius: 2,
@@ -180,183 +294,125 @@ const CheckoutDialog = ({
           )}
         </Stack>
 
-        {/* Select All */}
-        {rooms.length > 0 && (
-          <Stack
-            direction="row"
-            justifyContent="flex-end"
-            spacing={1}
-            sx={{ mb: 2 }}
-          >
-            <Button
-              size="small"
-              startIcon={<DoneAllRounded />}
-              onClick={allSelected ? clearAllRooms : selectAllRooms}
-              disabled={saving}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 700,
-                borderRadius: 2,
-                color: '#c92a2a',
-                '&:hover': {
-                  backgroundColor: '#fff0f0',
-                },
-              }}
-            >
-              {allSelected ? 'Clear All' : 'Select All'}
-            </Button>
-          </Stack>
-        )}
-
-        {/* Rooms */}
-        {rooms.length > 0 ? (
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: {
-                xs: '1fr',
-                sm: 'repeat(3, 1fr)',
-              },
-              gap: 1.5,
-              maxHeight: 340,
-              overflowY: 'auto',
-              pr: 0.5,
-              '&::-webkit-scrollbar': {
-                width: 6,
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: '#ced4da',
-                borderRadius: 10,
-              },
-            }}
-          >
-            {rooms.map((room) => {
-              const selected = selectedRoomKeys.includes(room.key);
-
-              return (
-                <Box
-                  key={room.key}
-                  onClick={() => !saving && toggleRoom(room.key)}
-                  sx={{
-                    position: 'relative',
-                    cursor: saving ? 'default' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    p: 1.5,
-                    borderRadius: 2.5,
-                    border: '1px solid',
-                    borderColor: selected ? '#ff6b6b' : '#e9ecef',
-                    backgroundColor: selected ? '#fff0f0' : '#fff',
-                    transition: 'all 0.2s ease',
-                    boxShadow: selected
-                      ? '0 5px 18px rgba(224,49,49,0.12)'
-                      : '0 2px 8px rgba(0,0,0,0.035)',
-                    '&:hover': {
-                      borderColor: '#ff6b6b',
-                      transform: saving ? 'none' : 'translateY(-1px)',
-                      boxShadow: '0 6px 20px rgba(0,0,0,0.07)',
-                    },
-                  }}
-                >
-                  <Checkbox
-                    checked={selected}
-                    onChange={() => toggleRoom(room.key)}
+        <Stack spacing={2.5}>
+          <Accordion defaultExpanded disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreRounded />}>
+              <Typography variant="subtitle2" fontWeight={800}>
+                Scheduled for today ({rooms.length})
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={1.5}>
+                {rooms.length > 0 && (
+                  <Button
+                    size="small"
+                    startIcon={<DoneAllRounded />}
+                    onClick={() => toggleRoomSelection(rooms)}
                     disabled={saving}
-                    onClick={(event) => event.stopPropagation()}
-                    icon={
-                      <Box
-                        sx={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: 1.5,
-                          border: '2px solid #ced4da',
-                        }}
-                      />
-                    }
-                    checkedIcon={
-                      <CheckCircleRounded
-                        sx={{
-                          fontSize: 25,
-                          color: '#e03131',
-                        }}
-                      />
-                    }
                     sx={{
-                      p: 0,
-                    }}
-                  />
-
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      flexShrink: 0,
+                      alignSelf: 'flex-end',
+                      textTransform: 'none',
+                      fontWeight: 700,
                       borderRadius: 2,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: selected ? '#ffe3e3' : '#f1f3f5',
-                      color: selected ? '#c92a2a' : '#495057',
+                      color: '#c92a2a',
+                      '&:hover': { backgroundColor: '#fff0f0' },
                     }}
                   >
-                    <MeetingRoomRounded fontSize="small" />
+                    {rooms.every((room) => selectedRoomKeys.includes(room.key))
+                      ? 'Clear All'
+                      : 'Select All'}
+                  </Button>
+                )}
+                {rooms.length > 0 ? (
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: {
+                        xs: '1fr',
+                        sm: 'repeat(3, 1fr)',
+                      },
+                      gap: 1.5,
+                      maxHeight: 260,
+                      overflowY: 'auto',
+                      pr: 0.5,
+                    }}
+                  >
+                    {renderRoomCards(rooms, 'Scheduled checkout')}
                   </Box>
+                ) : (
+                  renderEmptyRoomList(
+                    'No rooms are scheduled for checkout today.',
+                  )
+                )}
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
 
-                  <Box sx={{ minWidth: 0, flex: 1 }}>
-                    <Typography
-                      variant="body1"
-                      fontWeight={800}
-                      color="text.primary"
-                    >
-                      Room {room.room}
-                    </Typography>
-
-                    <Typography variant="caption" color="text.secondary">
-                      {selected ? 'Ready for checkout' : 'Not selected'}
-                    </Typography>
+          <Accordion defaultExpanded disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreRounded />}>
+              <Typography variant="subtitle2" fontWeight={800}>
+                Force checkout ({forceCheckoutRooms.length})
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Stack spacing={1.5}>
+                <Typography variant="body2" color="text.secondary">
+                  Check out checked-in rooms regardless of their scheduled
+                  checkout date.
+                </Typography>
+                {forceCheckoutRooms.length > 0 && (
+                  <Button
+                    size="small"
+                    startIcon={<DoneAllRounded />}
+                    onClick={() => toggleRoomSelection(forceCheckoutRooms)}
+                    disabled={saving}
+                    sx={{
+                      alignSelf: 'flex-end',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      borderRadius: 2,
+                      color: '#c92a2a',
+                      '&:hover': { backgroundColor: '#fff0f0' },
+                    }}
+                  >
+                    {forceCheckoutRooms.every((room) =>
+                      selectedRoomKeys.includes(room.key),
+                    )
+                      ? 'Clear All'
+                      : 'Select All'}
+                  </Button>
+                )}
+                {forceCheckoutRooms.length > 0 ? (
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: {
+                        xs: '1fr',
+                        sm: 'repeat(3, 1fr)',
+                      },
+                      gap: 1.5,
+                      maxHeight: 260,
+                      overflowY: 'auto',
+                      pr: 0.5,
+                    }}
+                  >
+                    {renderRoomCards(
+                      forceCheckoutRooms,
+                      (room) =>
+                        `Scheduled checkout: ${
+                          toDateKey(room.out_date) || 'date unavailable'
+                        }`,
+                    )}
                   </Box>
-
-                  {selected && (
-                    <CheckCircleRounded
-                      sx={{
-                        color: '#e03131',
-                        fontSize: 20,
-                      }}
-                    />
-                  )}
-                </Box>
-              );
-            })}
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              py: 6,
-              px: 2,
-              textAlign: 'center',
-              borderRadius: 3,
-              border: '1px dashed #ced4da',
-              backgroundColor: '#fff',
-            }}
-          >
-            <LogoutRounded
-              sx={{
-                fontSize: 48,
-                color: '#adb5bd',
-                mb: 1,
-              }}
-            />
-
-            <Typography fontWeight={700} color="text.primary">
-              No departures found
-            </Typography>
-
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              There are no rooms scheduled for checkout today.
-            </Typography>
-          </Box>
-        )}
+                ) : (
+                  renderEmptyRoomList(
+                    'No other checked-in rooms need checkout.',
+                  )
+                )}
+              </Stack>
+            </AccordionDetails>
+          </Accordion>
+        </Stack>
 
         {/* Selection Summary */}
         {selectedRoomKeys.length > 0 && (

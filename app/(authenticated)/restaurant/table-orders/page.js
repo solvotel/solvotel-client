@@ -13,7 +13,7 @@ import { useAuth } from '@/context';
 import { Loader } from '@/component/common';
 import { useState } from 'react';
 import { GetCurrentTime } from '@/utils/Timefetcher';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetTodaysDate, isDateInRange } from '@/utils/DateFetcher';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import {
   CreateNewOrder,
@@ -75,9 +75,8 @@ const Page = () => {
   const activeRooms =
     bookings?.flatMap((bk) => {
       if (
-        bk.checked_in !== true ||
-        bk.checked_out === true ||
-        bk.booking_status === 'Cancelled'
+        bk.booking_status === 'Cancelled' ||
+        bk.booking_status === 'Blocked'
       ) {
         return [];
       }
@@ -85,10 +84,11 @@ const Page = () => {
       return (
         bk.room_tokens
           ?.filter((token) => {
-            const inDate = token.in_date?.split('T')[0];
-            const outDate = token.out_date?.split('T')[0];
-
-            return today >= inDate && today < outDate;
+            return (
+              token.checked_in === true &&
+              token.checked_out !== true &&
+              isDateInRange(today, token.in_date, token.out_date)
+            );
           })
           ?.map((token) => ({
             booking_id: bk.documentId,

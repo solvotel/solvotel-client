@@ -40,7 +40,7 @@ import { UpdateData } from '@/utils/ApiFunctions';
 import CancelBookingDialog from './CancelBookingDialog';
 
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetTodaysDate, toDateKey } from '@/utils/DateFetcher';
 import CheckoutDialog from './CheckoutDialog';
 import CheckinDialog from './CheckinDialog';
 import BookingConflictDialog from './BookingConflictDialog';
@@ -91,7 +91,7 @@ export default function BookingServiceActionsCard({
         ),
     [booking?.room_tokens, today],
   );
-  const checkoutCandidates = useMemo(
+  const activeCheckoutTokens = useMemo(
     () =>
       (booking?.room_tokens || [])
         .map((token, index) => ({
@@ -107,11 +107,16 @@ export default function BookingServiceActionsCard({
         }))
         .filter(
           (token) =>
-            token.out_date === today &&
             token.checked_in === true &&
             token.checked_out !== true,
         ),
-    [booking?.room_tokens, today],
+    [booking?.room_tokens],
+  );
+  const checkoutCandidates = activeCheckoutTokens.filter(
+    (token) => toDateKey(token.out_date) === today,
+  );
+  const forceCheckoutCandidates = activeCheckoutTokens.filter(
+    (token) => toDateKey(token.out_date) !== today,
   );
 
   // update service tokens
@@ -615,6 +620,7 @@ export default function BookingServiceActionsCard({
           if (!open) setSelectedCheckoutTokenKeys([]);
         }}
         rooms={checkoutCandidates}
+        forceCheckoutRooms={forceCheckoutCandidates}
         selectedRoomKeys={selectedCheckoutTokenKeys}
         setSelectedRoomKeys={setSelectedCheckoutTokenKeys}
         saving={checkoutSaving}
