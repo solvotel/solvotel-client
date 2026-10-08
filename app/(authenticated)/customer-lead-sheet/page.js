@@ -17,14 +17,18 @@ import {
   Paper,
   Table,
 } from '@mui/material';
-import { FileDownload, NavigateNext, Print } from '@mui/icons-material';
+import { NavigateNext, Print } from '@mui/icons-material';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { Loader } from '@/component/common';
 
 import { exportToExcel } from '@/utils/exportToExcel';
 import { useReactToPrint } from 'react-to-print';
 import { CustomerLeadSheetPrint } from '@/component/printables/CustomerLeadSheetPrint';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
-const Page = () => {
+const CustomerLeadSheetPage = () => {
   const { auth } = useAuth();
 
   const roomGuest = GetDataList({
@@ -79,6 +83,39 @@ const Page = () => {
     exportToExcel(mergedGuests, 'customer_lead_sheet');
   };
 
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+
+    doc.setFontSize(16);
+    doc.text('Customer Lead Sheet', 14, 16);
+    doc.setFontSize(10);
+    doc.text(`Total Guests: ${mergedGuests.length}`, 14, 24);
+
+    autoTable(doc, {
+      startY: 30,
+      head: [['Name', 'Mobile', 'Email']],
+      body: mergedGuests.map((guest) => [
+        guest.name || '-',
+        guest.phone || '-',
+        guest.email || '-',
+      ]),
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: 30, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('customer_lead_sheet.pdf');
+  };
+
   return (
     <>
       {' '}
@@ -107,7 +144,7 @@ const Page = () => {
               <Box>
                 <Button
                   variant="contained"
-                  color="error"
+                  color="warning"
                   startIcon={<Print />}
                   disabled={mergedGuests.length === 0}
                   onClick={handlePrint}
@@ -120,9 +157,19 @@ const Page = () => {
                   disabled={mergedGuests.length === 0}
                   variant="contained"
                   color="success"
-                  startIcon={<FileDownload />}
+                  startIcon={<TableViewIcon />}
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={handleDownloadPdf}
+                  disabled={mergedGuests.length === 0}
+                  variant="contained"
+                  color="error"
+                  startIcon={<PictureAsPdfIcon />}
+                  sx={{ ml: 1 }}
+                >
+                  Download
                 </Button>
               </Box>
             </Box>
@@ -172,4 +219,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default CustomerLeadSheetPage;

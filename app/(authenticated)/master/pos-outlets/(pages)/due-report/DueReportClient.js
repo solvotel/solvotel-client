@@ -20,13 +20,16 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
 import { DueReportPrint } from '@/component/printables/DueReportPrint';
 import { useSearchParams } from 'next/navigation';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const DueReportClient = () => {
   const todaysDate = GetTodaysDate().dateString;
@@ -96,6 +99,85 @@ const DueReportClient = () => {
     exportToExcel(dataToExport, 'due_report');
   };
 
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const formatPdfAmount = (amount) =>
+      `INR ${Number(amount || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    const totalDue = filteredData.reduce(
+      (sum, invoice) => sum + (Number(invoice.due) || 0),
+      0,
+    );
+
+    doc.setFontSize(16);
+    doc.text('POS Outlet Due Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(
+      `Start Date: ${GetCustomDate(startDate) || '-'}    End Date: ${GetCustomDate(endDate) || '-'}`,
+      14,
+      24,
+    );
+    doc.text(
+      `Total Invoices: ${filteredData.length}    Total Due Amount: ${formatPdfAmount(totalDue)}`,
+      14,
+      31,
+    );
+
+    autoTable(doc, {
+      startY: 38,
+      head: [
+        [
+          'Invoice No',
+          'Date/Time',
+          'Customer Name',
+          'GSTIN',
+          'Taxable',
+          'SGST',
+          'CGST',
+          'Payable',
+          'Paid',
+          'Due',
+        ],
+      ],
+      body: filteredData.map((invoice) => {
+        const totalPaid =
+          invoice.payments?.reduce(
+            (sum, payment) => sum + (Number(payment.amount) || 0),
+            0,
+          ) || 0;
+
+        return [
+          invoice.invoice_no || '-',
+          `${GetCustomDate(invoice.date)} ${invoice.time || ''}`.trim(),
+          invoice.customer_name || 'N/A',
+          invoice.customer_gst || 'N/A',
+          formatPdfAmount(invoice.taxable),
+          formatPdfAmount(invoice.sgst),
+          formatPdfAmount(invoice.cgst),
+          formatPdfAmount(invoice.payable),
+          formatPdfAmount(totalPaid),
+          formatPdfAmount(invoice.due),
+        ];
+      }),
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: 38, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('due_report.pdf');
+  };
+
   return (
     <>
       {/* <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
@@ -156,7 +238,7 @@ const DueReportClient = () => {
               <Box>
                 <Button
                   variant="contained"
-                  color="error"
+                  color="warning"
                   startIcon={<PrintIcon />}
                   disabled={filteredData.length === 0}
                   onClick={handlePrint}
@@ -169,9 +251,19 @@ const DueReportClient = () => {
                   disabled={filteredData.length === 0}
                   variant="contained"
                   color="success"
-                  startIcon={<FileDownloadIcon />}
+                  startIcon={<TableViewIcon />}
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={handleDownloadPdf}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="error"
+                  startIcon={<PictureAsPdfIcon />}
+                  sx={{ ml: 1 }}
+                >
+                  Download
                 </Button>
               </Box>
             </Box>

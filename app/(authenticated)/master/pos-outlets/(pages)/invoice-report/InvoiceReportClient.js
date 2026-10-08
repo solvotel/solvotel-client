@@ -22,13 +22,16 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { Loader } from '@/component/common';
 import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
 import { PosOutletInvoiceReportPrint } from '@/component/printables/PosOutletInvoiceReportPrint';
 import { useSearchParams } from 'next/navigation';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const InvoiceReportClient = () => {
   const todaysDate = GetTodaysDate().dateString;
@@ -112,6 +115,64 @@ const InvoiceReportClient = () => {
     exportToExcel(dataToExport, 'pos_outlet_invoice_report');
   };
 
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+
+    doc.setFontSize(16);
+    doc.text('POS Outlet Invoice Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(
+      `Start Date: ${GetCustomDate(startDate) || '-'}    End Date: ${GetCustomDate(endDate) || '-'}`,
+      14,
+      24,
+    );
+    doc.text(
+      `Invoices: ${stats.invoiceCount}    Taxable Amount: ${formatAmount(stats.taxable)}    SGST: ${formatAmount(stats.sgst)}    CGST: ${formatAmount(stats.cgst)}    Payable Amount: ${formatAmount(stats.payable)}`,
+      14,
+      31,
+    );
+
+    autoTable(doc, {
+      startY: 38,
+      head: [
+        [
+          'Invoice No',
+          'Date/Time',
+          'Customer Name',
+          'GSTIN',
+          'Total Amount',
+          'SGST',
+          'CGST',
+          'Payable Amount',
+        ],
+      ],
+      body: filteredData.map((invoice) => [
+        invoice.invoice_no || '-',
+        `${GetCustomDate(invoice.date)} ${invoice.time || ''}`.trim(),
+        invoice.customer_name || 'N/A',
+        invoice.customer_gst || 'N/A',
+        formatAmount(Number(invoice.taxable) || 0),
+        formatAmount(Number(invoice.sgst) || 0),
+        formatAmount(Number(invoice.cgst) || 0),
+        formatAmount(Number(invoice.payable) || 0),
+      ]),
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: 38, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('pos_outlet_invoice_report.pdf');
+  };
+
   return (
     <>
       {/* <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
@@ -172,7 +233,7 @@ const InvoiceReportClient = () => {
               <Box>
                 <Button
                   variant="contained"
-                  color="error"
+                  color="warning"
                   startIcon={<PrintIcon />}
                   disabled={filteredData.length === 0}
                   onClick={handlePrint}
@@ -185,9 +246,19 @@ const InvoiceReportClient = () => {
                   disabled={filteredData.length === 0}
                   variant="contained"
                   color="success"
-                  startIcon={<FileDownloadIcon />}
+                  startIcon={<TableViewIcon />}
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={handleDownloadPdf}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="error"
+                  startIcon={<PictureAsPdfIcon />}
+                  sx={{ ml: 1 }}
+                >
+                  Download
                 </Button>
               </Box>
             </Box>

@@ -20,13 +20,16 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
 import { PosOutletCollectionReportPrint } from '@/component/printables/PosOutletCollectionReportPrint';
 import { useSearchParams } from 'next/navigation';
 import { Loader } from '@/component/common';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const CollectionReportClient = () => {
   const todaysDate = GetTodaysDate().dateString;
@@ -133,6 +136,78 @@ const CollectionReportClient = () => {
     exportToExcel(dataToExport, 'pos_outlet_collection_report');
   };
 
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const formatPdfAmount = (amount) =>
+      `INR ${Number(amount || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    const paymentMethodSummary = Object.entries(stats.mopStats || {})
+      .map(
+        ([method, values]) =>
+          `${method}: ${values.count} payments (${formatPdfAmount(values.amount)})`,
+      )
+      .join('    ');
+
+    doc.setFontSize(16);
+    doc.text('POS Outlet Collection Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(
+      `Start Date: ${startDate || '-'}    End Date: ${endDate || '-'}`,
+      14,
+      24,
+    );
+    doc.text(
+      `Total Payments: ${stats.totalPayments || 0}    Total Amount Collected: ${formatPdfAmount(stats.totalAmount)}`,
+      14,
+      31,
+    );
+
+    const summaryLines = doc.splitTextToSize(
+      `Payment Method Breakdown: ${paymentMethodSummary || 'No payments'}`,
+      doc.internal.pageSize.getWidth() - 28,
+    );
+    doc.text(summaryLines, 14, 38);
+    const tableStartY = 38 + summaryLines.length * 5 + 3;
+
+    autoTable(doc, {
+      startY: tableStartY,
+      head: [
+        [
+          'Invoice No',
+          'Date & Time',
+          'Customer Name',
+          'Payment Method',
+          'Amount',
+        ],
+      ],
+      body: filteredData.map((payment) => [
+        payment.invoice_no || '-',
+        new Date(payment.time_stamp).toLocaleString(),
+        payment.customer_name || 'N/A',
+        payment.mop
+          ? `${payment.mop}${payment.remarks ? `: ${payment.remarks}` : ''}`
+          : 'N/A',
+        formatPdfAmount(payment.amount),
+      ]),
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: tableStartY, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('pos_outlet_collection_report.pdf');
+  };
+
   return (
     <>
       {/* <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
@@ -192,7 +267,7 @@ const CollectionReportClient = () => {
               <Box>
                 <Button
                   variant="contained"
-                  color="error"
+                  color="warning"
                   startIcon={<PrintIcon />}
                   disabled={filteredData.length === 0}
                   onClick={handlePrint}
@@ -205,9 +280,19 @@ const CollectionReportClient = () => {
                   disabled={filteredData.length === 0}
                   variant="contained"
                   color="success"
-                  startIcon={<FileDownloadIcon />}
+                  startIcon={<TableViewIcon />}
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={handleDownloadPdf}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="error"
+                  startIcon={<PictureAsPdfIcon />}
+                  sx={{ ml: 1 }}
+                >
+                  Download
                 </Button>
               </Box>
             </Box>
