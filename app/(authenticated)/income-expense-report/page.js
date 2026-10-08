@@ -17,6 +17,8 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useAuth } from '@/context';
 import { GetTodaysDate, GetCustomDate } from '@/utils/DateFetcher';
 import { GetDataList } from '@/utils/ApiFunctions';
@@ -25,6 +27,9 @@ import { Loader } from '@/component/common';
 import { SuccessToast } from '@/utils/GenerateToast';
 import { IncomeExpenseReportPrint } from '@/component/printables/IncomeExpenseReportPrint';
 import { useReactToPrint } from 'react-to-print';
+import { exportToExcel } from '@/utils/exportToExcel';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const IncomeExpenseReportPage = () => {
   const { auth } = useAuth();
@@ -118,6 +123,100 @@ const IncomeExpenseReportPage = () => {
     ) || 0);
 
   const netBalance = incomeTotal - expenseTotal;
+  const hasReportData = Object.values(filteredData).some(
+    (entries) => entries.length > 0,
+  );
+
+  const getExportRows = () => [
+    ...filteredData.restaurantInvoices.map((invoice) => ({
+      Type: 'Income',
+      Date: GetCustomDate(invoice.date) || '-',
+      Source: 'Restaurant Invoice',
+      'Invoice No': invoice.invoice_no || '-',
+      Amount: Number(invoice.payable_amount) || 0,
+    })),
+    ...filteredData.roomInvoices.map((invoice) => ({
+      Type: 'Income',
+      Date: GetCustomDate(invoice.date) || '-',
+      Source: 'Room Invoice',
+      'Invoice No': invoice.invoice_no || '-',
+      Amount: Number(invoice.payable_amount) || 0,
+    })),
+    ...filteredData.saleEntries.map((entry) => ({
+      Type: 'Income',
+      Date: GetCustomDate(entry.date) || '-',
+      Source: 'Inventory Sale',
+      'Invoice No': entry.invoice_no || '-',
+      Amount: Number(entry.total_price) || 0,
+    })),
+    ...filteredData.purchaseEntries.map((entry) => ({
+      Type: 'Expense',
+      Date: GetCustomDate(entry.date) || '-',
+      Source: 'Inventory Purchase',
+      'Invoice No': entry.invoice_no || '-',
+      Amount: Number(entry.total_price) || 0,
+    })),
+    ...filteredData.otherExpenses.map((entry) => ({
+      Type: 'Expense',
+      Date: GetCustomDate(entry.date) || '-',
+      Source: 'Other Expense',
+      'Invoice No': entry.id || '-',
+      Amount: Number(entry.amount) || 0,
+    })),
+  ];
+
+  const handleExport = () => {
+    exportToExcel(getExportRows(), 'income_expense_report');
+  };
+
+  const handleExportPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const formatPdfAmount = (amount) =>
+      `INR ${Number(amount || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+
+    doc.setFontSize(16);
+    doc.text('Income Expense Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(
+      `Start Date: ${GetCustomDate(startDate) || '-'}    End Date: ${GetCustomDate(endDate) || '-'}`,
+      14,
+      24,
+    );
+    doc.text(
+      `Total Income: ${formatPdfAmount(incomeTotal)}    Total Expenses: ${formatPdfAmount(expenseTotal)}    Net ${netBalance >= 0 ? 'Profit' : 'Loss'}: ${formatPdfAmount(Math.abs(netBalance))}`,
+      14,
+      31,
+    );
+
+    autoTable(doc, {
+      startY: 38,
+      head: [['Type', 'Date', 'Source / Category', 'Invoice No', 'Amount']],
+      body: getExportRows().map((row) => [
+        row.Type,
+        row.Date,
+        row.Source,
+        row['Invoice No'],
+        formatPdfAmount(row.Amount),
+      ]),
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: 38, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('income_expense_report.pdf');
+  };
 
   return (
     <>
@@ -171,21 +270,35 @@ const IncomeExpenseReportPage = () => {
             </Button>
           </Box>
 
-          <Button
-            variant="contained"
-            color="success"
-            startIcon={<PrintIcon />}
-            disabled={
-              filteredData.restaurantInvoices.length === 0 &&
-              filteredData.roomInvoices.length === 0 &&
-              filteredData.saleEntries.length === 0 &&
-              filteredData.purchaseEntries.length === 0 &&
-              filteredData.otherExpenses.length === 0
-            }
-            onClick={handlePrint}
-          >
-            Print
-          </Button>
+          <Box display="flex" gap={1}>
+            <Button
+              variant="contained"
+              color="warning"
+              startIcon={<PrintIcon />}
+              disabled={!hasReportData}
+              onClick={handlePrint}
+            >
+              Print
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<TableViewIcon />}
+              disabled={!hasReportData}
+              onClick={handleExport}
+            >
+              Export
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<PictureAsPdfIcon />}
+              disabled={!hasReportData}
+              onClick={handleExportPdf}
+            >
+              Download PDF
+            </Button>
+          </Box>
         </Box>
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 6 }}>
