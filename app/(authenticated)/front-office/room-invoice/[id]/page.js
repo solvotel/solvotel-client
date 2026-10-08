@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useRef } from 'react';
+import React, { use, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -17,21 +17,26 @@ import {
   Link,
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useReactToPrint } from 'react-to-print';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { useAuth } from '@/context';
 import { GetSingleData, GetDataList } from '@/utils/ApiFunctions';
 import { Loader } from '@/component/common';
 import { RoomInvoicePrint } from '@/component/printables/RoomInvoicePrint';
 import { GetCustomDate } from '@/utils/DateFetcher';
 import { QRCodeCanvas } from 'qrcode.react';
+import { ErrorToast } from '@/utils/GenerateToast';
 
 // removed toInt — values will be displayed with two decimal places
 
-export default function Page({ params }) {
+export default function RoomInvoicePage({ params }) {
   const { auth } = useAuth();
   const { id } = use(params);
   const componentRef = useRef(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // ✅ Data fetching (same style you use)
   const invoiceData = GetSingleData({
@@ -55,6 +60,86 @@ export default function Page({ params }) {
     contentRef: componentRef,
     documentTitle: 'room-invoice',
   });
+
+  const handleDownloadPdf = async () => {
+    const invoiceElement = componentRef.current;
+    if (!invoiceElement) {
+      ErrorToast('Unable to prepare the invoice PDF.');
+      return;
+    }
+
+    try {
+      setDownloadingPdf(true);
+      await document.fonts.ready;
+      const canvas = await html2canvas(invoiceElement, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        windowWidth: invoiceElement.scrollWidth,
+      });
+
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      const margin = 0;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = pageHeight - margin * 2;
+      const pageCanvasHeight = Math.floor(
+        (canvas.width * contentHeight) / contentWidth,
+      );
+      const pageCanvas = document.createElement('canvas');
+      const pageContext = pageCanvas.getContext('2d');
+
+      if (!pageContext) {
+        throw new Error('Unable to create invoice PDF pages.');
+      }
+
+      pageCanvas.width = canvas.width;
+      for (
+        let pageIndex = 0, offsetY = 0;
+        offsetY < canvas.height;
+        pageIndex += 1
+      ) {
+        const sliceHeight = Math.min(pageCanvasHeight, canvas.height - offsetY);
+        pageCanvas.height = sliceHeight;
+        pageContext.fillStyle = '#ffffff';
+        pageContext.fillRect(0, 0, pageCanvas.width, sliceHeight);
+        pageContext.drawImage(
+          canvas,
+          0,
+          offsetY,
+          canvas.width,
+          sliceHeight,
+          0,
+          0,
+          canvas.width,
+          sliceHeight,
+        );
+
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(
+          pageCanvas.toDataURL('image/png'),
+          'PNG',
+          margin,
+          margin,
+          contentWidth,
+          (sliceHeight * contentWidth) / canvas.width,
+        );
+        offsetY += sliceHeight;
+      }
+
+      pdf.save(`${invoiceData?.invoice_no || 'room-invoice'}.pdf`);
+    } catch (error) {
+      console.error('Unable to download invoice PDF:', error);
+      ErrorToast('Unable to download the invoice PDF. Please try again.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   if (!invoiceData || !hotel || !roomBookings) {
     return <Loader />;
@@ -157,14 +242,25 @@ export default function Page({ params }) {
           <Typography variant="h5" fontWeight="bold">
             🧾 Invoice: {invoiceData.invoice_no}
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<PrintIcon />}
-            onClick={handlePrint}
-          >
-            Print Invoice
-          </Button>
+          <Box display="flex" gap={1}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<PrintIcon />}
+              onClick={handlePrint}
+            >
+              Print
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<PictureAsPdfIcon />}
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+            >
+              {downloadingPdf ? 'Preparing…' : 'Download'}
+            </Button>
+          </Box>
         </Box>
 
         {/* Invoice + Customer Info */}
@@ -261,7 +357,15 @@ export default function Page({ params }) {
       </Box>
 
       {/* ✅ Hidden printable component */}
-      <div style={{ display: 'none' }}>
+      <div
+        style={{
+          position: 'absolute',
+          left: '-10000px',
+          top: 0,
+          width: '1020px',
+          background: '#ffffff',
+        }}
+      >
         <RoomInvoicePrint
           ref={componentRef}
           data={invoiceData}

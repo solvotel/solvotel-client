@@ -22,13 +22,16 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { Loader } from '@/component/common';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { RoomBookingReportPrint } from '@/component/printables/RoomBookingReportPrint';
 import { exportToExcel } from '@/utils/exportToExcel';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const CheckoutReportPage = () => {
   const { auth } = useAuth();
@@ -151,6 +154,92 @@ const CheckoutReportPage = () => {
   const handleExport = () => {
     exportToExcel(dataToExport, 'checkout_report');
   };
+
+  const handleExportPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const formatPdfAmount = (amount) =>
+      `INR ${Number(amount || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    const totals = dataToExport.reduce(
+      (sum, row) => ({
+        roomAmount: sum.roomAmount + Number(row['Room Tokens'] || 0),
+        services: sum.services + Number(row.Services || 0),
+        foodItems: sum.foodItems + Number(row['Food Items'] || 0),
+        grandTotal: sum.grandTotal + Number(row['Grand Total'] || 0),
+        paid: sum.paid + Number(row['Total Paid'] || 0),
+        due: sum.due + Number(row['Due Payment'] || 0),
+      }),
+      {
+        roomAmount: 0,
+        services: 0,
+        foodItems: 0,
+        grandTotal: 0,
+        paid: 0,
+        due: 0,
+      },
+    );
+
+    doc.setFontSize(16);
+    doc.text('Checkout Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(
+      `Start Date: ${GetCustomDate(startDate) || '-'}    End Date: ${GetCustomDate(endDate) || ''}    Booking ID: ${searchBookingId || 'All'}`,
+      14,
+      24,
+    );
+    doc.text(
+      `Bookings: ${dataToExport.length}    Grand Total: ${formatPdfAmount(totals.grandTotal)}    Paid: ${formatPdfAmount(totals.paid)}    Due: ${formatPdfAmount(totals.due)}`,
+      14,
+      31,
+    );
+
+    autoTable(doc, {
+      startY: 38,
+      head: [
+        [
+          'Booking ID',
+          'Guest',
+          'Meal Plan',
+          'Room No',
+          'Room Amount',
+          'Services',
+          'Food Items',
+          'Grand Total',
+          'Total Paid',
+          'Due Payment',
+        ],
+      ],
+      body: dataToExport.map((row) => [
+        row['Booking ID'] || '-',
+        row.Guest || 'N/A',
+        row['Meal Plan'] || 'N/A',
+        row['Room No'] || '-',
+        formatPdfAmount(row['Room Tokens']),
+        formatPdfAmount(row.Services),
+        formatPdfAmount(row['Food Items']),
+        formatPdfAmount(row['Grand Total']),
+        formatPdfAmount(row['Total Paid']),
+        formatPdfAmount(row['Due Payment']),
+      ]),
+      styles: { fontSize: 8, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: 38, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('checkout_report.pdf');
+  };
+
   return (
     <>
       {' '}
@@ -228,7 +317,7 @@ const CheckoutReportPage = () => {
               <Box>
                 <Button
                   variant="contained"
-                  color="error"
+                  color="warning"
                   startIcon={<PrintIcon />}
                   disabled={filteredData.length === 0}
                   onClick={handlePrint}
@@ -241,9 +330,19 @@ const CheckoutReportPage = () => {
                   disabled={filteredData.length === 0}
                   variant="contained"
                   color="success"
-                  startIcon={<FileDownloadIcon />}
+                  startIcon={<TableViewIcon />}
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={handleExportPdf}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="error"
+                  startIcon={<PictureAsPdfIcon />}
+                  sx={{ ml: 1 }}
+                >
+                  Download
                 </Button>
               </Box>
             </Box>

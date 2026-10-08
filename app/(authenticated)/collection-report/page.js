@@ -22,12 +22,15 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { Loader } from '@/component/common';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
 import { CollectionReportPrint } from '@/component/printables/CollectionReportPrint';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const CollectionReportPage = () => {
   const { auth } = useAuth();
@@ -237,6 +240,63 @@ const CollectionReportPage = () => {
     exportToExcel(exportData, 'collection_report');
   };
 
+  const handleExportPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const formatPdfAmount = (amount) =>
+      `INR ${Number(amount || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+
+    doc.setFontSize(16);
+    doc.text('Collection Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(
+      `Start Date: ${GetCustomDate(startDate) || '-'}    End Date: ${GetCustomDate(endDate) || '-'}    Payment Method: ${selectedMop || 'All'}`,
+      14,
+      24,
+    );
+    doc.text(
+      `Total Payments: ${displayStats.totalPayments}    Total Collected: ${formatPdfAmount(displayStats.totalAmount)}    Room Collection: ${formatPdfAmount(displayStats.totalRoomCollection)}    Restaurant Collection: ${formatPdfAmount(displayStats.totalRestaurantCollection)}`,
+      14,
+      31,
+    );
+
+    autoTable(doc, {
+      startY: 38,
+      head: [
+        [
+          'Date & Time',
+          'Source / Invoice',
+          'Customer Name',
+          'Payment Method',
+          'Amount',
+        ],
+      ],
+      body: displayData.map((payment) => [
+        formatDateTime(payment.time_stamp),
+        `${payment.type} - ${payment.uid || '-'}`,
+        payment.customer_name || 'N/A',
+        `${payment.mop || 'N/A'}${payment.remarks ? `: ${payment.remarks}` : ''}`,
+        formatPdfAmount(payment.amount),
+      ]),
+      styles: { fontSize: 9, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: 38, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('collection_report.pdf');
+  };
+
   return (
     <>
       <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
@@ -297,7 +357,7 @@ const CollectionReportPage = () => {
               <Box>
                 <Button
                   variant="contained"
-                  color="error"
+                  color="warning"
                   startIcon={<PrintIcon />}
                   disabled={displayData.length === 0}
                   onClick={handlePrint}
@@ -310,9 +370,19 @@ const CollectionReportPage = () => {
                   disabled={displayData.length === 0}
                   variant="contained"
                   color="success"
-                  startIcon={<FileDownloadIcon />}
+                  startIcon={<TableViewIcon />}
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={handleExportPdf}
+                  disabled={displayData.length === 0}
+                  variant="contained"
+                  color="error"
+                  startIcon={<PictureAsPdfIcon />}
+                  sx={{ ml: 1 }}
+                >
+                  Download
                 </Button>
               </Box>
             </Box>

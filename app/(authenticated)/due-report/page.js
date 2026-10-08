@@ -22,12 +22,15 @@ import {
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { Loader } from '@/component/common';
-import { GetTodaysDate } from '@/utils/DateFetcher';
+import { GetCustomDate, GetTodaysDate } from '@/utils/DateFetcher';
 import { useReactToPrint } from 'react-to-print';
 import { exportToExcel } from '@/utils/exportToExcel';
 import { DueReportPrint } from '@/component/printables/DueReportPrint';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const formatDateTime = (isoString) => {
   const date = new Date(isoString);
@@ -191,6 +194,71 @@ const DueReportPage = () => {
     exportToExcel(dataToExport, 'due_report');
   };
 
+  const handleExportPdf = () => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const formatPdfAmount = (amount) =>
+      `INR ${Number(amount || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    const totalDue = filteredData.reduce(
+      (sum, invoice) => sum + (Number(invoice.due) || 0),
+      0,
+    );
+
+    doc.setFontSize(16);
+    doc.text('Due Report', 14, 16);
+    doc.setFontSize(10);
+    doc.text(
+      `Start Date: ${GetCustomDate(startDate) || '-'}    End Date: ${GetCustomDate(endDate) || '-'}`,
+      14,
+      24,
+    );
+    doc.text(
+      `Total Entries: ${filteredData.length}    Total Due: ${formatPdfAmount(totalDue)}    Room Bookings: ${filteredData.filter((invoice) => invoice.type === 'Room').length}    Restaurant Invoices: ${filteredData.filter((invoice) => invoice.type === 'Restaurant').length}`,
+      14,
+      31,
+    );
+
+    autoTable(doc, {
+      startY: 38,
+      head: [
+        [
+          'Type',
+          'Invoice No',
+          'Date/Time',
+          'Customer Name',
+          'Payable Amount',
+          'Paid Amount',
+          'Due Amount',
+        ],
+      ],
+      body: filteredData.map((invoice) => [
+        invoice.type,
+        invoice.invoice_no || '-',
+        formatDateTime(invoice.date),
+        invoice.customer_name || 'N/A',
+        formatPdfAmount(invoice.payable_amount),
+        formatPdfAmount(invoice.payed),
+        formatPdfAmount(invoice.due),
+      ]),
+      styles: { fontSize: 9, cellPadding: 2 },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: 38, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save('due_report.pdf');
+  };
+
   return (
     <>
       <Box sx={{ px: 3, py: 2, backgroundColor: '#efefef' }}>
@@ -268,7 +336,7 @@ const DueReportPage = () => {
               <Box>
                 <Button
                   variant="contained"
-                  color="error"
+                  color="warning"
                   startIcon={<PrintIcon />}
                   disabled={filteredData.length === 0}
                   onClick={handlePrint}
@@ -281,9 +349,19 @@ const DueReportPage = () => {
                   disabled={filteredData.length === 0}
                   variant="contained"
                   color="success"
-                  startIcon={<FileDownloadIcon />}
+                  startIcon={<TableViewIcon />}
                 >
                   Export
+                </Button>
+                <Button
+                  onClick={handleExportPdf}
+                  disabled={filteredData.length === 0}
+                  variant="contained"
+                  color="error"
+                  startIcon={<PictureAsPdfIcon />}
+                  sx={{ ml: 1 }}
+                >
+                  Download
                 </Button>
               </Box>
             </Box>

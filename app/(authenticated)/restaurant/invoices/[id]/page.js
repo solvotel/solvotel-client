@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation';
 import { Loader } from '@/component/common';
 import { RestaurantPosInvoice } from '@/component/printables/RestaurantPosInvoice';
 
-export default function Page({ params }) {
+export default function RestaurantInvoicePage({ params }) {
   const { auth } = useAuth();
   const { id } = use(params);
 

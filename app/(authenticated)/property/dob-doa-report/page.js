@@ -24,13 +24,18 @@ import {
 
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
+import TableViewIcon from '@mui/icons-material/TableView';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useMemo, useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { DoaReportPrint } from '@/component/printables/DoaReportPrint';
 import { DobReportPrint } from '@/component/printables/DobReportPrint';
 import { GetCustomDate } from '@/utils/DateFetcher';
+import { exportToExcel } from '@/utils/exportToExcel';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
-const Page = () => {
+const DobDoaReportPage = () => {
   const { auth } = useAuth();
 
   const data = GetDataList({
@@ -69,6 +74,58 @@ const Page = () => {
     contentRef: doaComponentRef,
     documentTitle: 'doa-dob-report',
   });
+
+  const monthName = new Date(2000, Number(selectedMonth) - 1).toLocaleString(
+    'en',
+    { month: 'long' },
+  );
+
+  const getExportRows = (list, dateField) =>
+    list.map((customer) => ({
+      Name: customer.name || 'N/A',
+      Phone: customer.mobile || 'N/A',
+      Email: customer.email || 'N/A',
+      [dateField.toUpperCase()]: GetCustomDate(customer[dateField]) || '-',
+      Company: customer.company_name || 'N/A',
+    }));
+
+  const handleExportExcel = (list, dateField, fileName) => {
+    exportToExcel(getExportRows(list, dateField), fileName);
+  };
+
+  const handleExportPdf = (list, dateField, reportTitle, fileName) => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    doc.setFontSize(16);
+    doc.text(`${reportTitle} Report`, 14, 16);
+    doc.setFontSize(10);
+    doc.text(`Month: ${monthName || '-'}`, 14, 24);
+
+    autoTable(doc, {
+      startY: 30,
+      head: [['Name', 'Phone', 'Email', dateField.toUpperCase(), 'Company']],
+      body: list.map((customer) => [
+        customer.name || 'N/A',
+        customer.mobile || 'N/A',
+        customer.email || 'N/A',
+        GetCustomDate(customer[dateField]) || '-',
+        customer.company_name || 'N/A',
+      ]),
+      styles: { fontSize: 9, cellPadding: 2, overflow: 'linebreak' },
+      headStyles: { fillColor: [55, 71, 79] },
+      margin: { top: 30, right: 14, bottom: 16, left: 14 },
+      didDrawPage: () => {
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${doc.getNumberOfPages()}`,
+          doc.internal.pageSize.getWidth() - 14,
+          doc.internal.pageSize.getHeight() - 8,
+          { align: 'right' },
+        );
+      },
+    });
+
+    doc.save(fileName);
+  };
 
   return (
     <>
@@ -123,14 +180,41 @@ const Page = () => {
                   <Box display="flex" justifyContent="space-between" mb={1}>
                     <Typography variant="h6">Birthdays</Typography>
                     {dobList.length > 0 && (
-                      <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<PrintIcon />}
-                        onClick={handlePrintDob}
-                      >
-                        Print
-                      </Button>
+                      <Box display="flex" gap={1}>
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          startIcon={<PrintIcon />}
+                          onClick={handlePrintDob}
+                        >
+                          Print
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          startIcon={<TableViewIcon />}
+                          onClick={() =>
+                            handleExportExcel(dobList, 'dob', 'birthday_report')
+                          }
+                        >
+                          Export
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          startIcon={<PictureAsPdfIcon />}
+                          onClick={() =>
+                            handleExportPdf(
+                              dobList,
+                              'dob',
+                              'Birthday',
+                              'birthday_report.pdf',
+                            )
+                          }
+                        >
+                          Download
+                        </Button>
+                      </Box>
                     )}
                   </Box>
                   <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
@@ -175,14 +259,45 @@ const Page = () => {
                   <Box display="flex" justifyContent="space-between" mb={1}>
                     <Typography variant="h6">Anniversaries</Typography>
                     {doaList.length > 0 && (
-                      <Button
-                        variant="contained"
-                        color="success"
-                        startIcon={<PrintIcon />}
-                        onClick={handlePrintDoa}
-                      >
-                        Print
-                      </Button>
+                      <Box display="flex" gap={1}>
+                        <Button
+                          variant="contained"
+                          color="warning"
+                          startIcon={<PrintIcon />}
+                          onClick={handlePrintDoa}
+                        >
+                          Print
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          startIcon={<TableViewIcon />}
+                          onClick={() =>
+                            handleExportExcel(
+                              doaList,
+                              'doa',
+                              'anniversary_report',
+                            )
+                          }
+                        >
+                          Export
+                        </Button>
+                        <Button
+                          variant="contained"
+                          color="error"
+                          startIcon={<PictureAsPdfIcon />}
+                          onClick={() =>
+                            handleExportPdf(
+                              doaList,
+                              'doa',
+                              'Anniversary',
+                              'anniversary_report.pdf',
+                            )
+                          }
+                        >
+                          Download
+                        </Button>
+                      </Box>
                     )}
                   </Box>
                   <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
@@ -243,4 +358,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default DobDoaReportPage;
