@@ -54,6 +54,41 @@ const generateNextBookingId = (bookings) => {
   return `SOLV-${maxNumber + 1}`;
 };
 
+const generateHousekeepingTokens = (roomTokens) =>
+  roomTokens.flatMap((roomToken) => {
+    const startDate = new Date(`${roomToken.in_date}T00:00:00.000Z`);
+    const endDate = new Date(`${roomToken.out_date}T00:00:00.000Z`);
+
+    if (
+      !roomToken.room ||
+      Number.isNaN(startDate.getTime()) ||
+      Number.isNaN(endDate.getTime()) ||
+      startDate >= endDate
+    ) {
+      throw new Error(
+        `Invalid housekeeping date range for room ${roomToken.room || 'unknown'}.`,
+      );
+    }
+
+    const housekeepingTokens = [];
+    const currentDate = new Date(startDate);
+
+    while (currentDate < endDate) {
+      const date = currentDate.toISOString().split('T')[0];
+      housekeepingTokens.push({
+        ...roomToken,
+        id: `${roomToken.room}-${date}`,
+        date,
+        status: 'dirty',
+        cleaned_by: null,
+        time_stamp: null,
+      });
+      currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+    }
+
+    return housekeepingTokens;
+  });
+
 export default function BookingForm() {
   const router = useRouter();
   const { auth } = useAuth();
@@ -182,12 +217,14 @@ export default function BookingForm() {
     try {
       setLoading(true);
       const newBookingId = generateNextBookingId(bookings);
+      const housekeepingTokens = generateHousekeepingTokens(roomTokens);
       const payload = {
         booking_id: newBookingId,
         customer: selectedGuest.documentId,
         ...bookingDetails,
         rooms: rooms,
         room_tokens: roomTokens,
+        housekeeping_tokens: housekeepingTokens,
         advance_payment: advancePayments.length
           ? advancePayments.map((payment) => ({
               date: payment.date,

@@ -12,10 +12,13 @@ export function middleware(req) {
     '/services',
     '/pricing',
     '/login',
+    '/admin/login',
+    '/admin/dashboard',
+    '/admin/subscriptions',
   ];
 
   const isPublicRoute = publicRoutes.some(
-    (route) => pathname === route || pathname.startsWith(route + '/')
+    (route) => pathname === route || pathname.startsWith(route + '/'),
   );
 
   // If logged-in user tries to access login page → redirect to dashboard
