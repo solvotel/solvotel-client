@@ -10,8 +10,31 @@ import {
 import LockPersonRoundedIcon from '@mui/icons-material/LockPersonRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
+import { formatSubscriptionDate } from '@/utils/SubscriptionAccess';
 
-export default function AccountBlocked() {
+export default function AccountBlocked({
+  subscriptionAccess,
+  entityType = 'account',
+}) {
+  const isSubscriptionBlocked = Boolean(subscriptionAccess);
+  const expiredOn = subscriptionAccess?.expiredPlan?.expiry_date;
+  const startsOn = subscriptionAccess?.upcomingPlan?.start_date;
+  const expiredMessage = subscriptionAccess?.expiredPlan?.notes?.trim();
+
+  const title = isSubscriptionBlocked
+    ? expiredOn
+      ? 'Subscription Expired'
+      : 'No Active Subscription'
+    : 'Account Blocked';
+  const description = isSubscriptionBlocked
+    ? startsOn
+      ? `Your ${entityType} plan is scheduled to start on ${formatSubscriptionDate(startsOn)}. Access will be available once the plan starts.`
+      : expiredOn
+        ? expiredMessage ||
+          `Your ${entityType} subscription expired on ${formatSubscriptionDate(expiredOn)}. Renew your plan to restore access.`
+        : `There is no active subscription for this ${entityType}. Contact support to activate or renew a plan.`
+    : 'Your account has been blocked due to administrative reasons. Please contact our support team to verify your account or obtain further assistance.';
+
   return (
     <Box
       sx={{
@@ -56,7 +79,7 @@ export default function AccountBlocked() {
             {/* Heading */}
             <Box textAlign="center">
               <Typography variant="h4" fontWeight={700} gutterBottom>
-                Account Blocked
+                {title}
               </Typography>
 
               <Typography
@@ -67,9 +90,7 @@ export default function AccountBlocked() {
                   lineHeight: 1.8,
                 }}
               >
-                Your account has been blocked due to administrative reasons.
-                Please contact our support team to verify your account or obtain
-                further assistance.
+                {description}
               </Typography>
             </Box>
 
