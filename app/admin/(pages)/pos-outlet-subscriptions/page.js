@@ -23,6 +23,11 @@ import {
   InputAdornment,
   Tooltip,
   Chip,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  FormHelperText,
 } from '@mui/material';
 
 import {
@@ -33,49 +38,18 @@ import {
   DeleteOutline,
   Close as CloseIcon,
 } from '@mui/icons-material';
-
-// ───────── Mock Initial Data ─────────
-const initialData = [
-  {
-    id: '1',
-    order_id: 'ORD-1001',
-    plan: 'Premium Annual',
-    start_date: '2023-01-15',
-    expiry_date: '2024-01-14',
-    amount: 12000,
-    transaction_id: 'TXN-98213847',
-    payment_method: 'Credit Card',
-    notes: 'Auto-renewed successfully.',
-    pos_outlet: 'Main Reception',
-    renewed_from: 'None',
-  },
-  {
-    id: '2',
-    order_id: 'ORD-1002',
-    plan: 'Basic Monthly',
-    start_date: '2023-10-01',
-    expiry_date: '2023-11-01',
-    amount: 1500,
-    transaction_id: 'TXN-11223344',
-    payment_method: 'UPI',
-    notes: 'Awaiting bank clearance.',
-    pos_outlet: 'Restaurant Area',
-    renewed_from: 'ORD-0921',
-  },
-  {
-    id: '3',
-    order_id: 'ORD-1003',
-    plan: 'Standard Monthly',
-    start_date: '2023-10-20',
-    expiry_date: '2023-11-20',
-    amount: 2500,
-    transaction_id: 'TXN-99887766',
-    payment_method: 'Net Banking',
-    notes: 'Insufficient funds.',
-    pos_outlet: 'Main Reception',
-    renewed_from: 'None',
-  },
-];
+import {
+  CreateNewData,
+  DeleteData,
+  GetDataList,
+  UpdateData,
+} from '@/utils/ApiFunctions';
+import { useAuth } from '@/context';
+import { fetcher, BASEURL } from '@/config/MainApi';
+import useSWR from 'swr';
+import { GetCustomDate } from '@/utils/DateFetcher';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
+import { Loader } from '@/component/common';
 
 // ───────── Form Default State ─────────
 const defaultFormState = {
@@ -87,8 +61,8 @@ const defaultFormState = {
   transaction_id: '',
   payment_method: '',
   notes: '',
-  pos_outlet: '',
-  renewed_from: '',
+  pos_outlet: null,
+  renewed_from: null,
 };
 
 const getPlanStatus = ({ start_date, expiry_date }) => {
@@ -110,8 +84,9 @@ const getPlanStatus = ({ start_date, expiry_date }) => {
 };
 
 export default function SubscriptionsPage() {
+  const { auth } = useAuth(); // Assuming you have a custom hook for authentication
   // ───────── State ─────────
-  const [subscriptions, setSubscriptions] = useState(initialData);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -124,7 +99,26 @@ export default function SubscriptionsPage() {
   // Selection & Form states
   const [selectedSub, setSelectedSub] = useState(null);
   const [formData, setFormData] = useState(defaultFormState);
+  const [formErrors, setFormErrors] = useState({});
   const [isEditing, setIsEditing] = useState(false);
+
+  const { data: subscriptions } = useSWR(
+    `${BASEURL}/pos-subscriptions?sort=createdAt:DESC&populate=*`,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      refreshInterval: 500,
+    },
+  );
+
+  const { data: outlets } = useSWR(
+    `${BASEURL}/pos-outlets?sort=createdAt:DESC&populate=*`,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      refreshInterval: 500,
+    },
+  );
 
   // ───────── Handlers ─────────
   const handleSearchChange = (e) => {
@@ -145,12 +139,28 @@ export default function SubscriptionsPage() {
 
   const handleOpenCreate = () => {
     setFormData(defaultFormState);
+    setFormErrors({});
+
     setIsEditing(false);
     setFormModalOpen(true);
   };
 
   const handleOpenEdit = (sub) => {
-    setFormData(sub);
+    setFormData({
+      order_id: sub.order_id || '',
+      plan: sub.plan || '',
+      start_date: sub.start_date || '',
+      expiry_date: sub.expiry_date || '',
+      amount: sub.amount || '',
+      transaction_id: sub.transaction_id || '',
+      payment_method: sub.payment_method || '',
+      notes: sub.notes || '',
+
+      pos_outlet: sub.pos_outlet?.documentId || null,
+      renewed_from: sub.renewed_from?.documentId || null,
+    });
+    setFormErrors({});
+    setSelectedSub(sub);
     setIsEditing(true);
     setFormModalOpen(true);
   };
@@ -163,43 +173,93 @@ export default function SubscriptionsPage() {
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    setFormErrors((errors) => ({ ...errors, [name]: false }));
   };
 
-  const handleSaveForm = () => {
-    if (isEditing) {
-      setSubscriptions(
-        subscriptions.map((s) => (s.id === formData.id ? formData : s)),
+  const handleSaveForm = async () => {
+    const requiredFields = [
+      'order_id',
+      'plan',
+      'start_date',
+      'expiry_date',
+      'amount',
+      'transaction_id',
+      'payment_method',
+      'notes',
+      'pos_outlet',
+    ];
+    const errors = Object.fromEntries(
+      requiredFields.map((field) => [
+        field,
+        formData[field] == null ||
+          (typeof formData[field] === 'string' && !formData[field].trim()),
+      ]),
+    );
+    setFormErrors(errors);
+    if (Object.values(errors).some(Boolean)) return;
+
+    try {
+      if (isEditing) {
+        await UpdateData({
+          auth,
+          endPoint: 'pos-subscriptions',
+          id: selectedSub.documentId,
+          payload: {
+            data: formData,
+          },
+        });
+        SuccessToast('Subscription updated successfully');
+      } else {
+        await CreateNewData({
+          auth,
+          endPoint: 'pos-subscriptions',
+          payload: {
+            data: formData,
+          },
+        });
+        SuccessToast('Subscription created successfully');
+      }
+      setFormModalOpen(false);
+    } catch (err) {
+      console.error('Error saving subscription:', err);
+      ErrorToast(
+        'An error occurred while saving the subscription. Please try again.',
       );
-    } else {
-      const newSub = {
-        ...formData,
-        id: Math.random().toString(36).substr(2, 9), // Mock ID generation
-      };
-      setSubscriptions([newSub, ...subscriptions]);
     }
-    setFormModalOpen(false);
   };
 
-  const handleDeleteConfirm = () => {
-    setSubscriptions(subscriptions.filter((s) => s.id !== selectedSub.id));
+  const handleDeleteConfirm = async () => {
+    await DeleteData({
+      auth,
+      endPoint: 'pos-subscriptions',
+      id: selectedSub.documentId,
+    });
+
     setDeleteModalOpen(false);
+    SuccessToast('Subscription deleted successfully');
   };
 
   // ───────── Derived Data (Search & Pagination) ─────────
   const filteredData = useMemo(() => {
     if (!searchQuery) return subscriptions;
     const lowerQuery = searchQuery.toLowerCase();
-    return subscriptions.filter(
-      (sub) =>
-        sub.order_id.toLowerCase().includes(lowerQuery) ||
-        sub.plan.toLowerCase().includes(lowerQuery) ||
-        sub.transaction_id.toLowerCase().includes(lowerQuery) ||
-        getPlanStatus(sub).toLowerCase().includes(lowerQuery),
+    return subscriptions.filter((sub) =>
+      [
+        sub.order_id,
+        getPlanStatus(sub),
+        sub.pos_outlet?.name,
+        sub.pos_outlet?.phone,
+        sub.plan,
+      ].some((value) =>
+        String(value ?? '')
+          .toLowerCase()
+          .includes(lowerQuery),
+      ),
     );
   }, [subscriptions, searchQuery]);
 
   const paginatedData = useMemo(() => {
-    return filteredData.slice(
+    return filteredData?.slice(
       page * rowsPerPage,
       page * rowsPerPage + rowsPerPage,
     );
@@ -216,6 +276,10 @@ export default function SubscriptionsPage() {
         return 'default';
     }
   };
+
+  if (!subscriptions) {
+    return <Loader />;
+  }
 
   return (
     <Box>
@@ -254,7 +318,7 @@ export default function SubscriptionsPage() {
         sx={{ p: 2, mb: 3, border: '1px solid #e5e7eb', borderRadius: 3 }}
       >
         <TextField
-          placeholder="Search by Order ID, Plan, or Status..."
+          placeholder="Search by Order ID, Status, Outlet Name, Phone, or Plan..."
           size="small"
           fullWidth
           value={searchQuery}
@@ -266,7 +330,7 @@ export default function SubscriptionsPage() {
               </InputAdornment>
             ),
           }}
-          sx={{ maxWidth: { sm: 400 } }}
+          sx={{ maxWidth: { sm: 500 } }}
         />
       </Paper>
 
@@ -285,6 +349,8 @@ export default function SubscriptionsPage() {
               <TableRow>
                 <TableCell fontWeight={600}>Order ID</TableCell>
                 <TableCell fontWeight={600}>Plan</TableCell>
+                <TableCell fontWeight={600}>Outlet Name</TableCell>
+                <TableCell fontWeight={600}>Phone</TableCell>
                 <TableCell fontWeight={600}>Start Date</TableCell>
                 <TableCell fontWeight={600}>Expiry Date</TableCell>
                 <TableCell fontWeight={600}>Amount</TableCell>
@@ -304,8 +370,10 @@ export default function SubscriptionsPage() {
                       </Typography>
                     </TableCell>
                     <TableCell>{row.plan}</TableCell>
-                    <TableCell>{row.start_date}</TableCell>
-                    <TableCell>{row.expiry_date}</TableCell>
+                    <TableCell>{row.pos_outlet.name}</TableCell>
+                    <TableCell>{row.pos_outlet.phone || 'N/A'}</TableCell>
+                    <TableCell>{GetCustomDate(row.start_date)}</TableCell>
+                    <TableCell>{GetCustomDate(row.expiry_date)}</TableCell>
                     <TableCell>
                       ₹{Number(row.amount).toLocaleString('en-IN')}
                     </TableCell>
@@ -350,7 +418,7 @@ export default function SubscriptionsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} align="center" sx={{ py: 5 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 5 }}>
                     <Typography color="text.secondary">
                       No subscriptions found matching your search.
                     </Typography>
@@ -375,7 +443,7 @@ export default function SubscriptionsPage() {
       <Dialog
         open={viewModalOpen}
         onClose={() => setViewModalOpen(false)}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
@@ -386,7 +454,16 @@ export default function SubscriptionsPage() {
             alignItems: 'center',
           }}
         >
-          Subscription Details
+          <Box>
+            Subscription Details
+            <Chip
+              label={getPlanStatus(selectedSub || {})}
+              color={getStatusColor(getPlanStatus(selectedSub || {}))}
+              size="small"
+              sx={{ fontWeight: 500, ml: 2 }}
+            />
+          </Box>
+
           <IconButton onClick={() => setViewModalOpen(false)} size="small">
             <CloseIcon />
           </IconButton>
@@ -394,29 +471,149 @@ export default function SubscriptionsPage() {
         <DialogContent dividers>
           {selectedSub && (
             <Grid container spacing={2}>
-              {Object.entries({
-                ...selectedSub,
-                plan_status: getPlanStatus(selectedSub),
-              }).map(([key, value]) => {
-                if (key === 'id') return null;
-                return (
-                  <Grid size={{ xs: 12, sm: 6 }} key={key}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      textTransform="uppercase"
-                      fontWeight={600}
-                    >
-                      {key.replace('_', ' ')}
-                    </Typography>
-                    <Typography variant="body1" fontWeight={500} mt={0.5}>
-                      {key === 'amount'
-                        ? `₹${Number(value).toLocaleString('en-IN')}`
-                        : value || '—'}
-                    </Typography>
-                  </Grid>
-                );
-              })}
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  POS Outlet
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub.pos_outlet.name}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Outlet Phone
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub.pos_outlet.phone || 'N/A'}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Order ID
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub.order_id}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Plan
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub.plan}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Start Date
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {GetCustomDate(selectedSub.start_date)}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Expiry Date
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {GetCustomDate(selectedSub.expiry_date)}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Amount
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub.amount}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Transaction ID
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub.transaction_id}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Payment Method
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub.payment_method}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  renewed From
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub?.renewed_from?.order_id || 'None'}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  textTransform="uppercase"
+                  fontWeight={600}
+                >
+                  Notes
+                </Typography>
+                <Typography variant="body1" fontWeight={500} mt={0.5}>
+                  {selectedSub.notes}
+                </Typography>
+              </Grid>{' '}
             </Grid>
           )}
         </DialogContent>
@@ -461,6 +658,9 @@ export default function SubscriptionsPage() {
                 value={formData.order_id}
                 onChange={handleFormChange}
                 size="small"
+                required
+                error={formErrors.order_id}
+                helperText={formErrors.order_id ? 'Order ID is required' : ''}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -471,6 +671,9 @@ export default function SubscriptionsPage() {
                 value={formData.plan}
                 onChange={handleFormChange}
                 size="small"
+                required
+                error={formErrors.plan}
+                helperText={formErrors.plan ? 'Plan is required' : ''}
               />
             </Grid>
 
@@ -484,6 +687,11 @@ export default function SubscriptionsPage() {
                 onChange={handleFormChange}
                 size="small"
                 InputLabelProps={{ shrink: true }}
+                required
+                error={formErrors.start_date}
+                helperText={
+                  formErrors.start_date ? 'Start date is required' : ''
+                }
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
@@ -496,6 +704,11 @@ export default function SubscriptionsPage() {
                 onChange={handleFormChange}
                 size="small"
                 InputLabelProps={{ shrink: true }}
+                required
+                error={formErrors.expiry_date}
+                helperText={
+                  formErrors.expiry_date ? 'Expiry date is required' : ''
+                }
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
@@ -507,6 +720,9 @@ export default function SubscriptionsPage() {
                 value={formData.amount}
                 onChange={handleFormChange}
                 size="small"
+                required
+                error={formErrors.amount}
+                helperText={formErrors.amount ? 'Amount is required' : ''}
               />
             </Grid>
 
@@ -518,6 +734,11 @@ export default function SubscriptionsPage() {
                 value={formData.transaction_id}
                 onChange={handleFormChange}
                 size="small"
+                required
+                error={formErrors.transaction_id}
+                helperText={
+                  formErrors.transaction_id ? 'Transaction ID is required' : ''
+                }
               />
             </Grid>
 
@@ -529,40 +750,80 @@ export default function SubscriptionsPage() {
                 value={formData.payment_method}
                 onChange={handleFormChange}
                 size="small"
+                required
+                error={formErrors.payment_method}
+                helperText={
+                  formErrors.payment_method ? 'Payment method is required' : ''
+                }
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 fullWidth
                 label="Notes"
                 name="notes"
+                multiline
+                rows={3}
                 value={formData.notes}
                 onChange={handleFormChange}
                 size="small"
+                required
+                error={formErrors.notes}
+                helperText={formErrors.notes ? 'Notes are required' : ''}
               />
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
+              <FormControl
                 fullWidth
-                label="POS Outlet (Relation)"
-                name="pos_outlet"
-                value={formData.pos_outlet}
-                onChange={handleFormChange}
                 size="small"
-                placeholder="Add or create a relation"
-              />
+                required
+                error={formErrors.pos_outlet}
+              >
+                <InputLabel id="pos-outlet-label">POS Outlet</InputLabel>
+                <Select
+                  fullWidth
+                  label="POS Outlet"
+                  name="pos_outlet"
+                  value={formData.pos_outlet}
+                  onChange={handleFormChange}
+                  size="small"
+                >
+                  <MenuItem value="">Select a POS Outlet</MenuItem>
+                  {/* Add your POS Outlet options here */}
+                  {outlets?.map((outlet) => (
+                    <MenuItem key={outlet.id} value={outlet.documentId}>
+                      {outlet.name} - {outlet.phone || 'N/A'}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {formErrors.pos_outlet && (
+                  <FormHelperText>POS Outlet is required</FormHelperText>
+                )}
+              </FormControl>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth
-                label="Renewed From (Relation)"
-                name="renewed_from"
-                value={formData.renewed_from}
-                onChange={handleFormChange}
-                size="small"
-                placeholder="Add or create a relation"
-              />
+              <FormControl fullWidth size="small">
+                <InputLabel id="renewed-from-label">Renewed From</InputLabel>
+                <Select
+                  fullWidth
+                  label="Renewed From"
+                  name="renewed_from"
+                  value={formData.renewed_from}
+                  onChange={handleFormChange}
+                  size="small"
+                >
+                  <MenuItem value={null}>Select a Subscription</MenuItem>
+                  {/* Add your POS Outlet options here */}
+                  {subscriptions
+                    ?.filter((sub) => sub.documentId !== formData.documentId)
+                    ?.map((sub) => (
+                      <MenuItem key={sub.id} value={sub.documentId}>
+                        {sub.order_id} - {sub.plan || 'N/A'}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </DialogContent>

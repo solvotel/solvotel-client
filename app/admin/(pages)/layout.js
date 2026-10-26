@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -41,6 +41,8 @@ import {
 } from '@mui/icons-material';
 import PointOfSaleIcon from '@mui/icons-material/PointOfSale';
 import ApartmentIcon from '@mui/icons-material/Apartment';
+import { useAuth } from '@/context';
+import { parseCookies } from 'nookies';
 
 const DRAWER_WIDTH = 260;
 const COLLAPSED_WIDTH = 76;
@@ -60,6 +62,8 @@ const menuItems = [
 ];
 
 export default function AdminLayout({ children }) {
+  const { auth, logout } = useAuth();
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
@@ -76,8 +80,18 @@ export default function AdminLayout({ children }) {
   const handleProfileMenuOpen = (e) => setAnchorEl(e.currentTarget);
   const handleProfileMenuClose = () => setAnchorEl(null);
 
+  // check authenticated
+  useEffect(() => {
+    const { user } = parseCookies();
+    const parsedUser = JSON.parse(user || 'null');
+
+    if (!parsedUser || parsedUser?.role.name !== 'Admin') {
+      router.push('/admin/login');
+    }
+  }, [router]);
+
   const handleLogout = () => {
-    localStorage.removeItem('admin_token');
+    logout();
     handleProfileMenuClose();
     router.push('/admin/login');
   };
@@ -276,11 +290,11 @@ export default function AdminLayout({ children }) {
           </Box>
 
           <Stack direction="row" alignItems="center" spacing={1}>
-            <IconButton color="inherit" size="large">
+            {/* <IconButton color="inherit" size="large">
               <Badge badgeContent={3} color="error">
                 <NotificationsOutlined />
               </Badge>
-            </IconButton>
+            </IconButton> */}
 
             <Tooltip title="Account">
               <IconButton onClick={handleProfileMenuOpen} sx={{ p: 0.5 }}>
@@ -304,19 +318,19 @@ export default function AdminLayout({ children }) {
       >
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="subtitle2" fontWeight={600}>
-            Admin User
+            {auth?.user?.username || 'Admin User'}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            admin@solvotel.com
+            {auth?.user?.email || 'admin@solvotel.com'}
           </Typography>
         </Box>
         <Divider />
-        <MenuItem onClick={handleProfileMenuClose}>
+        {/* <MenuItem onClick={handleProfileMenuClose}>
           <ListItemIcon>
             <SettingsOutlined fontSize="small" />
           </ListItemIcon>
           <ListItemText>Settings</ListItemText>
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
           <ListItemIcon>
             <LogoutOutlined fontSize="small" sx={{ color: 'error.main' }} />
@@ -385,7 +399,7 @@ export default function AdminLayout({ children }) {
         }}
       >
         <Toolbar sx={{ minHeight: { xs: 64 } }} />
-        <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>{children}</Box>
+        <Box sx={{ p: { xs: 2, sm: 3, md: 2 } }}>{children}</Box>
       </Box>
     </Box>
   );

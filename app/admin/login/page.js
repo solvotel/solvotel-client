@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -31,7 +31,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '@/context';
 import axios from 'axios';
-import { setCookie } from 'nookies';
+import { parseCookies, setCookie } from 'nookies';
 import { BASEURL } from '@/config/MainApi';
 
 export default function AdminLoginPage() {
@@ -43,6 +43,15 @@ export default function AdminLoginPage() {
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // check authenticated
+  useEffect(() => {
+    const { user } = parseCookies();
+    const parsedUser = JSON.parse(user || 'null');
+    if (parsedUser || parsedUser?.role.name === 'Admin') {
+      router.push('/admin/dashboard');
+    }
+  }, [router]);
 
   // fet the populated user
   const getPopulatedUser = async (token, id) => {

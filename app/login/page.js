@@ -25,9 +25,9 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import { ErrorToast, WarningToast } from '@/utils/GenerateToast';
 import styled from '@emotion/styled';
 import { useAuth } from '@/context';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { setCookie } from 'nookies';
+import { parseCookies, setCookie } from 'nookies';
 import axios from 'axios';
 
 import { BASEURL } from '@/config/MainApi';
