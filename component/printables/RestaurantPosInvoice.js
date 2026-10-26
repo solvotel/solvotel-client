@@ -1,6 +1,7 @@
 'use client';
 import { GetCustomDate } from '@/utils/DateFetcher';
 import {
+  Divider,
   Paper,
   styled,
   Table,
@@ -46,6 +47,8 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       }}
     >
       <div style={{ textAlign: 'center' }}>
+        <h3>TAX INVOICE</h3>
+        <Divider sx={{ my: 1 }} />
         <h2 style={{ margin: 0, fontWeight: 'bold' }}>{profile.res_name}</h2>
         <p style={{ margin: 0 }}>
           {profile.res_address_line1}, {profile.res_address_line2}
@@ -63,7 +66,8 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
           <p style={{ margin: 0 }}>GST: {profile.res_gst_no}</p>
         )}
       </div>
-      <p style={{ margin: '5px 0' }}>---------------------------------</p>
+      <Divider sx={{ my: 1 }} />
+
       <p>Invoice No: {invoice.invoice_no}</p>
       <p>
         Date: {GetCustomDate(invoice.date)} | Time: {invoice.time}
@@ -71,7 +75,8 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       {invoice.customer_name && <p>Customer: {invoice.customer_name}</p>}
       {invoice.customer_phone && <p>Phone: {invoice.customer_phone}</p>}
       {invoice.customer_gst && <p>GST: {invoice.customer_gst}</p>}
-      <p style={{ margin: '5px 0' }}>---------------------------------</p>
+      {invoice.fssai_no && <p>FSSAI No: {invoice.fssai_no}</p>}
+      <Divider sx={{ my: 1 }} />
 
       <TableContainer>
         <Table size="small">
@@ -120,16 +125,16 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
         </Table>
       </TableContainer>
 
-      <p style={{ margin: '5px 0' }}>---------------------------------</p>
+      <Divider sx={{ my: 1 }} />
 
       <div style={{ textAlign: 'right' }}>
-        <p>Subtotal: ₹{invoice?.total_amount}</p>
+        <p>Subtotal (Rate): ₹{invoice?.total_amount}</p>
         <p>SGST: ₹{invoice?.tax / 2}</p>
         <p>CGST: ₹{invoice?.tax / 2}</p>
         <p style={{ fontWeight: 'bold' }}>Total: ₹{invoice?.payable_amount}</p>
       </div>
 
-      <p style={{ margin: '5px 0' }}>---------------------------------</p>
+      <Divider sx={{ my: 1 }} />
       {isUpiValid && (
         <div style={{ textAlign: 'center' }}>
           <QRCodeCanvas value={upiUrl} size={100} level="H" />

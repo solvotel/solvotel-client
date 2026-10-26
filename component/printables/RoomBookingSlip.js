@@ -82,6 +82,8 @@ const BookingSlip = React.forwardRef((props, ref) => {
     0,
   );
 
+  const dueAmount = totalRoomAmount - advanceAmount;
+
   return (
     <Box
       ref={ref}
@@ -147,13 +149,24 @@ const BookingSlip = React.forwardRef((props, ref) => {
           </Grid>
           <Grid size={5} textAlign="right">
             <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-              Booking Slip
+              Booking Receipt
             </Typography>
             <Typography>Booking ID: {booking.booking_id}</Typography>
             <Typography>
               Created On: {GetCustomDate(booking.createdAt)}
             </Typography>
-            {/* <Typography>Created By: {booking.created_by}</Typography> */}
+            <Typography sx={{ fontWeight: 'bold' }}>
+              Status:{' '}
+              <span
+                style={{
+                  color:
+                    booking.booking_status === 'Confirmed' ? 'green' : 'red',
+                  fontWeight: 'bold',
+                }}
+              >
+                {booking.booking_status}
+              </span>
+            </Typography>
           </Grid>
         </Grid>
       </HeaderBox>
@@ -243,6 +256,10 @@ const BookingSlip = React.forwardRef((props, ref) => {
             <b>Advance Paid:</b> <Highlight>₹{advanceAmount}/‑</Highlight>(
             {amountToWords(advanceAmount)})
           </Typography>
+          <Typography>
+            <b>Due Amount:</b> <Highlight>₹{dueAmount}/‑</Highlight>(
+            {amountToWords(dueAmount)})
+          </Typography>
         </Box>
         <Box sx={{ flex: 1, border: '1px solid #747474ff', p: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
@@ -310,6 +327,9 @@ const BookingSlip = React.forwardRef((props, ref) => {
         <Box textAlign="right">
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
             Cashier / Front Office Signature
+          </Typography>
+          <Typography variant="caption_2" sx={{ fontSize: '10px' }}>
+            Booked By: {booking.user_created}
           </Typography>
         </Box>
       </Box>

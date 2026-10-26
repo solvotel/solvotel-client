@@ -106,9 +106,7 @@ export default function BookingServiceActionsCard({
           checked_out: token.checked_out,
         }))
         .filter(
-          (token) =>
-            token.checked_in === true &&
-            token.checked_out !== true,
+          (token) => token.checked_in === true && token.checked_out !== true,
         ),
     [booking?.room_tokens],
   );
@@ -448,7 +446,7 @@ export default function BookingServiceActionsCard({
                 booking.booking_status === 'Blocked'
               }
             >
-              Print Booking Slip
+              Print Booking Receipt
             </Button>
           </Grid>
           {/* Room Transfer */}

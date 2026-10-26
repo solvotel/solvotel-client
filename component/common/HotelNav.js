@@ -193,11 +193,7 @@ const HotelNav = ({ auth, logout }) => {
                         icon: <Users2 size={16} />,
                         label: 'Guests',
                       },
-                      {
-                        href: '/property/dob-doa-report',
-                        icon: <PartyPopper size={16} />,
-                        label: 'DOB & DOA Report',
-                      },
+
                       {
                         href: '/property/payment-methods',
                         icon: <Banknote size={16} />,
@@ -248,6 +244,11 @@ const HotelNav = ({ auth, logout }) => {
                         href: '/front-office/day-based-report',
                         icon: <CalendarIcon size={16} />,
                         label: 'Day Based Report',
+                      },
+                      {
+                        href: '/property/dob-doa-report',
+                        icon: <PartyPopper size={16} />,
+                        label: 'DOB & DOA Report',
                       },
                     ]}
                   />
@@ -638,18 +639,7 @@ const HotelNav = ({ auth, logout }) => {
                       <ListItemText primary="Guests" />
                     </ListItemButton>
                   </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      component={Link}
-                      href="/property/dob-doa-report"
-                      onClick={toggleDrawer(false)}
-                    >
-                      <ListItemIcon>
-                        <PartyPopper size={16} />
-                      </ListItemIcon>
-                      <ListItemText primary="DOB & DOA Report" />
-                    </ListItemButton>
-                  </ListItem>
+
                   <ListItem disablePadding>
                     <ListItemButton
                       component={Link}
@@ -737,6 +727,18 @@ const HotelNav = ({ auth, logout }) => {
                         <CalendarIcon size={16} />
                       </ListItemIcon>
                       <ListItemText primary="Day Based Report" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href="/property/dob-doa-report"
+                      onClick={toggleDrawer(false)}
+                    >
+                      <ListItemIcon>
+                        <PartyPopper size={16} />
+                      </ListItemIcon>
+                      <ListItemText primary="DOB & DOA Report" />
                     </ListItemButton>
                   </ListItem>
                 </List>

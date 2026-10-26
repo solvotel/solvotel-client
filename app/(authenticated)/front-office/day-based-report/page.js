@@ -111,6 +111,7 @@ const DayBasedReportPage = () => {
         const record = {
           room_no: token.room,
           category: roomInfo?.category?.name || 'Uncategorized',
+          mealPlan: booking.meal_plan || 'N/A',
           bookingId: booking.booking_id || 'N/A',
           guestName: booking.customer?.name || 'N/A',
           status: '',
@@ -308,6 +309,7 @@ const DayBasedReportPage = () => {
                   <TableCell>Room No</TableCell>
                   <TableCell>Category</TableCell>
                   <TableCell>Status</TableCell>
+                  <TableCell>Meal Plan</TableCell>
                   <TableCell>Booking ID</TableCell>
                   <TableCell>Guest</TableCell>
                 </TableRow>
@@ -334,6 +336,7 @@ const DayBasedReportPage = () => {
                           }}
                         />
                       </TableCell>
+                      <TableCell>{row.mealPlan || 'N/A'}</TableCell>
                       <TableCell>
                         {row.documentId ? (
                           <Link
