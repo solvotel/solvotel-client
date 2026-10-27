@@ -248,17 +248,17 @@ const BookingSlip = React.forwardRef((props, ref) => {
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
             Payment Summary
           </Typography>
-          <Typography>
-            <b>Total Amount:</b> <Highlight>₹{totalRoomAmount}/‑</Highlight> (
-            {amountToWords(totalRoomAmount)})
+          <Typography sx={{ display: 'flex', gap: 1 }}>
+            <b>Total Amount:</b> <Highlight>₹{totalRoomAmount}/‑</Highlight>
+            {/* ({amountToWords(totalRoomAmount)}) */}
           </Typography>
-          <Typography>
-            <b>Advance Paid:</b> <Highlight>₹{advanceAmount}/‑</Highlight>(
-            {amountToWords(advanceAmount)})
+          <Typography sx={{ display: 'flex', gap: 1 }}>
+            <b>Advance Paid:</b> <Highlight>₹{advanceAmount}/‑</Highlight>
+            {/* ({amountToWords(advanceAmount)}) */}
           </Typography>
-          <Typography>
-            <b>Due Amount:</b> <Highlight>₹{dueAmount}/‑</Highlight>(
-            {amountToWords(dueAmount)})
+          <Typography sx={{ display: 'flex', gap: 2 }}>
+            <b>Due Amount:</b> <Highlight>₹{dueAmount}/‑</Highlight>
+            {/* ({amountToWords(dueAmount)}) */}
           </Typography>
         </Box>
         <Box sx={{ flex: 1, border: '1px solid #747474ff', p: 2 }}>

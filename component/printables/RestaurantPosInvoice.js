@@ -56,14 +56,15 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
         <p style={{ margin: 0 }}>
           {profile.res_district}, {profile.res_state}
         </p>
-
         <p style={{ margin: 0 }}>
           Phone: {profile.res_mobile}{' '}
           {profile.res_alt_mobile && ` | ${profile.res_alt_mobile}`}
         </p>
-
         {profile.res_gst_no && (
           <p style={{ margin: 0 }}>GST: {profile.res_gst_no}</p>
+        )}
+        {profile.res_ffsai_no && (
+          <p style={{ margin: 0 }}>FSSAI No: {profile.res_ffsai_no}</p>
         )}
       </div>
       <Divider sx={{ my: 1 }} />
@@ -75,7 +76,7 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
       {invoice.customer_name && <p>Customer: {invoice.customer_name}</p>}
       {invoice.customer_phone && <p>Phone: {invoice.customer_phone}</p>}
       {invoice.customer_gst && <p>GST: {invoice.customer_gst}</p>}
-      {invoice.fssai_no && <p>FSSAI No: {invoice.fssai_no}</p>}
+
       <Divider sx={{ my: 1 }} />
 
       <TableContainer>

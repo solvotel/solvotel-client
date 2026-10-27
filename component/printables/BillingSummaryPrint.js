@@ -29,11 +29,24 @@ const HeaderBox = styled(Box)({
 const BillingSummaryPrint = React.forwardRef((props, ref) => {
   const { booking, hotel } = props;
 
+  const payments = booking?.payment_tokens || [];
+  const advancePaymentsRaw = booking?.advance_payment || [];
   const roomTokens = booking?.room_tokens || [];
   const services = booking?.service_tokens || [];
   const foodItems = booking?.food_tokens || [];
 
   // ---- Summary calculations ----
+  const totalPaymentAmount = payments.reduce(
+    (sum, payment) => sum + (Number(payment?.amount) || 0),
+    0,
+  );
+  const advancePayments = Array.isArray(advancePaymentsRaw)
+    ? advancePaymentsRaw
+    : [advancePaymentsRaw];
+  const advanceAmount = advancePayments.reduce(
+    (sum, payment) => sum + (Number(payment?.amount) || 0),
+    0,
+  );
   const totalRoomAmount = roomTokens.reduce(
     (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
     0,
@@ -47,6 +60,8 @@ const BillingSummaryPrint = React.forwardRef((props, ref) => {
     0,
   );
   const grandTotal = totalRoomAmount + totalServiceAmount + totalFoodAmount;
+  const totalPaid = totalPaymentAmount + advanceAmount;
+  const dueAmount = grandTotal - totalPaid;
 
   return (
     <Box
@@ -124,7 +139,7 @@ const BillingSummaryPrint = React.forwardRef((props, ref) => {
       {/* Summary Cards */}
       <Box sx={{ mb: 3 }}>
         <Grid container spacing={2}>
-          <Grid size={3}>
+          <Grid size={4}>
             <Box
               sx={{
                 p: 2,
@@ -142,7 +157,7 @@ const BillingSummaryPrint = React.forwardRef((props, ref) => {
             </Box>
           </Grid>
 
-          <Grid size={3}>
+          <Grid size={4}>
             <Box
               sx={{
                 p: 2,
@@ -160,7 +175,7 @@ const BillingSummaryPrint = React.forwardRef((props, ref) => {
             </Box>
           </Grid>
 
-          <Grid size={3}>
+          <Grid size={4}>
             <Box
               sx={{
                 p: 2,
@@ -178,7 +193,7 @@ const BillingSummaryPrint = React.forwardRef((props, ref) => {
             </Box>
           </Grid>
 
-          <Grid size={3}>
+          <Grid size={4}>
             <Box
               sx={{
                 p: 2,
@@ -192,6 +207,42 @@ const BillingSummaryPrint = React.forwardRef((props, ref) => {
               </Typography>
               <Typography variant="h6" fontWeight="bold" color="primary.main">
                 ₹ {grandTotal.toFixed(2)}
+              </Typography>
+            </Box>
+          </Grid>
+
+          <Grid size={4}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                bgcolor: '#e8f5e9',
+                border: '1px solid #388e3c',
+              }}
+            >
+              <Typography variant="subtitle2" color="text.secondary">
+                Total Paid
+              </Typography>
+              <Typography variant="h6" fontWeight="bold" color="success.main">
+                ₹ {totalPaid.toFixed(2)}
+              </Typography>
+            </Box>
+          </Grid>
+
+          <Grid size={4}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                bgcolor: '#ffebee',
+                border: '1px solid #d32f2f',
+              }}
+            >
+              <Typography variant="subtitle2" color="text.secondary">
+                Due
+              </Typography>
+              <Typography variant="h6" fontWeight="bold" color="error.main">
+                ₹ {dueAmount.toFixed(2)}
               </Typography>
             </Box>
           </Grid>

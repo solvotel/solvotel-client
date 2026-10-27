@@ -30,9 +30,11 @@ import BillingSummaryPrint from '@/component/printables/BillingSummaryPrint';
 
 export default function BillingSummaryCard({ booking, hotel, permissions }) {
   const { auth } = useAuth();
+  const payments = booking?.payment_tokens || [];
   const roomTokens = booking?.room_tokens || [];
   const services = booking?.service_tokens || [];
   const foodItems = booking?.food_tokens || [];
+  const advancePaymentsRaw = booking?.advance_payment || [];
 
   const billingSummaryPrintRef = useRef(null);
   const handlePrintBillingSummary = useReactToPrint({
@@ -41,6 +43,17 @@ export default function BillingSummaryCard({ booking, hotel, permissions }) {
   });
 
   // ---- Summary calculations ----
+  const totalAmount = payments.reduce(
+    (sum, p) => sum + (Number(p.amount) || 0),
+    0,
+  );
+  const advancePayments = Array.isArray(advancePaymentsRaw)
+    ? advancePaymentsRaw
+    : [advancePaymentsRaw];
+  const advanceAmount = advancePayments.reduce(
+    (sum, p) => sum + (parseFloat(p?.amount) || 0),
+    0,
+  );
   const totalRoomAmount = roomTokens.reduce(
     (sum, r) => sum + (parseFloat(r.total_amount) || r.amount || 0),
     0,
@@ -54,6 +67,8 @@ export default function BillingSummaryCard({ booking, hotel, permissions }) {
     0,
   );
   const grandTotal = totalRoomAmount + totalServiceAmount + totalFoodAmount;
+  const amountPayed = totalAmount + advanceAmount;
+  const dueAmount = grandTotal - amountPayed;
 
   const deleteServices = async (id) => {
     const filteredServices = services.filter((_, index) => index !== id);

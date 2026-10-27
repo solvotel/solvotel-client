@@ -21,6 +21,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
     email: data.email || null,
     alt_phone: data.alt_phone || null,
     gst_no: data.gst_no || '',
+    ffsai_no: data.ffsai_no || '',
     website: data.website || '',
     address_line_1: data.address_line_1 || '',
     address_line_2: data.address_line_2 || '',
@@ -160,7 +161,7 @@ const UpdatePosOutletForm = ({ data, auth }) => {
 
           <Grid container spacing={2}>
             {/* Name */}
-            <Grid size={{ xs: 12, md: 12 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 size="small"
                 fullWidth
@@ -236,6 +237,18 @@ const UpdatePosOutletForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.gst_no}
                 helperText={errors.gst_no}
+              />
+            </Grid>
+
+            {/* FSSAI */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                size="small"
+                fullWidth
+                label="FSSAI No"
+                name="ffsai_no"
+                value={formData.ffsai_no}
+                onChange={handleChange}
               />
             </Grid>
 

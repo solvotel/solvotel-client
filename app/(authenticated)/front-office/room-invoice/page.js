@@ -84,7 +84,12 @@ const RoomInvoiceListPage = () => {
 
   const paginatedData = useMemo(
     () =>
-      filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+      rowsPerPage === -1
+        ? filteredData
+        : filteredData.slice(
+            page * rowsPerPage,
+            page * rowsPerPage + rowsPerPage,
+          ),
     [filteredData, page, rowsPerPage],
   );
 
@@ -293,7 +298,12 @@ const RoomInvoiceListPage = () => {
               </TableBody>
             </Table>
             <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
+              rowsPerPageOptions={[
+                5,
+                10,
+                25,
+                { label: 'All', value: -1 },
+              ]}
               component="div"
               count={filteredData.length}
               rowsPerPage={rowsPerPage}

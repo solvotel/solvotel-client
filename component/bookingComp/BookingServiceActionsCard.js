@@ -446,7 +446,7 @@ export default function BookingServiceActionsCard({
                 booking.booking_status === 'Blocked'
               }
             >
-              Print Booking Receipt
+              Booking Receipt
             </Button>
           </Grid>
           {/* Room Transfer */}

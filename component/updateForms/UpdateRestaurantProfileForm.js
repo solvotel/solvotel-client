@@ -21,6 +21,7 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
     res_email: data.res_email || null,
     res_alt_mobile: data.res_alt_mobile || null,
     res_gst_no: data.res_gst_no || '',
+    res_ffsai_no: data.res_ffsai_no || '',
     res_website: data.res_website || '',
     res_address_line1: data.res_address_line1 || '',
     res_address_line2: data.res_address_line2 || '',
@@ -166,7 +167,7 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
 
           <Grid container spacing={2}>
             {/* Name */}
-            <Grid size={{ xs: 12, md: 12 }}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="Name"
@@ -235,6 +236,17 @@ const UpdateRestaurantProfileForm = ({ data, auth }) => {
                 onChange={handleChange}
                 error={!!errors.res_gst_no}
                 helperText={errors.res_gst_no}
+              />
+            </Grid>
+
+            {/* FSSAI */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField
+                fullWidth
+                label="FSSAI No"
+                name="res_ffsai_no"
+                value={formData.res_ffsai_no}
+                onChange={handleChange}
               />
             </Grid>
 
