@@ -133,11 +133,6 @@ const HotelNav = ({ auth, logout }) => {
                   <DropdownMenu
                     items={[
                       {
-                        href: '/master/profile',
-                        icon: <UserCircle size={16} />,
-                        label: 'Profile',
-                      },
-                      {
                         href: '/master/pos-outlets',
                         icon: <UserCircle size={16} />,
                         label: 'POS Outlets',
@@ -178,6 +173,11 @@ const HotelNav = ({ auth, logout }) => {
                 {openDropdown === 2 && (
                   <DropdownMenu
                     items={[
+                      {
+                        href: '/master/profile',
+                        icon: <UserCircle size={16} />,
+                        label: 'Profile',
+                      },
                       {
                         href: '/property/categories',
                         icon: <ListChecks size={16} />,
@@ -529,18 +529,6 @@ const HotelNav = ({ auth, logout }) => {
                   <ListItem disablePadding>
                     <ListItemButton
                       component={Link}
-                      href="/profile-setting"
-                      onClick={toggleDrawer(false)}
-                    >
-                      <ListItemIcon>
-                        <UserCircle size={16} />
-                      </ListItemIcon>
-                      <ListItemText primary="Profile" />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      component={Link}
                       href="/master/pos-outlets"
                       onClick={toggleDrawer(false)}
                     >
@@ -603,6 +591,18 @@ const HotelNav = ({ auth, logout }) => {
               </AccordionSummary>
               <AccordionDetails sx={{ p: 0 }}>
                 <List sx={{ width: '100%' }}>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href="/profile-setting"
+                      onClick={toggleDrawer(false)}
+                    >
+                      <ListItemIcon>
+                        <UserCircle size={16} />
+                      </ListItemIcon>
+                      <ListItemText primary="Profile" />
+                    </ListItemButton>
+                  </ListItem>
                   <ListItem disablePadding>
                     <ListItemButton
                       component={Link}

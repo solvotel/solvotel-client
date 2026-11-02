@@ -11,6 +11,8 @@ import { Alert, Box } from '@mui/material';
 import { BASEURL, fetcher } from '@/config/MainApi';
 import useSWR from 'swr';
 import { GetCustomDate } from '@/utils/DateFetcher';
+import { parseCookies } from 'nookies';
+import { useEffect } from 'react';
 
 const Layout = ({ children }) => {
   const { auth } = useAuth();
@@ -18,6 +20,16 @@ const Layout = ({ children }) => {
   const entityId = isPosUser ? auth?.user?.pos_outlet_id : auth?.user?.hotel_id;
   const entityType = isPosUser ? 'POS outlet' : 'hotel';
   const entityEndpoint = isPosUser ? 'pos-outlets' : 'hotels';
+
+  // check authenticated
+  useEffect(() => {
+    const { user } = parseCookies();
+    const parsedUser = JSON.parse(user || 'null');
+    console.log('parsedUser', parsedUser);
+    // if (parsedUser?.role.name === 'Admin') {
+    //   router.push('/admin/dashboard');
+    // }
+  }, []);
 
   const data = GetSingleData({
     endPoint: entityEndpoint,
