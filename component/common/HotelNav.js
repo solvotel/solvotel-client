@@ -50,6 +50,7 @@ import {
   LogOut,
   HandPlatter,
   CalendarIcon,
+  MonitorCheck,
 } from 'lucide-react';
 import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutlined';
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
@@ -214,7 +215,7 @@ const HotelNav = ({ auth, logout }) => {
               >
                 <Button
                   sx={{ color: 'white', textTransform: 'none' }}
-                  startIcon={<UserPen size={18} />}
+                  startIcon={<MonitorCheck size={18} />}
                 >
                   Frontoffice
                 </Button>
