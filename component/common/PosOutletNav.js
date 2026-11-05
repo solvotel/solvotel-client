@@ -30,6 +30,7 @@ import {
   Logout,
   Money,
   Receipt,
+  Settings,
 } from '@mui/icons-material';
 import { Banknote, LogOut } from 'lucide-react';
 
@@ -176,6 +177,9 @@ const PosOutletNav = ({ auth, logout }) => {
                   href="/pos-outlet/profile-setting"
                   onClick={handleProfileMenuClose}
                 >
+                  <ListItemIcon sx={{ minWidth: 34 }}>
+                    <Settings fontSize="small" />
+                  </ListItemIcon>
                   Profile Settings
                 </MenuItem>
 
@@ -187,6 +191,9 @@ const PosOutletNav = ({ auth, logout }) => {
                   }}
                   sx={{ color: 'error.main' }}
                 >
+                  <ListItemIcon sx={{ minWidth: 34, color: 'inherit' }}>
+                    <LogOut size={18} />
+                  </ListItemIcon>
                   Logout
                 </MenuItem>
               </Menu>
@@ -222,6 +229,18 @@ const PosOutletNav = ({ auth, logout }) => {
           {/* Logout Button */}
           <Box sx={{ mt: 1, borderTop: '1px solid #eee', pt: 1 }}>
             <List>
+              <ListItem disablePadding>
+                <ListItemButton
+                  component={Link}
+                  href="/pos-outlet/profile-setting"
+                  onClick={toggleDrawer(false)}
+                >
+                  <ListItemIcon>
+                    <Settings size={16} />
+                  </ListItemIcon>
+                  <ListItemText primary="Profile Setting" />
+                </ListItemButton>
+              </ListItem>
               <ListItem disablePadding>
                 <ListItemButton
                   onClick={() => {

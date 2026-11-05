@@ -55,7 +55,7 @@ import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutl
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import { Summarize } from '@mui/icons-material';
+import { Settings, Summarize } from '@mui/icons-material';
 
 const HotelNav = ({ auth, logout }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -491,6 +491,9 @@ const HotelNav = ({ auth, logout }) => {
                   href="/profile-setting"
                   onClick={handleProfileMenuClose}
                 >
+                  <ListItemIcon sx={{ minWidth: 34 }}>
+                    <Settings fontSize="small" />
+                  </ListItemIcon>
                   Profile Settings
                 </MenuItem>
 
@@ -502,6 +505,9 @@ const HotelNav = ({ auth, logout }) => {
                   }}
                   sx={{ color: 'error.main' }}
                 >
+                  <ListItemIcon sx={{ minWidth: 34, color: 'inherit' }}>
+                    <LogOut size={18} />
+                  </ListItemIcon>
                   Logout
                 </MenuItem>
               </Menu>
@@ -600,7 +606,7 @@ const HotelNav = ({ auth, logout }) => {
                   <ListItem disablePadding>
                     <ListItemButton
                       component={Link}
-                      href="/profile-setting"
+                      href="/master/profile"
                       onClick={toggleDrawer(false)}
                     >
                       <ListItemIcon>
@@ -1065,6 +1071,18 @@ const HotelNav = ({ auth, logout }) => {
           {/* Logout Button */}
           <Box sx={{ mt: 1, borderTop: '1px solid #eee', pt: 1 }}>
             <List>
+              <ListItem disablePadding>
+                <ListItemButton
+                  component={Link}
+                  href="/profile-setting"
+                  onClick={toggleDrawer(false)}
+                >
+                  <ListItemIcon>
+                    <Settings size={16} />
+                  </ListItemIcon>
+                  <ListItemText primary="Profile Setting" />
+                </ListItemButton>
+              </ListItem>
               <ListItem disablePadding>
                 <ListItemButton
                   onClick={() => {
