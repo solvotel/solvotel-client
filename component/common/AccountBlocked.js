@@ -10,12 +10,15 @@ import {
 import LockPersonRoundedIcon from '@mui/icons-material/LockPersonRounded';
 import SupportAgentRoundedIcon from '@mui/icons-material/SupportAgentRounded';
 import MailOutlineRoundedIcon from '@mui/icons-material/MailOutlineRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import { useAuth } from '@/context';
 import { formatSubscriptionDate } from '@/utils/SubscriptionAccess';
 
 export default function AccountBlocked({
   subscriptionAccess,
   entityType = 'account',
 }) {
+  const { logout } = useAuth();
   const isSubscriptionBlocked = Boolean(subscriptionAccess);
   const expiredOn = subscriptionAccess?.expiredPlan?.expiry_date;
   const startsOn = subscriptionAccess?.upcomingPlan?.start_date;
@@ -131,26 +134,50 @@ export default function AccountBlocked({
             </Box>
 
             {/* Button */}
-            <Button
-              href="/contact"
-              variant="contained"
-              size="large"
-              startIcon={<MailOutlineRoundedIcon />}
-              sx={{
-                borderRadius: 3,
-                px: 5,
-                py: 1.4,
-                textTransform: 'none',
-                fontSize: 16,
-                fontWeight: 600,
-                boxShadow: 'none',
-                '&:hover': {
-                  boxShadow: '0 8px 24px rgba(25,118,210,0.3)',
-                },
-              }}
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1.5}
+              justifyContent="center"
+              sx={{ width: '100%' }}
             >
-              Contact Support
-            </Button>
+              <Button
+                href="/contact"
+                variant="contained"
+                size="large"
+                startIcon={<MailOutlineRoundedIcon />}
+                sx={{
+                  borderRadius: 3,
+                  px: 5,
+                  py: 1.4,
+                  textTransform: 'none',
+                  fontSize: 16,
+                  fontWeight: 600,
+                  boxShadow: 'none',
+                  '&:hover': {
+                    boxShadow: '0 8px 24px rgba(25,118,210,0.3)',
+                  },
+                }}
+              >
+                Contact Support
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                size="large"
+                startIcon={<LogoutRoundedIcon />}
+                onClick={logout}
+                sx={{
+                  borderRadius: 3,
+                  px: 4,
+                  py: 1.4,
+                  textTransform: 'none',
+                  fontSize: 16,
+                  fontWeight: 600,
+                }}
+              >
+                Logout
+              </Button>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
