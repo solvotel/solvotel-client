@@ -51,6 +51,22 @@ export default function FacebookLogin() {
   const { register, handleSubmit, reset } = useForm();
   const [showPassword, setShowPassword] = useState(false);
 
+  // check authenticated
+  useEffect(() => {
+    const { user } = parseCookies();
+    const parsedUser = JSON.parse(user || 'null');
+    console.log('parsedUser', parsedUser);
+    if (parsedUser && parsedUser?.role.name === 'Admin') {
+      router.push('/admin/dashboard');
+    } else if (parsedUser && parsedUser?.role.name === 'pos-user') {
+      router.push('/pos-outlet/dashboard');
+    } else if (parsedUser && parsedUser?.role.name === 'hotel-admin') {
+      router.push('/dashboard');
+    } else {
+      return;
+    }
+  }, [router]);
+
   const handleClickShowPassword = () => setShowPassword((show) => !show);
   const handleMouseDownPassword = (event) => {
     event.preventDefault();

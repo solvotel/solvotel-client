@@ -22,9 +22,9 @@ export function middleware(req) {
   );
 
   // If logged-in user tries to access login page → redirect to dashboard
-  if (pathname === '/login' && token) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
-  }
+  // if (pathname === '/login' && token) {
+  //   return NextResponse.redirect(new URL('/dashboard', req.url));
+  // }
 
   // Allow public routes
   if (isPublicRoute) {
@@ -33,7 +33,7 @@ export function middleware(req) {
 
   // Protect private routes
   if (!token) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.redirect(new URL('/', req.url));
   }
 
   return NextResponse.next();
