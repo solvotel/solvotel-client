@@ -55,6 +55,7 @@ import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutl
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import { Summarize } from '@mui/icons-material';
 
 const HotelNav = ({ auth, logout }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -275,6 +276,11 @@ const HotelNav = ({ auth, logout }) => {
                         href: '/house-keeping',
                         icon: <LayoutDashboard size={16} />,
                         label: 'Dashboard',
+                      },
+                      {
+                        href: '/house-keeping/report',
+                        icon: <Summarize size={16} />,
+                        label: 'Cleaning Report',
                       },
                     ]}
                   />
@@ -768,6 +774,18 @@ const HotelNav = ({ auth, logout }) => {
                         <LayoutDashboard size={16} />
                       </ListItemIcon>
                       <ListItemText primary="Dashboard" />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      component={Link}
+                      href="/house-keeping/report"
+                      onClick={toggleDrawer(false)}
+                    >
+                      <ListItemIcon>
+                        <Summarize size={16} />
+                      </ListItemIcon>
+                      <ListItemText primary="Cleaning Report" />
                     </ListItemButton>
                   </ListItem>
                 </List>
