@@ -387,7 +387,9 @@ const BookingListPage = () => {
                               <Chip
                                 variant="filled"
                                 color="primary"
-                                key={room.documentId || `${room.room_no}-${index}`}
+                                key={
+                                  room.documentId || `${room.room_no}-${index}`
+                                }
                                 label={room.room_no}
                                 size="small"
                                 sx={{
@@ -400,7 +402,9 @@ const BookingListPage = () => {
                           </Typography>
                         </Tooltip>
                       </TableCell>
-                      <TableCell>
+                      <TableCell
+                        sx={{ width: 135, maxWidth: 135, textAlign: 'center' }}
+                      >
                         <div
                           style={{
                             display: 'flex',
@@ -423,7 +427,11 @@ const BookingListPage = () => {
                           {GetCustomDate(row.checkout_date)}
                         </div>
                       </TableCell>
-                      <TableCell>{GetCustomDate(row.createdAt)}</TableCell>
+                      <TableCell
+                        sx={{ width: 125, maxWidth: 125, textAlign: 'center' }}
+                      >
+                        {GetCustomDate(row.createdAt)}
+                      </TableCell>
                       <TableCell>
                         Adult: {row?.adult}
                         <br />
@@ -512,12 +520,7 @@ const BookingListPage = () => {
               </TableBody>
             </Table>
             <TablePagination
-              rowsPerPageOptions={[
-                5,
-                10,
-                25,
-                { label: 'All', value: -1 },
-              ]}
+              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
               component="div"
               count={filteredData.length}
               rowsPerPage={rowsPerPage}

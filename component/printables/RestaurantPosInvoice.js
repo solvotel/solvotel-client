@@ -54,7 +54,7 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
           {profile.res_address_line1}, {profile.res_address_line2}
         </p>
         <p style={{ margin: 0 }}>
-          {profile.res_district}, {profile.res_state}
+          {profile.res_district}, {profile.res_state}, {profile.res_pincode}
         </p>
         <p style={{ margin: 0 }}>
           Phone: {profile.res_mobile}{' '}
@@ -74,9 +74,8 @@ const RestaurantPosInvoice = React.forwardRef((props, ref) => {
         Date: {GetCustomDate(invoice.date)} | Time: {invoice.time}
       </p>
       {invoice.customer_name && <p>Customer: {invoice.customer_name}</p>}
-      {invoice.customer_phone && <p>Phone: {invoice.customer_phone}</p>}
       {invoice.customer_gst && <p>GST: {invoice.customer_gst}</p>}
-
+      {invoice.customer_address && <p>Address: {invoice.customer_address}</p>}
       <Divider sx={{ my: 1 }} />
 
       <TableContainer>
