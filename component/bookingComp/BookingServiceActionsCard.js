@@ -41,6 +41,7 @@ import CancelBookingDialog from './CancelBookingDialog';
 
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { GetTodaysDate, toDateKey } from '@/utils/DateFetcher';
+import generateHousekeepingTokens from '@/utils/generateHousekeepingTokens';
 import CheckoutDialog from './CheckoutDialog';
 import CheckinDialog from './CheckinDialog';
 import BookingConflictDialog from './BookingConflictDialog';
@@ -208,6 +209,31 @@ export default function BookingServiceActionsCard({
 
     try {
       setCheckinSaving(true);
+      const generatedHousekeepingTokens = generateHousekeepingTokens(
+        roomTokens,
+        booking?.housekeeping_tokens || [],
+      );
+      const selectedCheckinRooms = new Set(
+        (booking?.room_tokens || [])
+          .filter((token, index) => {
+            const key = String(
+              token.id ||
+                `${index}-${token.room}-${token.in_date}-${token.out_date}`,
+            );
+            return selectedKeys.has(key);
+          })
+          .map((token) => `${token.room}|${token.in_date}`),
+      );
+      const housekeepingTokens = generatedHousekeepingTokens.map((token) =>
+        selectedCheckinRooms.has(`${token.room}|${token.date}`)
+          ? {
+              ...token,
+              status: 'dirty',
+              cleaned_by: null,
+              time_stamp: null,
+            }
+          : token,
+      );
       await UpdateData({
         endPoint: 'room-bookings',
         auth,
@@ -215,6 +241,7 @@ export default function BookingServiceActionsCard({
         payload: {
           data: {
             room_tokens: roomTokens,
+            housekeeping_tokens: housekeepingTokens,
             checked_in: true,
             ...(!booking?.checked_in && {
               checkin_timeStamp: new Date().toISOString(),
@@ -319,6 +346,38 @@ export default function BookingServiceActionsCard({
 
     try {
       setCheckoutSaving(true);
+      const housekeepingTokens = generateHousekeepingTokens(
+        roomTokens,
+        booking?.housekeeping_tokens || [],
+      );
+      const checkoutHousekeepingKeys = new Set(
+        (booking?.room_tokens || [])
+          .filter((token, index) => {
+            const key = String(
+              token.id ||
+                `${index}-${token.room}-${token.in_date}-${token.out_date}`,
+            );
+            return selectedKeys.has(key);
+          })
+          .map((token) => {
+            const lastStayNight = new Date(`${token.out_date}T00:00:00.000Z`);
+            lastStayNight.setUTCDate(lastStayNight.getUTCDate() - 1);
+            return `${token.room}|${lastStayNight.toISOString().split('T')[0]}|${token.out_date}`;
+          }),
+      );
+      const updatedHousekeepingTokens = housekeepingTokens.map((token) => {
+        const key = `${token.room}|${token.date}|${token.out_date}`;
+        if (!checkoutHousekeepingKeys.has(key)) return token;
+
+        return {
+          ...token,
+          after_checkout: {
+            status: 'dirty',
+            cleaned_by: null,
+            time_stamp: null,
+          },
+        };
+      });
       await UpdateData({
         endPoint: 'room-bookings',
         auth,
@@ -326,6 +385,7 @@ export default function BookingServiceActionsCard({
         payload: {
           data: {
             room_tokens: roomTokens,
+            housekeeping_tokens: updatedHousekeepingTokens,
             ...(allRoomsCheckedOut && {
               checked_out: true,
               checkout_timeStamp: new Date().toISOString(),

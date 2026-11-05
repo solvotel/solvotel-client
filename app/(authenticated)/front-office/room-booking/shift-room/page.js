@@ -6,6 +6,7 @@ import { useAuth } from '@/context';
 import { GetDataList, GetSingleData, UpdateData } from '@/utils/ApiFunctions';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { Loader } from '@/component/common';
+import generateHousekeepingTokens from '@/utils/generateHousekeepingTokens';
 import { motion, AnimatePresence } from 'framer-motion';
 import dayjs from 'dayjs';
 import {
@@ -382,6 +383,10 @@ const RoomTransferPage = () => {
     try {
       setLoading(true);
       const roomTokens = buildRoomTokens();
+      const housekeepingTokens = generateHousekeepingTokens(
+        roomTokens,
+        booking.housekeeping_tokens || [],
+      );
       const uniqueRoomIds = [
         ...new Set(
           roomTokens
@@ -400,6 +405,7 @@ const RoomTransferPage = () => {
         payload: {
           data: {
             room_tokens: roomTokens,
+            housekeeping_tokens: housekeepingTokens,
             rooms: uniqueRoomIds,
             user_updated: auth?.user?.username || '',
           },

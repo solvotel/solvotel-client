@@ -22,7 +22,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Stack,
   TablePagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -355,35 +354,51 @@ const BookingListPage = () => {
                         <br />
                         {row?.customer?.mobile}
                       </TableCell>
-                      <TableCell
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          width: '350px',
-                        }}
-                      >
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          flexWrap="wrap"
-                          justifyContent="center"
-                          alignItems="center"
+                      <TableCell sx={{ width: 350, maxWidth: 350 }}>
+                        <Tooltip
+                          title={
+                            row.rooms?.map((room) => room.room_no).join(', ') ||
+                            ''
+                          }
+                          placement="top"
+                          arrow
+                          slotProps={{
+                            tooltip: { sx: { fontSize: '0.95rem' } },
+                          }}
+                          disableHoverListener={!row.rooms?.length}
                         >
-                          {row.rooms?.map((room, index) => (
-                            <Chip
-                              variant="filled"
-                              color="primary"
-                              key={index}
-                              label={room.room_no}
-                              size="small"
-                              sx={{
-                                height: 20,
-                                fontSize: '0.7rem',
-                                borderRadius: '50px',
-                              }}
-                            />
-                          ))}
-                        </Stack>
+                          <Typography
+                            component="div"
+                            sx={{
+                              display: '-webkit-box',
+                              WebkitBoxOrient: 'vertical',
+                              WebkitLineClamp: 2,
+                              overflow: 'hidden',
+                              textAlign: 'center',
+                              '& .MuiChip-root': {
+                                display: 'inline-flex',
+                                verticalAlign: 'middle',
+                                mr: 0.5,
+                                mb: 0.5,
+                              },
+                            }}
+                          >
+                            {row.rooms?.map((room, index) => (
+                              <Chip
+                                variant="filled"
+                                color="primary"
+                                key={room.documentId || `${room.room_no}-${index}`}
+                                label={room.room_no}
+                                size="small"
+                                sx={{
+                                  height: 20,
+                                  fontSize: '0.7rem',
+                                  borderRadius: '50px',
+                                }}
+                              />
+                            ))}
+                          </Typography>
+                        </Tooltip>
                       </TableCell>
                       <TableCell>
                         <div
@@ -415,7 +430,36 @@ const BookingListPage = () => {
                         Child: {row?.children}
                       </TableCell>
                       <TableCell>{row.meal_plan}</TableCell>
-                      <TableCell>{row.remarks}</TableCell>
+                      <TableCell sx={{ maxWidth: 240 }}>
+                        <Tooltip
+                          title={row.remarks || ''}
+                          placement="top"
+                          arrow
+                          slotProps={{
+                            tooltip: {
+                              sx: {
+                                fontSize: '0.95rem',
+                                whiteSpace: 'pre-wrap',
+                              },
+                            },
+                          }}
+                          disableHoverListener={!row.remarks}
+                        >
+                          <Typography
+                            component="div"
+                            variant="body2"
+                            sx={{
+                              display: '-webkit-box',
+                              WebkitBoxOrient: 'vertical',
+                              WebkitLineClamp: 2,
+                              overflow: 'hidden',
+                              overflowWrap: 'anywhere',
+                            }}
+                          >
+                            {row.remarks || '—'}
+                          </Typography>
+                        </Tooltip>
+                      </TableCell>
                       <TableCell>
                         <Chip
                           label={currentStatus?.status}

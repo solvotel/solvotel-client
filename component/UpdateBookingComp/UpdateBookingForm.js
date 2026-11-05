@@ -16,6 +16,7 @@ import { UpdateData } from '@/utils/ApiFunctions';
 import { useAuth } from '@/context';
 import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { useRouter } from 'next/navigation';
+import generateHousekeepingTokens from '@/utils/generateHousekeepingTokens';
 import GuestStep from './GuestStep';
 import BookingDetailsStep from './BookingDetailsStep';
 import RoomAvailabilityStep from './RoomAvailabilityStep';
@@ -193,11 +194,16 @@ const UpdateBookingForm = ({
     try {
       setLoading(true);
 
+      const housekeepingTokens = generateHousekeepingTokens(
+        roomTokens,
+        bookingData.housekeeping_tokens || [],
+      );
       const payload = {
         customer: selectedGuest.documentId,
         ...bookingDetails,
         rooms: rooms,
         room_tokens: roomTokens,
+        housekeeping_tokens: housekeepingTokens,
         advance_payment: advancePayments.length
           ? advancePayments.map((payment) => ({
               date: payment.date || new Date().toISOString().split('T')[0],

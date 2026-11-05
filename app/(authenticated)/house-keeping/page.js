@@ -1,100 +1,313 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import {
   Box,
   Breadcrumbs,
-  Link,
-  Typography,
-  Grid,
+  Button,
   Card,
   CardContent,
   Chip,
-  Divider,
+  Grid,
+  Link,
+  Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
 } from '@mui/material';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ApartmentIcon from '@mui/icons-material/Apartment';
-import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
-import GroupIcon from '@mui/icons-material/Group';
+import CleaningServicesIcon from '@mui/icons-material/CleaningServices';
 import EventIcon from '@mui/icons-material/Event';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useAuth } from '@/context';
-import { GetDataList } from '@/utils/ApiFunctions';
 import { Loader } from '@/component/common';
-import { useState } from 'react';
+import { GetDataList, UpdateData } from '@/utils/ApiFunctions';
+import { ErrorToast, SuccessToast } from '@/utils/GenerateToast';
 import { GetTodaysDate } from '@/utils/DateFetcher';
 
-const Page = () => {
+const dateKey = (date) => String(date || '').split('T')[0];
+
+const formatCleanedAt = (timeStamp) => {
+  const date = new Date(timeStamp);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const datePart = `${String(date.getDate()).padStart(2, '0')}-${String(
+    date.getMonth() + 1,
+  ).padStart(2, '0')}-${date.getFullYear()}`;
+  const timePart = date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  return `${datePart} ${timePart}`;
+};
+
+const roomMatches = (tokenRoom, roomNo) =>
+  String(tokenRoom ?? '') === String(roomNo ?? '');
+
+const getRoomBookingStatus = (booking, roomToken, selectedDate) => {
+  if (booking.booking_status === 'Blocked') return 'Blocked';
+
+  if (
+    dateKey(roomToken.out_date) === selectedDate &&
+    (roomToken.checked_out === true || booking.checked_out === true)
+  ) {
+    return 'Checked Out';
+  }
+
+  if (dateKey(roomToken.out_date) === selectedDate) return 'Check Out';
+
+  if (roomToken.checked_in === true && roomToken.checked_out !== true) {
+    return 'Checked In';
+  }
+
+  return booking.booking_status || 'Confirmed';
+};
+
+const statusColor = {
+  Available: 'success',
+  'Checked In': 'info',
+  'Check Out': 'warning',
+  'Checked Out': 'default',
+  Confirmed: 'warning',
+  Blocked: 'error',
+  'Needs Cleaning': 'error',
+};
+
+const HousekeepingDashboard = () => {
   const { auth } = useAuth();
-  const todaysDate = GetTodaysDate().dateString;
-
+  const [selectedDate, setSelectedDate] = useState(GetTodaysDate().dateString);
+  const [housekeepingFilter, setHousekeepingFilter] = useState('all');
+  const [cleaningTaskKey, setCleaningTaskKey] = useState('');
   const rooms = GetDataList({ auth, endPoint: 'rooms' });
+  const bookings = GetDataList({ auth, endPoint: 'room-bookings' });
 
-  const [selectedDate, setSelectedDate] = useState(todaysDate);
+  const roomCards = useMemo(
+    () =>
+      (rooms || []).map((room) => {
+        const bookingInfo = (bookings || [])
+          .filter((booking) => booking.booking_status !== 'Cancelled')
+          .flatMap((booking) =>
+            (booking.room_tokens || [])
+              .filter((token) => roomMatches(token.room, room.room_no))
+              .map((token) => ({ booking, token })),
+          )
+          .filter(({ booking, token }) => {
+            const inDate = dateKey(token.in_date);
+            const outDate = dateKey(token.out_date);
+            return (
+              (inDate <= selectedDate && selectedDate < outDate) ||
+              outDate === selectedDate
+            );
+          })
+          .sort((a, b) => {
+            const aIsActive =
+              dateKey(a.token.in_date) <= selectedDate &&
+              selectedDate < dateKey(a.token.out_date);
+            const bIsActive =
+              dateKey(b.token.in_date) <= selectedDate &&
+              selectedDate < dateKey(b.token.out_date);
+            return Number(bIsActive) - Number(aIsActive);
+          })[0];
 
-  if (!rooms) return <Loader />;
+        const housekeepingInfo = (bookings || [])
+          .filter((booking) => booking.booking_status !== 'Cancelled')
+          .flatMap((booking) =>
+            (booking.housekeeping_tokens || []).flatMap((token) => {
+              if (!roomMatches(token.room, room.room_no)) return [];
 
-  // ✅ Determine status per room (from dashboard logic)
-  const getRoomStatus = (room) => {
-    const date = new Date(selectedDate);
+              if (
+                dateKey(token.out_date) === selectedDate &&
+                (token.checked_out === true || booking.checked_out === true)
+              ) {
+                return [{ booking, token, isAfterCheckout: true }];
+              }
 
-    if (!room.room_bookings || room.room_bookings.length === 0)
-      return 'Available';
+              if (dateKey(token.date) === selectedDate) {
+                return [{ booking, token, isAfterCheckout: false }];
+              }
 
-    const bookingsForDate = room.room_bookings.filter((booking) => {
-      const checkin = new Date(booking.checkin_date);
-      const checkout = new Date(booking.checkout_date);
-      const isSameDay = checkin.toDateString() === checkout.toDateString();
+              return [];
+            }),
+          )
+          .sort(
+            (a, b) => Number(b.isAfterCheckout) - Number(a.isAfterCheckout),
+          )[0];
+        const housekeepingStatus = housekeepingInfo?.isAfterCheckout
+          ? housekeepingInfo.token.after_checkout?.status || 'dirty'
+          : housekeepingInfo?.token.status;
+        const cleaningDetails = housekeepingInfo?.isAfterCheckout
+          ? housekeepingInfo.token.after_checkout
+          : housekeepingInfo?.token;
 
-      const bookingAppliesToDate =
-        (date >= checkin && date < checkout) ||
-        (isSameDay && date.toDateString() === checkin.toDateString());
+        const needsCheckoutCleaning =
+          housekeepingInfo?.isAfterCheckout &&
+          housekeepingStatus?.toLowerCase() === 'dirty';
+        const isCheckedOut =
+          housekeepingInfo?.isAfterCheckout &&
+          housekeepingStatus?.toLowerCase() === 'clean';
 
-      return bookingAppliesToDate;
-    });
+        return {
+          room,
+          booking: bookingInfo?.booking,
+          bookingStatus: housekeepingInfo?.isAfterCheckout
+            ? needsCheckoutCleaning
+              ? 'Needs Cleaning'
+              : isCheckedOut
+                ? 'Checked Out'
+                : 'Needs Cleaning'
+            : bookingInfo
+              ? getRoomBookingStatus(
+                  bookingInfo.booking,
+                  bookingInfo.token,
+                  selectedDate,
+                )
+              : 'Available',
+          bookingStatusPriority: needsCheckoutCleaning ? 0 : 1,
+          housekeepingBooking: housekeepingInfo?.booking,
+          housekeepingToken: housekeepingInfo?.token,
+          isAfterCheckout: housekeepingInfo?.isAfterCheckout || false,
+          housekeepingStatus,
+          cleaningDetails,
+        };
+      }).sort(
+        (a, b) => a.bookingStatusPriority - b.bookingStatusPriority,
+      ),
+    [rooms, bookings, selectedDate],
+  );
 
-    if (
-      bookingsForDate.some(
-        (booking) =>
-          booking.checked_in === true && booking.checked_out !== true,
-      )
-    ) {
-      return 'Checked In';
+  const housekeepingCounts = useMemo(
+    () =>
+      roomCards.reduce(
+        (counts, roomCard) => {
+          const status = roomCard.housekeepingStatus?.toLowerCase();
+          if (status === 'clean') counts.clean += 1;
+          if (status !== 'clean' && roomCard.housekeepingToken) {
+            counts.dirty += 1;
+          }
+          return counts;
+        },
+        { all: roomCards.length, dirty: 0, clean: 0 },
+      ),
+    [roomCards],
+  );
+
+  const filteredRoomCards = useMemo(
+    () =>
+      roomCards.filter((roomCard) => {
+        if (housekeepingFilter === 'all') return true;
+        const status = roomCard.housekeepingStatus?.toLowerCase();
+        if (housekeepingFilter === 'clean') return status === 'clean';
+        return Boolean(roomCard.housekeepingToken) && status !== 'clean';
+      }),
+    [roomCards, housekeepingFilter],
+  );
+
+  const roomsByFloor = useMemo(
+    () =>
+      filteredRoomCards.reduce((groups, roomCard) => {
+        const floor = roomCard.room.floor || 'Unknown';
+        if (!groups[floor]) groups[floor] = [];
+        groups[floor].push(roomCard);
+        return groups;
+      }, {}),
+    [filteredRoomCards],
+  );
+
+  const handleMarkClean = async (roomCard) => {
+    const {
+      housekeepingBooking,
+      housekeepingToken,
+      isAfterCheckout,
+      room,
+    } = roomCard;
+    if (!housekeepingBooking?.documentId || !housekeepingToken) return;
+
+    const taskKey = `${housekeepingBooking.documentId}-${room.room_no}-${selectedDate}`;
+    setCleaningTaskKey(taskKey);
+    try {
+      const housekeepingTokens = (
+        housekeepingBooking.housekeeping_tokens || []
+      ).map((token) => {
+        const matchesTask =
+          roomMatches(token.room, room.room_no) &&
+          (isAfterCheckout
+            ? dateKey(token.out_date) === selectedDate &&
+              token.checked_out === true
+            : dateKey(token.date) === selectedDate);
+        if (!matchesTask) return token;
+
+        const now = new Date().toISOString();
+        if (isAfterCheckout) {
+          return {
+            ...token,
+            after_checkout: {
+              ...token.after_checkout,
+              status: 'clean',
+              cleaned_by: auth?.user?.username || null,
+              time_stamp: now,
+            },
+          };
+        }
+
+        return {
+          ...token,
+          status: 'clean',
+          cleaned_by: auth?.user?.username || null,
+          time_stamp: now,
+        };
+      });
+      const hasMatchingToken = housekeepingTokens.some(
+        (token) =>
+          roomMatches(token.room, room.room_no) &&
+          (isAfterCheckout
+            ? dateKey(token.out_date) === selectedDate &&
+              token.checked_out === true
+            : dateKey(token.date) === selectedDate),
+      );
+      if (!hasMatchingToken) {
+        throw new Error('The housekeeping task is no longer available.');
+      }
+
+      await UpdateData({
+        auth,
+        endPoint: 'room-bookings',
+        id: housekeepingBooking.documentId,
+        payload: {
+          data: {
+            housekeeping_tokens: housekeepingTokens,
+            user_updated: auth?.user?.username,
+          },
+        },
+      });
+
+      SuccessToast(`Room ${room.room_no} marked clean.`);
+    } catch (error) {
+      console.error('Unable to update housekeeping status:', error);
+      ErrorToast(`Unable to mark room ${room.room_no} as clean.`);
+    } finally {
+      setCleaningTaskKey('');
     }
-
-    if (
-      bookingsForDate.some((booking) => booking.booking_status === 'Blocked')
-    ) {
-      return 'Blocked';
-    }
-
-    if (
-      bookingsForDate.some(
-        (booking) =>
-          booking.checked_in !== true &&
-          booking.checked_out !== true &&
-          booking.booking_status === 'Confirmed',
-      )
-    ) {
-      return 'Confirmed';
-    }
-
-    return 'Available';
   };
 
-  // ✅ Group rooms by floor
-  const roomsByFloor = rooms.reduce((acc, room) => {
-    const floor = room.floor || 'Unknown';
-    if (!acc[floor]) acc[floor] = [];
-    acc[floor].push(room);
-    return acc;
-  }, {});
+  if (!rooms || !bookings) return <Loader />;
 
-  const totalRooms = rooms.length;
+  const bookingStatuses = [
+    'Needs Cleaning',
+    'Available',
+    'Confirmed',
+    'Checked In',
+    'Check Out',
+    'Checked Out',
+    'Blocked',
+  ];
 
   return (
-    <>
-      {/* Breadcrumb */}
-      <Box sx={{ px: 3, py: 2, backgroundColor: '#f5f5f5' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f4f7fb', pb: 5 }}>
+      <Box sx={{ px: 3, py: 2, bgcolor: 'white' }}>
         <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
           <Link underline="hover" color="inherit" href="/dashboard">
             Dashboard
@@ -103,203 +316,302 @@ const Page = () => {
         </Breadcrumbs>
       </Box>
 
-      {/* Header Stats */}
       <Box
         sx={{
-          px: 3,
-          py: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'linear-gradient(135deg, #42a5f5, #478ed1)',
+          mx: { xs: 2, md: 3 },
+          mt: 3,
+          p: { xs: 2.5, md: 4 },
+          borderRadius: 4,
           color: 'white',
-          borderRadius: 3,
+          background: 'linear-gradient(120deg, #1565c0, #42a5f5)',
           boxShadow: 3,
-          mt: 2,
-          mx: 3,
-          flexWrap: 'wrap',
-          gap: 2,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <ApartmentIcon fontSize="large" />
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          spacing={2}
+        >
           <Box>
-            <Typography variant="h5" fontWeight="bold">
-              Housekeeping Overview
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <ApartmentIcon fontSize="large" />
+              <Typography variant="h4" fontWeight={700}>
+                Housekeeping
+              </Typography>
+            </Stack>
+            <Typography sx={{ mt: 1, opacity: 0.9 }}>
+              Room occupancy and cleaning tasks for the selected date
             </Typography>
-            <Typography>Total Rooms: {totalRooms}</Typography>
           </Box>
-        </Box>
-
-        {/* Date Picker */}
-        <TextField
-          type="date"
-          size="small"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          InputProps={{
-            startAdornment: <EventIcon sx={{ mr: 1, color: 'gray' }} />,
-          }}
-          sx={{
-            backgroundColor: 'white',
-            borderRadius: 2,
-            boxShadow: 2,
-            minWidth: 200,
-          }}
-        />
+          <TextField
+            type="date"
+            label="Date"
+            size="small"
+            value={selectedDate}
+            onChange={(event) => setSelectedDate(event.target.value)}
+            InputLabelProps={{ shrink: true }}
+            InputProps={{
+              startAdornment: (
+                <EventIcon sx={{ mr: 1, color: 'action.active' }} />
+              ),
+            }}
+            sx={{
+              minWidth: 210,
+              bgcolor: 'white',
+              borderRadius: 1,
+            }}
+          />
+        </Stack>
+        <Stack
+          direction="row"
+          flexWrap="wrap"
+          gap={1}
+          sx={{ mt: 3 }}
+          aria-label="Booking status summary"
+        >
+          {bookingStatuses.map((status) => {
+            const count = roomCards.filter(
+              (card) => card.bookingStatus === status,
+            ).length;
+            return (
+              <Chip
+                key={status}
+                label={`${status}: ${count}`}
+                color={statusColor[status]}
+                variant="filled"
+              />
+            );
+          })}
+        </Stack>
       </Box>
 
-      {/* Floors */}
-      <Box sx={{ p: 3 }}>
-        {Object.keys(roomsByFloor).map((floor) => {
-          const floorRooms = roomsByFloor[floor];
+      <Box sx={{ px: { xs: 2, md: 3 }, mt: 3 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          spacing={2}
+          sx={{ mb: 3 }}
+        >
+          <Box>
+            <Typography variant="h5" fontWeight={700}>
+              Rooms for {selectedDate}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {filteredRoomCards.length} of {roomCards.length} rooms
+            </Typography>
+          </Box>
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            color="primary"
+            value={housekeepingFilter}
+            onChange={(_, value) => {
+              if (value) setHousekeepingFilter(value);
+            }}
+            aria-label="Filter by housekeeping status"
+          >
+            <ToggleButton value="all">
+              All ({housekeepingCounts.all})
+            </ToggleButton>
+            <ToggleButton value="dirty">
+              Dirty ({housekeepingCounts.dirty})
+            </ToggleButton>
+            <ToggleButton value="clean">
+              Clean ({housekeepingCounts.clean})
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
 
-          const statusCounts = floorRooms.reduce(
-            (acc, room) => {
-              const status = getRoomStatus(room);
-              acc[status] = (acc[status] || 0) + 1;
-              return acc;
-            },
-            {
-              Available: 0,
-              'Checked In': 0,
-              Confirmed: 0,
-              Blocked: 0,
-            },
-          );
-
-          return (
-            <Box key={floor} sx={{ mb: 5 }}>
-              {/* Floor Header */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  mb: 2,
-                  flexWrap: 'wrap',
-                }}
+        {filteredRoomCards.length === 0 ? (
+          <Card variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+            <Typography color="text.secondary">
+              No rooms match this housekeeping filter for the selected date.
+            </Typography>
+          </Card>
+        ) : (
+          Object.entries(roomsByFloor).map(([floor, floorRooms]) => (
+            <Box key={floor} sx={{ mb: 4 }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ mb: 2 }}
               >
                 <ApartmentIcon color="primary" />
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                <Typography variant="h6" fontWeight={700}>
                   Floor {floor}
                 </Typography>
-                <Chip
-                  label={`${floorRooms.length} Rooms`}
-                  color="primary"
-                  size="small"
-                  variant="outlined"
-                />
-                <Chip
-                  label={`✅ ${statusCounts.Available} Available`}
-                  color="success"
-                  size="small"
-                  variant="outlined"
-                />
-                <Chip
-                  label={`🟢 ${statusCounts['Checked In']} Checked In`}
-                  color="info"
-                  size="small"
-                  variant="outlined"
-                />
-                <Chip
-                  label={`🟡 ${statusCounts.Confirmed} Confirmed`}
-                  color="warning"
-                  size="small"
-                  variant="outlined"
-                />
-                <Chip
-                  label={`🔴 ${statusCounts.Blocked} Blocked`}
-                  color="error"
-                  size="small"
-                  variant="outlined"
-                />
-              </Box>
-
-              {/* Rooms */}
-              <Grid container spacing={3}>
-                {floorRooms.map((room) => {
-                  const status = getRoomStatus(room);
-                  const statusColor =
-                    status === 'Available'
-                      ? 'success'
-                      : status === 'Checked In'
-                        ? 'info'
-                        : status === 'Confirmed'
-                          ? 'warning'
-                          : status === 'Blocked'
-                            ? 'error'
-                            : 'default';
+                <Chip size="small" label={`${floorRooms.length} rooms`} />
+              </Stack>
+              <Grid container spacing={2}>
+                {floorRooms.map((roomCard) => {
+                  const {
+                    room,
+                    booking,
+                    bookingStatus,
+                    housekeepingBooking,
+                    housekeepingToken,
+                    isAfterCheckout,
+                    housekeepingStatus,
+                    cleaningDetails,
+                  } = roomCard;
+                  const isClean = housekeepingStatus?.toLowerCase() === 'clean';
+                  const taskKey = `${housekeepingBooking?.documentId}-${room.room_no}-${selectedDate}`;
+                  const hasTask = Boolean(housekeepingToken);
 
                   return (
-                    <Grid size={{ xs: 12, sm: 6, md: 3 }} key={room.id}>
+                    <Grid
+                      size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                      key={room.documentId || room.room_no}
+                    >
                       <Card
-                        elevation={4}
+                        variant="outlined"
                         sx={{
+                          height: '100%',
                           borderRadius: 3,
-                          background:
-                            'linear-gradient(135deg, #ffffff, #f1f8ff)',
-                          transition: '0.3s',
+                          borderColor: isClean
+                            ? 'success.light'
+                            : hasTask
+                              ? 'warning.light'
+                              : 'divider',
+                          boxShadow: '0 3px 14px rgba(20, 45, 80, 0.06)',
+                          transition:
+                            'transform 160ms ease, box-shadow 160ms ease',
                           '&:hover': {
-                            transform: 'translateY(-5px)',
-                            boxShadow: 6,
+                            transform: 'translateY(-2px)',
+                            boxShadow: 4,
                           },
                         }}
                       >
                         <CardContent>
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                            }}
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="flex-start"
+                            spacing={1}
                           >
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                              }}
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
                             >
-                              <MeetingRoomIcon color="secondary" />
-                              <Typography variant="subtitle1" fontWeight="bold">
-                                Room {room.room_no}
+                              <MeetingRoomIcon color="primary" />
+                              <Box>
+                                <Typography variant="h6" fontWeight={700}>
+                                  Room {room.room_no}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                >
+                                  {room.category?.name ||
+                                    room.room_type ||
+                                    'Room'}
+                                </Typography>
+                              </Box>
+                            </Stack>
+                            <Chip
+                              size="small"
+                              label={bookingStatus}
+                              color={statusColor[bookingStatus] || 'default'}
+                            />
+                          </Stack>
+
+                          <Stack spacing={1.25} sx={{ mt: 2, minHeight: 76 }}>
+                            <Stack
+                              direction="row"
+                              justifyContent="space-between"
+                              alignItems="center"
+                            >
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                              >
+                                Housekeeping
                               </Typography>
-                            </Box>
-                            <Chip
-                              size="small"
-                              label={status}
-                              color={statusColor}
-                              variant="outlined"
-                            />
-                          </Box>
+                              <Chip
+                                size="small"
+                                label={
+                                  !hasTask
+                                    ? 'No task'
+                                    : isClean
+                                      ? 'Clean'
+                                      : 'Dirty'
+                                }
+                                color={
+                                  !hasTask
+                                    ? 'default'
+                                    : isClean
+                                      ? 'success'
+                                      : 'warning'
+                                }
+                                variant={hasTask ? 'filled' : 'outlined'}
+                              />
+                            </Stack>
+                            {isAfterCheckout && (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                After checkout
+                              </Typography>
+                            )}
+                            {/* {booking && (
+                              <Box>
+                                <Typography variant="body2" fontWeight={600}>
+                                  {booking.customer?.name || booking.booking_id}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {booking.booking_id || ''}
+                                </Typography>
+                              </Box>
+                            )} */}
+                            {isClean && (
+                              <Box>
+                                {cleaningDetails?.cleaned_by && (
+                                  <Typography
+                                    variant="caption"
+                                    display="block"
+                                    color="text.secondary"
+                                  >
+                                    Cleaned by: {cleaningDetails.cleaned_by}
+                                  </Typography>
+                                )}
+                                {cleaningDetails?.time_stamp && (
+                                  <Typography
+                                    variant="caption"
+                                    display="block"
+                                    color="text.secondary"
+                                  >
+                                    Cleaned at:{' '}
+                                    {formatCleanedAt(
+                                      cleaningDetails.time_stamp,
+                                    )}
+                                  </Typography>
+                                )}
+                              </Box>
+                            )}
+                          </Stack>
 
-                          <Divider sx={{ my: 1 }} />
-
-                          <Typography variant="body2" color="text.secondary">
-                            Category:{' '}
-                            <Chip
-                              size="small"
-                              label={room.category.name}
-                              color="info"
-                              variant="outlined"
-                            />
-                          </Typography>
-
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            sx={{
-                              mt: 1,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1,
-                            }}
+                          <Button
+                            fullWidth
+                            variant={isClean ? 'outlined' : 'contained'}
+                            color="success"
+                            startIcon={<CleaningServicesIcon />}
+                            disabled={
+                              !hasTask || isClean || cleaningTaskKey === taskKey
+                            }
+                            onClick={() => handleMarkClean(roomCard)}
+                            sx={{ mt: 2, textTransform: 'none' }}
                           >
-                            <GroupIcon fontSize="small" color="action" />
-                            Adults: {room.category.base_adults} | Child:{' '}
-                            {room.category.base_child}
-                          </Typography>
+                            {cleaningTaskKey === taskKey
+                              ? 'Saving...'
+                              : isClean
+                                ? 'Clean'
+                                : 'Mark Clean'}
+                          </Button>
                         </CardContent>
                       </Card>
                     </Grid>
@@ -307,11 +619,11 @@ const Page = () => {
                 })}
               </Grid>
             </Box>
-          );
-        })}
+          ))
+        )}
       </Box>
-    </>
+    </Box>
   );
 };
 
-export default Page;
+export default HousekeepingDashboard;
