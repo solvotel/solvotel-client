@@ -95,6 +95,15 @@ const KOTPrint = React.forwardRef((props, ref) => {
           </TableBody>
         </Table>
       </TableContainer>
+      {kotData?.kot_notes && (
+        <>
+          <p style={{ margin: '3px 0' }}>---------------------------------</p>
+
+          <p style={{ whiteSpace: 'pre-wrap' }}>
+            <strong>Note:</strong> {kotData.kot_notes}
+          </p>
+        </>
+      )}
     </div>
   );
 });

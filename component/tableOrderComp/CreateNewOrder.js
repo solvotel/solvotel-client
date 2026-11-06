@@ -303,6 +303,20 @@ const CreateNewOrder = ({
             </TableContainer>
           )}
 
+          <TextField
+            margin="dense"
+            label="KOT Notes"
+            size="small"
+            fullWidth
+            multiline
+            minRows={2}
+            value={formData.kot_notes || ''}
+            onChange={(e) =>
+              setFormData({ ...formData, kot_notes: e.target.value })
+            }
+            sx={{ mb: 2 }}
+          />
+
           {/* Summary Section */}
           <Typography variant="h6" gutterBottom>
             Summary

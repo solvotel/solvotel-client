@@ -42,7 +42,7 @@ const generateNextOrderNo = (orders) => {
   return `ODR-${maxNumber + 1}`;
 };
 
-const Page = () => {
+const TableOrdersPage = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
@@ -107,6 +107,7 @@ const Page = () => {
   const [formData, setFormData] = useState({
     food_items: [],
     hotel_id: auth?.user?.hotel_id || '',
+    kot_notes: '',
   });
   const [editing, setEditing] = useState(false);
   const [selectedItem, setSelectedItem] = useState();
@@ -132,7 +133,7 @@ const Page = () => {
   // handle edit
   const handleEdit = (order) => {
     setEditing(true);
-    setFormData({ ...order, table: order.table?.documentId });
+    setFormData({ ...order, table: order.table?.documentId, kot_notes: '' });
     setFormOpen(true);
   };
 
@@ -143,6 +144,7 @@ const Page = () => {
       food_items: [],
       hotel_id: auth?.user?.hotel_id || '',
       table: tableId,
+      kot_notes: '',
     });
     setFormOpen(true);
   };
@@ -154,8 +156,9 @@ const Page = () => {
     const cleanedKots = formData.kots?.map((kot) => {
       return kot.documentId;
     });
+    const { kot_notes: kotNotes, ...orderFormData } = formData;
     const finalData = {
-      ...formData,
+      ...orderFormData,
       food_items: cleanedItems,
       kots: cleanedKots,
     };
@@ -204,6 +207,7 @@ const Page = () => {
               items: changes, // each item has its own type (+ or cancel)
               table_order: prevOrder.documentId,
               table_no: tableNo,
+              kot_notes: kotNotes || '',
             },
           },
         });
@@ -214,6 +218,7 @@ const Page = () => {
           items: changes,
           type: 'update',
           table_no: tableNo,
+          kot_notes: kotNotes || '',
           table_order: prevOrder,
           updatedAt: res.data?.data?.updatedAt || new Date().toISOString(),
         });
@@ -260,6 +265,7 @@ const Page = () => {
             })),
             table_order: newOrderId,
             table_no: tableNo,
+            kot_notes: kotNotes || '',
           },
         },
       });
@@ -276,6 +282,7 @@ const Page = () => {
           tables?.find((t) => t.documentId === formData.table)?.table_no ||
           null,
         table_order: { documentId: newOrderId, table: formData.table },
+        kot_notes: kotNotes || '',
         updatedAt: res.data?.data?.updatedAt || new Date().toISOString(),
       });
       setKotOpen(true);
@@ -416,4 +423,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default TableOrdersPage;

@@ -86,6 +86,7 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
               <Typography variant="body2" sx={{ mt: 0.5 }}>
                 Date & Time: {updatedAt}
               </Typography>
+
               <Typography
                 variant="caption"
                 sx={{
@@ -142,6 +143,14 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
                 </TableBody>
               </Table>
             </TableContainer>
+            {selectedKot.kot_notes && (
+              <Typography
+                variant="body2"
+                sx={{ mt: 1, whiteSpace: 'pre-wrap', textAlign: 'left' }}
+              >
+                <strong>Note:</strong> {selectedKot.kot_notes}
+              </Typography>
+            )}
 
             {/* Footer */}
             <Box
