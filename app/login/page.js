@@ -56,11 +56,11 @@ export default function FacebookLogin() {
     const { user } = parseCookies();
     const parsedUser = JSON.parse(user || 'null');
     console.log('parsedUser', parsedUser);
-    if (parsedUser && parsedUser?.role.name === 'Admin') {
+    if (parsedUser && parsedUser?.role?.name === 'Admin') {
       router.push('/admin/dashboard');
-    } else if (parsedUser && parsedUser?.role.name === 'pos-user') {
+    } else if (parsedUser && parsedUser?.role?.name === 'pos-user') {
       router.push('/pos-outlet/dashboard');
-    } else if (parsedUser && parsedUser?.role.name === 'hotel-admin') {
+    } else if (parsedUser && parsedUser?.role?.name === 'hotel-admin') {
       router.push('/dashboard');
     } else {
       return;

@@ -16,6 +16,7 @@ import { GetCustomDate } from '@/utils/DateFetcher';
 import { CalculateDays } from '@/utils/CalculateDays';
 import { amountToWords } from '@/utils/AmountToWords';
 import { ConvertTo12HourFormat } from '@/utils/Timefetcher';
+import { allura, signatureFont } from '@/utils/fonts';
 
 // Replace theme colors with fixed hex values
 
@@ -328,8 +329,20 @@ const BookingSlip = React.forwardRef((props, ref) => {
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
             Cashier / Front Office Signature
           </Typography>
-          <Typography variant="caption_2" sx={{ fontSize: '10px' }}>
-            Booked By: {booking.user_created}
+          <Typography
+            className={signatureFont.className}
+            sx={{
+              fontSize: '36px',
+              lineHeight: 1.2,
+              color: '#111',
+              fontWeight: 400,
+              mb: 0.5,
+            }}
+          >
+            {booking.user_created
+              ?.replace(/-/g, ' ')
+              .toLowerCase()
+              .replace(/\b\w/g, (char) => char.toUpperCase())}
           </Typography>
         </Box>
       </Box>
