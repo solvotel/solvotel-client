@@ -330,8 +330,8 @@ const BookingSlip = React.forwardRef((props, ref) => {
             Cashier / Front Office Signature
           </Typography>
           <Typography
-            className={signatureFont.className}
             sx={{
+              fontFamily: `${signatureFont.style.fontFamily} !important`,
               fontSize: '36px',
               lineHeight: 1.2,
               color: '#111',
@@ -341,6 +341,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
           >
             {booking.user_created
               ?.replace(/-/g, ' ')
+              .trim()
               .toLowerCase()
               .replace(/\b\w/g, (char) => char.toUpperCase())}
           </Typography>
