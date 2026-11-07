@@ -200,7 +200,7 @@ export default function BookingForm() {
             }))
           : null,
         hotel_id: auth?.user?.hotel_id || '',
-        user_created: auth?.user?.username,
+        user_created: auth?.user?.name || '',
       };
 
       const res = await CreateNewData({

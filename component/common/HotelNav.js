@@ -51,6 +51,7 @@ import {
   HandPlatter,
   CalendarIcon,
   MonitorCheck,
+  CalendarRange,
 } from 'lucide-react';
 import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutlined';
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
@@ -224,7 +225,7 @@ const HotelNav = ({ auth, logout }) => {
                     items={[
                       {
                         href: '/front-office/room-booking',
-                        icon: <CalendarMonthIcon size={16} />,
+                        icon: <CalendarRange size={16} />,
                         label: 'Bookings',
                       },
                       {
@@ -689,7 +690,7 @@ const HotelNav = ({ auth, logout }) => {
                       onClick={toggleDrawer(false)}
                     >
                       <ListItemIcon>
-                        <CalendarMonthIcon size={16} />
+                        <CalendarRange size={16} />
                       </ListItemIcon>
                       <ListItemText primary="Bookings" />
                     </ListItemButton>

@@ -71,6 +71,7 @@ const PosUsers = () => {
 
   function initialForm() {
     return {
+      name: '',
       username: '',
       email: '',
       confirmed: true,
@@ -86,6 +87,7 @@ const PosUsers = () => {
   const handleEdit = (row) => {
     setEditing(true);
     setFormData({
+      name: row.name || '',
       permissions: row.permissions,
       access: row.access,
       blocked: row.blocked,
@@ -133,6 +135,7 @@ const PosUsers = () => {
   const UpdateUser = async () => {
     try {
       let data = {
+        name: formData.name,
         permissions: formData.permissions,
         access: formData.access,
         blocked: formData.blocked,
@@ -242,6 +245,7 @@ const PosUsers = () => {
               <TableHead>
                 <TableRow sx={{ backgroundColor: 'grey.100' }}>
                   {[
+                    'Name',
                     'Email',
                     'Role',
                     'Outlet',
@@ -259,15 +263,19 @@ const PosUsers = () => {
                 {filteresData
                   ?.filter((row) => {
                     if (search) {
-                      return row.username
-                        ?.toLowerCase()
-                        .includes(search.toLowerCase());
+                      const searchTerm = search.toLowerCase();
+                      return (
+                        row.name?.toLowerCase().includes(searchTerm) ||
+                        row.username?.toLowerCase().includes(searchTerm) ||
+                        row.email?.toLowerCase().includes(searchTerm)
+                      );
                     } else {
                       return row;
                     }
                   })
                   ?.map((row) => (
                     <TableRow key={row.documentId}>
+                      <TableCell>{row.name || '-'}</TableCell>
                       <TableCell>{row.email}</TableCell>
                       <TableCell>
                         {row.role?.name === 'hotel-admin'
@@ -434,6 +442,16 @@ const PosUsers = () => {
             <DialogTitle>{editing ? 'Edit User' : 'Create User'}</DialogTitle>
             <DialogContent>
               <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid size={{ xs: 12 }}>
+                  <TextField
+                    fullWidth
+                    label="Name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                  />
+                </Grid>
                 <Grid size={{ xs: 12 }}>
                   <TextField
                     fullWidth

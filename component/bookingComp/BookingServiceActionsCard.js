@@ -486,7 +486,10 @@ export default function BookingServiceActionsCard({
                 setSelectedCheckoutTokenKeys([]);
                 setCheckoutDialogOpen(true);
               }}
-              disabled={booking.booking_status === 'Blocked'}
+              disabled={
+                booking.booking_status === 'Blocked' ||
+                booking.booking_status === 'Cancelled'
+              }
             >
               Mark Check-Out
             </Button>
@@ -501,10 +504,7 @@ export default function BookingServiceActionsCard({
               startIcon={<PrintIcon />}
               sx={{ textTransform: 'none' }}
               onClick={handlePrintBookingSlip}
-              disabled={
-                booking.booking_status === 'Cancelled' ||
-                booking.booking_status === 'Blocked'
-              }
+              disabled={booking.booking_status === 'Blocked'}
             >
               Booking Receipt
             </Button>

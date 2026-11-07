@@ -16,7 +16,7 @@ import { GetCustomDate } from '@/utils/DateFetcher';
 import { CalculateDays } from '@/utils/CalculateDays';
 import { amountToWords } from '@/utils/AmountToWords';
 import { ConvertTo12HourFormat } from '@/utils/Timefetcher';
-import { allura, signatureFont } from '@/utils/fonts';
+import { bethEllen } from '@/utils/fonts';
 
 // Replace theme colors with fixed hex values
 
@@ -284,7 +284,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
                 'No. Of Rooms',
                 'Tariff',
                 'GST',
-                'Amount',
+                'Amount(Inc.GST)',
               ].map((header, index) => (
                 <TableCell sx={{ fontWeight: 'bold' }} key={index}>
                   {header}
@@ -331,11 +331,11 @@ const BookingSlip = React.forwardRef((props, ref) => {
           </Typography>
           <Typography
             sx={{
-              fontFamily: `${signatureFont.style.fontFamily} !important`,
-              fontSize: '36px',
+              fontFamily: `${bethEllen.style.fontFamily} !important`,
+              fontSize: '20px',
               lineHeight: 1.2,
               color: '#111',
-              fontWeight: 400,
+              fontWeight: 300,
               mb: 0.5,
             }}
           >

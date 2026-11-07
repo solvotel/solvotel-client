@@ -65,7 +65,7 @@ export default function RoomBookings({ params }) {
   const bookingSlipComponentRef = useRef(null);
   const handlePrintBookingSlip = useReactToPrint({
     contentRef: bookingSlipComponentRef,
-    documentTitle: 'booking-slip',
+    documentTitle: 'booking-receipt',
   });
 
   return (
