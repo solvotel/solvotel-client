@@ -88,6 +88,7 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
                 'Date/Time',
                 'Customer Name',
                 'GSTIN',
+                'Address',
                 'Taxable Amount ₹',
                 'SGST ₹',
                 'CGST ₹',
@@ -106,6 +107,7 @@ const RestaurantInvoiceReportPrint = React.forwardRef((props, ref) => {
                 </BodyCell>
                 <BodyCell>{row.customer_name || 'NA'}</BodyCell>
                 <BodyCell>{row.customer_gst || 'NA'}</BodyCell>
+                <BodyCell>{row.customer_address || 'NA'}</BodyCell>
                 <BodyCell>{row.total_amount}</BodyCell>
                 <BodyCell>{row.tax / 2}</BodyCell>
                 <BodyCell>{row.tax / 2}</BodyCell>

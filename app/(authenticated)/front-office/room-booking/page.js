@@ -44,7 +44,7 @@ const BookingListPage = () => {
   const paramsDate = searchParams.get('date');
   const todaysDate = GetTodaysDate().dateString;
   const [startDate, setStartDate] = useState(paramsDate || '');
-  const [endDate, setEndDate] = useState(paramsDate || todaysDate);
+  const [endDate, setEndDate] = useState(paramsDate || '');
   const [bookingStatus, setBookingStatus] = useState('');
   const [searchBookingId, setSearchBookingId] = useState('');
   const [page, setPage] = useState(0);

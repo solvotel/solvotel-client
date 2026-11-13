@@ -187,6 +187,9 @@ const BookingSlip = React.forwardRef((props, ref) => {
             <b>Name:</b> {booking?.customer?.name || 'N/A'}
           </Typography>
           <Typography>
+            <b>Phone:</b> {booking?.customer?.mobile || 'N/A'}
+          </Typography>
+          <Typography>
             <b>Company:</b> {booking?.customer?.company_name || 'N/A'}
           </Typography>
           <Typography>
@@ -194,9 +197,6 @@ const BookingSlip = React.forwardRef((props, ref) => {
           </Typography>
           <Typography>
             <b>Address:</b> {booking?.customer?.address || 'N/A'}
-          </Typography>
-          <Typography>
-            <b>Phone:</b> {booking?.customer?.mobile || 'N/A'}
           </Typography>
         </Box>
         <Box sx={{ flex: 1, border: '1px solid #747474ff', p: 2 }}>
@@ -327,7 +327,7 @@ const BookingSlip = React.forwardRef((props, ref) => {
 
         <Box textAlign="right">
           <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-            Cashier / Front Office Signature
+            Authorised Signature
           </Typography>
           <Typography
             sx={{

@@ -392,7 +392,7 @@ export default function BookingForm() {
                       '&:hover': { bgcolor: '#388e3c' },
                     }}
                   >
-                    {loading ? 'Creatinging Booking...' : '✅ Confirm Booking'}
+                    {loading ? 'Creating Booking...' : '✅ Confirm Booking'}
                   </Button>
                 )}
               </Box>

@@ -38,6 +38,14 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
       maximumFractionDigits: 2,
     })}`;
 
+  const getRoomNumbers = (invoice) =>
+    (Array.isArray(invoice?.room_tokens)
+      ? invoice.room_tokens
+          .map((roomToken) => roomToken?.room)
+          .filter(Boolean)
+          .join(', ')
+      : '') || '-';
+
   return (
     <Box
       ref={ref}
@@ -85,12 +93,13 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
             <TableRow>
               {[
                 'Invoice No',
-                'Date/Time',
+                'Date',
                 'Checkin',
                 'Checkout',
+                'Room No',
                 'Customer Name',
-                'Address',
                 'GSTIN',
+                'Address',
                 'Taxable Amount',
                 'SGST',
                 'CGST',
@@ -105,14 +114,13 @@ const RoomInvoiceReportPrint = React.forwardRef((props, ref) => {
               return (
                 <TableRow key={row.documentId}>
                   <BodyCell>{row.invoice_no}</BodyCell>
-                  <BodyCell>
-                    {GetCustomDate(row.date)}&nbsp;{row.time}
-                  </BodyCell>
+                  <BodyCell>{GetCustomDate(row.date)}</BodyCell>
                   <BodyCell>{GetCustomDate(row.checkin_date) || '-'}</BodyCell>
                   <BodyCell>{GetCustomDate(row.checkout_date) || '-'}</BodyCell>
+                  <BodyCell>{getRoomNumbers(row)}</BodyCell>
                   <BodyCell>{row.customer_name || 'NA'}</BodyCell>
-                  <BodyCell>{row.customer_address || 'NA'}</BodyCell>
                   <BodyCell>{row.customer_gst || 'NA'}</BodyCell>
+                  <BodyCell>{row.customer_address || 'NA'}</BodyCell>
                   <BodyCell>{row.total_amount.toFixed(2)}</BodyCell>
                   <BodyCell>{row.tax / 2}</BodyCell>
                   <BodyCell>{row.tax / 2}</BodyCell>

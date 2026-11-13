@@ -88,6 +88,7 @@ const PosOutletInvoiceReportPrint = React.forwardRef((props, ref) => {
                 'Date/Time',
                 'Customer Name',
                 'GSTIN',
+                'Address',
                 'Taxable Amount ₹',
                 'SGST ₹',
                 'CGST ₹',
@@ -106,6 +107,7 @@ const PosOutletInvoiceReportPrint = React.forwardRef((props, ref) => {
                 </BodyCell>
                 <BodyCell>{row.customer_name}</BodyCell>
                 <BodyCell>{row.customer_gst || 'N/A'}</BodyCell>
+                <BodyCell>{row.customer_address || 'N/A'}</BodyCell>
                 <BodyCell>{row.taxable}</BodyCell>
                 <BodyCell>{row.sgst}</BodyCell>
                 <BodyCell>{row.cgst}</BodyCell>

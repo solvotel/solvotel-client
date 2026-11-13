@@ -77,6 +77,14 @@ const RoomInvoiceReportPage = () => {
       maximumFractionDigits: 2,
     })}`;
 
+  const getRoomNumbers = (invoice) =>
+    (Array.isArray(invoice?.room_tokens)
+      ? invoice.room_tokens
+          .map((roomToken) => roomToken?.room)
+          .filter(Boolean)
+          .join(', ')
+      : '') || '-';
+
   const handleSearch = () => {
     if (!startDate && !endDate && !searchText.trim()) return;
 
@@ -105,7 +113,6 @@ const RoomInvoiceReportPage = () => {
               pur.customer_name,
               pur.customer_gst,
               pur.date,
-              pur.time,
             ]
               .filter(Boolean)
               .some((field) => String(field).toLowerCase().includes(keyword));
@@ -116,12 +123,13 @@ const RoomInvoiceReportPage = () => {
     const dataToExport = filteredInvoices.map((row) => {
       return {
         'Invoice No': row.invoice_no,
-        'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
+        Date: GetCustomDate(row.date),
         Checkin: `${GetCustomDate(row.checkin_date)}`,
         Checkout: `${GetCustomDate(row.checkout_date)}`,
+        'Room No': getRoomNumbers(row),
         'Customer Name': row?.customer_name,
-        Address: row?.customer_address,
         GSTIN: row?.customer_gst,
+        Address: row?.customer_address,
         'Taxable Amount': row.total_amount.toFixed(2),
         SGST: row.tax / 2,
         CGST: row.tax / 2,
@@ -178,12 +186,13 @@ const RoomInvoiceReportPage = () => {
       head: [
         [
           'Invoice No',
-          'Date/Time',
+          'Date',
           'Check-in',
           'Check-out',
+          'Room No',
           'Customer Name',
-          'Address',
           'GSTIN',
+          'Address',
           'Taxable Amount',
           'SGST',
           'CGST',
@@ -193,16 +202,17 @@ const RoomInvoiceReportPage = () => {
       ],
       body: filteredData.map((invoice) => [
         invoice.invoice_no || '-',
-        `${GetCustomDate(invoice.date) || '-'} ${invoice.time || ''}`.trim(),
+        GetCustomDate(invoice.date) || '-',
         GetCustomDate(
           invoice.checkin_date || invoice.room_booking?.checkin_date,
         ) || '-',
         GetCustomDate(
           invoice.checkout_date || invoice.room_booking?.checkout_date,
         ) || '-',
+        getRoomNumbers(invoice),
         invoice.customer_name || 'NA',
-        invoice.customer_address || 'NA',
         invoice.customer_gst || 'NA',
+        invoice.customer_address || 'NA',
         formatPdfAmount(invoice.total_amount),
         formatPdfAmount(Number(invoice.tax || 0) / 2),
         formatPdfAmount(Number(invoice.tax || 0) / 2),
@@ -384,12 +394,13 @@ const RoomInvoiceReportPage = () => {
                   <TableRow sx={{ backgroundColor: 'grey.100' }}>
                     {[
                       'Invoice No',
-                      'Date/Time',
+                      'Date',
                       'Checkin',
                       'Checkout',
+                      'Room No',
                       'Customer Name',
-                      'Address',
                       'GSTIN',
+                      'Address',
                       'Taxable Amount',
                       'SGST',
                       'CGST',
@@ -409,7 +420,7 @@ const RoomInvoiceReportPage = () => {
                       <TableRow key={row.documentId}>
                         <TableCell>{row.invoice_no}</TableCell>
                         <TableCell>
-                          {GetCustomDate(row.date)}&nbsp;{row.time}
+                          {GetCustomDate(row.date)}
                         </TableCell>
                         <TableCell>
                           {GetCustomDate(row.checkin_date) || '-'}
@@ -417,9 +428,10 @@ const RoomInvoiceReportPage = () => {
                         <TableCell>
                           {GetCustomDate(row.checkout_date) || '-'}
                         </TableCell>
+                        <TableCell>{getRoomNumbers(row)}</TableCell>
                         <TableCell>{row?.customer_name || 'NA'}</TableCell>
-                        <TableCell>{row?.customer_address || 'NA'}</TableCell>
                         <TableCell>{row?.customer_gst || 'NA'}</TableCell>
+                        <TableCell>{row?.customer_address || 'NA'}</TableCell>
                         <TableCell>{row.total_amount.toFixed(2)}</TableCell>
                         <TableCell>{row.tax / 2}</TableCell>
                         <TableCell>{row.tax / 2}</TableCell>
@@ -441,7 +453,7 @@ const RoomInvoiceReportPage = () => {
                   })}
                   {filteredData?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={11} align="center">
+                      <TableCell colSpan={13} align="center">
                         No invoice found
                       </TableCell>
                     </TableRow>

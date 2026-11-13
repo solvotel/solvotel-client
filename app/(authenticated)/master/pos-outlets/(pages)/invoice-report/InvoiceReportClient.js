@@ -95,6 +95,7 @@ const InvoiceReportClient = () => {
       'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
       'Customer Name': row.customer_name || 'N/A',
       GSTIN: row.customer_gst || 'N/A',
+      Address: row.customer_address || 'N/A',
       'Total Amount ₹': row.taxable,
       'SGST ₹ ': row.sgst,
       'CGST ₹ ': row.cgst,
@@ -140,6 +141,7 @@ const InvoiceReportClient = () => {
           'Date/Time',
           'Customer Name',
           'GSTIN',
+          'Address',
           'Total Amount',
           'SGST',
           'CGST',
@@ -151,6 +153,7 @@ const InvoiceReportClient = () => {
         `${GetCustomDate(invoice.date)} ${invoice.time || ''}`.trim(),
         invoice.customer_name || 'N/A',
         invoice.customer_gst || 'N/A',
+        invoice.customer_address || 'N/A',
         formatAmount(Number(invoice.taxable) || 0),
         formatAmount(Number(invoice.sgst) || 0),
         formatAmount(Number(invoice.cgst) || 0),
@@ -311,6 +314,7 @@ const InvoiceReportClient = () => {
                       'Date/Time',
                       'Customer Name',
                       'GSTIN',
+                      'Address',
                       'Total Amount ₹',
                       'SGST ₹ ',
                       'CGST ₹ ',
@@ -331,6 +335,7 @@ const InvoiceReportClient = () => {
                       </TableCell>
                       <TableCell>{row.customer_name || 'N/A'}</TableCell>
                       <TableCell>{row.customer_gst || 'N/A'}</TableCell>
+                      <TableCell>{row.customer_address || 'N/A'}</TableCell>
                       <TableCell>{row.taxable}</TableCell>
                       <TableCell>{row.sgst}</TableCell>
                       <TableCell>{row.cgst}</TableCell>
@@ -339,7 +344,7 @@ const InvoiceReportClient = () => {
                   ))}
                   {filteredData?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} align="center">
+                      <TableCell colSpan={9} align="center">
                         No invoice found
                       </TableCell>
                     </TableRow>

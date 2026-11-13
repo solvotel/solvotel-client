@@ -101,6 +101,7 @@ const InvoiceReportPage = () => {
               pur.invoice_no?.toString(),
               pur.customer_name,
               pur.customer_gst,
+              pur.customer_address,
               `${pur.date} ${pur.time}`,
             ]
               .filter(Boolean)
@@ -117,6 +118,7 @@ const InvoiceReportPage = () => {
       'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
       'Customer Name': row.customer_name || 'NA',
       GSTIN: row.customer_gst || 'NA',
+      Address: row.customer_address || 'NA',
       'Taxable Amount ₹': row.total_amount,
       'SGST ₹ ': row.tax / 2,
       'CGST ₹ ': row.tax / 2,
@@ -174,6 +176,7 @@ const InvoiceReportPage = () => {
           'Date/Time',
           'Customer Name',
           'GSTIN',
+          'Address',
           'Taxable Amount',
           'SGST',
           'CGST',
@@ -185,6 +188,7 @@ const InvoiceReportPage = () => {
         `${GetCustomDate(invoice.date) || '-'} ${invoice.time || ''}`.trim(),
         invoice.customer_name || 'NA',
         invoice.customer_gst || 'NA',
+        invoice.customer_address || 'NA',
         formatPdfAmount(invoice.total_amount),
         formatPdfAmount(Number(invoice.tax || 0) / 2),
         formatPdfAmount(Number(invoice.tax || 0) / 2),
@@ -244,7 +248,7 @@ const InvoiceReportPage = () => {
               <Box display="flex" alignItems="center" mb={2}>
                 <TextField
                   size="small"
-                  label="Search (Invoice/Customer/GSTIN/Date)"
+                  label="Search (Invoice/Customer/Address/GSTIN/Date)"
                   variant="outlined"
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
@@ -369,6 +373,7 @@ const InvoiceReportPage = () => {
                       'Date/Time',
                       'Customer Name',
                       'GSTIN',
+                      'Address',
                       'Taxable Amount ₹',
                       'SGST ₹ ',
                       'CGST ₹ ',
@@ -389,6 +394,8 @@ const InvoiceReportPage = () => {
                       </TableCell>
                       <TableCell>{row.customer_name || 'NA'}</TableCell>
                       <TableCell>{row.customer_gst || 'NA'}</TableCell>
+                      <TableCell>{row.customer_address || 'NA'}</TableCell>
+
                       <TableCell>{row.total_amount}</TableCell>
                       <TableCell>{row.tax / 2}</TableCell>
                       <TableCell>{row.tax / 2}</TableCell>
@@ -397,7 +404,7 @@ const InvoiceReportPage = () => {
                   ))}
                   {filteredData?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} align="center">
+                      <TableCell colSpan={9} align="center">
                         No invoice found
                       </TableCell>
                     </TableRow>
