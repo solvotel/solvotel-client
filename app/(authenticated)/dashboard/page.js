@@ -16,6 +16,9 @@ const Page = () => {
   const permissions = CheckUserPermission(auth?.user?.permissions);
   const todaysDate = GetTodaysDate().dateString;
 
+  const access = auth?.user?.access || [];
+  const hasAllAccess = access.includes('all');
+
   // Fetch all bookings
   const bookings = GetDataList({
     auth,
@@ -48,9 +51,7 @@ const Page = () => {
   );
 
   const expectedCheckin = getBookingsForTokens(
-    (bk) =>
-      bk.booking_status === 'Confirmed' &&
-      bk.checked_out !== true,
+    (bk) => bk.booking_status === 'Confirmed' && bk.checked_out !== true,
     (token) =>
       token.in_date === todaysDate &&
       token.checked_in !== true &&
@@ -58,9 +59,7 @@ const Page = () => {
   );
 
   const expectedCheckout = getBookingsForTokens(
-    (bk) =>
-      bk.booking_status === 'Confirmed' &&
-      bk.checked_out !== true,
+    (bk) => bk.booking_status === 'Confirmed' && bk.checked_out !== true,
     (token) =>
       token.out_date === todaysDate &&
       token.checked_in === true &&
@@ -78,11 +77,15 @@ const Page = () => {
         bookings={bookings}
         rooms={rooms}
         permissions={permissions}
+        hasAllAccess={hasAllAccess}
+        access={access}
       />
       <BookingList
         expectedCheckin={expectedCheckin}
         expectedCheckout={expectedCheckout}
         stayOver={stayOver}
+        hasAllAccess={hasAllAccess}
+        access={access}
       />
     </>
   );

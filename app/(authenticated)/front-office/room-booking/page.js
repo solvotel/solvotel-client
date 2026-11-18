@@ -267,7 +267,7 @@ const BookingListPage = () => {
                   <IconButton
                     onClick={() => {
                       setStartDate('');
-                      setEndDate(todaysDate);
+                      setEndDate('');
                       setSearchBookingId('');
                     }}
                     size="small"

@@ -213,27 +213,37 @@ export default function BookingServiceActionsCard({
         roomTokens,
         booking?.housekeeping_tokens || [],
       );
-      const selectedCheckinRooms = new Set(
-        (booking?.room_tokens || [])
-          .filter((token, index) => {
-            const key = String(
-              token.id ||
-                `${index}-${token.room}-${token.in_date}-${token.out_date}`,
-            );
-            return selectedKeys.has(key);
-          })
-          .map((token) => `${token.room}|${token.in_date}`),
-      );
-      const housekeepingTokens = generatedHousekeepingTokens.map((token) =>
-        selectedCheckinRooms.has(`${token.room}|${token.date}`)
-          ? {
-              ...token,
-              status: 'dirty',
-              cleaned_by: null,
-              time_stamp: null,
-            }
-          : token,
-      );
+      const selectedCheckinRanges = (booking?.room_tokens || [])
+        .filter((token, index) => {
+          const key = String(
+            token.id ||
+              `${index}-${token.room}-${token.in_date}-${token.out_date}`,
+          );
+          return selectedKeys.has(key);
+        })
+        .map((token) => ({
+          room: token.room,
+          inDate: toDateKey(token.in_date),
+          outDate: toDateKey(token.out_date),
+        }));
+      const housekeepingTokens = generatedHousekeepingTokens.map((token) => {
+        const selectedRange = selectedCheckinRanges.find(
+          (range) =>
+            String(range.room) === String(token.room) &&
+            toDateKey(token.date) >= range.inDate &&
+            toDateKey(token.date) < range.outDate,
+        );
+        if (!selectedRange) return token;
+
+        const isCheckinDate = toDateKey(token.date) === selectedRange.inDate;
+        return {
+          ...token,
+          status: isCheckinDate ? 'clean' : 'dirty',
+          ...(isCheckinDate
+            ? {}
+            : { cleaned_by: null, time_stamp: null }),
+        };
+      });
       await UpdateData({
         endPoint: 'room-bookings',
         auth,

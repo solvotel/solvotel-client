@@ -15,18 +15,37 @@ import { ConvertTo12HourFormat } from '@/utils/Timefetcher';
 
 const MotionBox = motion(Box);
 
-const BookingList = ({ stayOver, expectedCheckin, expectedCheckout }) => {
+const BookingList = ({
+  stayOver,
+  expectedCheckin,
+  expectedCheckout,
+  hasAllAccess,
+  access,
+}) => {
+  const canNavigateToBookings =
+    hasAllAccess || access?.includes('frontoffice');
+
   // Small card for each booking
   const renderBookingMiniCard = (bk) => (
     <MotionBox
       key={bk.documentId}
-      whileHover={{ scale: 1.05 }}
+      whileHover={canNavigateToBookings ? { scale: 1.05 } : undefined}
       transition={{ duration: 0.3 }}
     >
       <Link
-        href={`front-office/room-booking/${bk.documentId}`}
+        component={canNavigateToBookings ? 'a' : 'div'}
+        href={
+          canNavigateToBookings
+            ? `/front-office/room-booking/${bk.documentId}`
+            : undefined
+        }
         underline="none"
-        sx={{ textDecoration: 'none' }}
+        sx={{
+          display: 'block',
+          textDecoration: 'none',
+          color: 'inherit',
+          cursor: canNavigateToBookings ? 'pointer' : 'default',
+        }}
       >
         <Paper
           elevation={3}
@@ -37,10 +56,12 @@ const BookingList = ({ stayOver, expectedCheckin, expectedCheckout }) => {
             background: '#fff',
             color: '#333',
             transition: 'all 0.3s',
-            '&:hover': {
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-              transform: 'translateY(-3px)',
-            },
+            ...(canNavigateToBookings && {
+              '&:hover': {
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                transform: 'translateY(-3px)',
+              },
+            }),
           }}
         >
           {/* <Typography variant="subtitle2" fontWeight="bold">

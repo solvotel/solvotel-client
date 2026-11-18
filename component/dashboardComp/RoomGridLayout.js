@@ -21,8 +21,17 @@ import { GetTodaysDate, isDateInRange } from '@/utils/DateFetcher';
 import AddIcon from '@mui/icons-material/Add';
 import Link from 'next/link';
 
-const RoomGridLayout = ({ bookings, rooms, permissions }) => {
+const RoomGridLayout = ({
+  bookings,
+  rooms,
+  permissions,
+  hasAllAccess,
+  access,
+}) => {
   const todaysDate = GetTodaysDate().dateString;
+  const canNavigateToBookings =
+    hasAllAccess || access?.includes('frontoffice');
+  const canCreateBooking = canNavigateToBookings && permissions.canCreate;
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [startDate, setStartDate] = useState(todaysDate);
 
@@ -170,11 +179,14 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
         </Box>
 
         <Button
-          href="/front-office/room-booking/create-new"
+          component={canCreateBooking ? Link : 'button'}
+          href={
+            canCreateBooking ? '/front-office/room-booking/create-new' : undefined
+          }
           variant="contained"
           startIcon={<AddIcon />}
           sx={{ borderRadius: 2, textTransform: 'none' }}
-          disabled={!permissions.canCreate}
+          disabled={!canCreateBooking}
         >
           New Booking
         </Button>
@@ -308,17 +320,28 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
                     },
                   ].map((col, idx) => (
                     <Grid key={idx} size={{ xs: 12, md: 3 }}>
-                      <Link
-                        href={
-                          !col.title.startsWith('Available')
-                            ? `/front-office/room-booking?bookingStatus=${col.title}&date=${date.toISOString().split('T')[0]}`
-                            : '/front-office/room-booking'
-                        }
-                        style={{ textDecoration: 'none' }}
+                      <Box
+                        component={canNavigateToBookings ? Link : 'div'}
+                        {...(canNavigateToBookings
+                          ? {
+                              href: !col.title.startsWith('Available')
+                                ? `/front-office/room-booking?bookingStatus=${col.title}&date=${date.toISOString().split('T')[0]}`
+                                : '/front-office/room-booking',
+                            }
+                          : {})}
+                        sx={{
+                          display: 'block',
+                          height: '100%',
+                          color: 'inherit',
+                          textDecoration: 'none',
+                          cursor: canNavigateToBookings ? 'pointer' : 'default',
+                        }}
                       >
                         <Paper
                           component={motion.div}
-                          whileHover={{ scale: 1.01 }}
+                          whileHover={
+                            canNavigateToBookings ? { scale: 1.01 } : undefined
+                          }
                           sx={{
                             p: 2,
                             display: 'flex',
@@ -350,21 +373,14 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
                                     key={room.room_no}
                                     label={room.room_no}
                                     size="small"
-                                    clickable={
-                                      !col.title.startsWith('Available')
-                                    }
-                                    component={
-                                      !col.title.startsWith('Available')
-                                        ? 'a'
-                                        : 'div'
-                                    }
+                                    component="div"
                                     sx={{
                                       bgcolor: col.chipBg,
-                                      cursor: col.title.startsWith('Available')
-                                        ? 'default'
-                                        : 'pointer',
+                                      cursor: canNavigateToBookings
+                                        ? 'pointer'
+                                        : 'default',
                                       '&:hover': {
-                                        opacity: 0.8,
+                                        opacity: canNavigateToBookings ? 0.8 : 1,
                                       },
                                     }}
                                   />
@@ -373,7 +389,7 @@ const RoomGridLayout = ({ bookings, rooms, permissions }) => {
                             </Box>
                           ))}
                         </Paper>
-                      </Link>
+                      </Box>
                     </Grid>
                   ))}
                 </Grid>
