@@ -203,7 +203,7 @@ export default function SubscriptionsPage() {
         await UpdateData({
           auth,
           endPoint: 'pos-subscriptions',
-          id: selectedSub.documentId,
+          id: selectedSub?.documentId,
           payload: {
             data: formData,
           },
@@ -232,7 +232,7 @@ export default function SubscriptionsPage() {
     await DeleteData({
       auth,
       endPoint: 'pos-subscriptions',
-      id: selectedSub.documentId,
+      id: selectedSub?.documentId,
     });
 
     setDeleteModalOpen(false);
@@ -363,19 +363,19 @@ export default function SubscriptionsPage() {
             <TableBody>
               {paginatedData.length > 0 ? (
                 paginatedData.map((row) => (
-                  <TableRow key={row.id} hover>
+                  <TableRow key={row?.id} hover>
                     <TableCell>
                       <Typography variant="body2" fontWeight={500}>
-                        {row.order_id}
+                        {row?.order_id}
                       </Typography>
                     </TableCell>
-                    <TableCell>{row.plan}</TableCell>
-                    <TableCell>{row.pos_outlet.name}</TableCell>
-                    <TableCell>{row.pos_outlet.phone || 'N/A'}</TableCell>
-                    <TableCell>{GetCustomDate(row.start_date)}</TableCell>
-                    <TableCell>{GetCustomDate(row.expiry_date)}</TableCell>
+                    <TableCell>{row?.plan}</TableCell>
+                    <TableCell>{row?.pos_outlet?.name}</TableCell>
+                    <TableCell>{row?.pos_outlet?.phone || 'N/A'}</TableCell>
+                    <TableCell>{GetCustomDate(row?.start_date)}</TableCell>
+                    <TableCell>{GetCustomDate(row?.expiry_date)}</TableCell>
                     <TableCell>
-                      ₹{Number(row.amount).toLocaleString('en-IN')}
+                      ₹{Number(row?.amount).toLocaleString('en-IN')}
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -481,7 +481,7 @@ export default function SubscriptionsPage() {
                   POS Outlet
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {selectedSub.pos_outlet.name}
+                  {selectedSub?.pos_outlet?.name}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -494,7 +494,7 @@ export default function SubscriptionsPage() {
                   Outlet Phone
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {selectedSub.pos_outlet.phone || 'N/A'}
+                  {selectedSub?.pos_outlet?.phone || 'N/A'}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -507,7 +507,7 @@ export default function SubscriptionsPage() {
                   Order ID
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {selectedSub.order_id}
+                  {selectedSub?.order_id}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -520,7 +520,7 @@ export default function SubscriptionsPage() {
                   Plan
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {selectedSub.plan}
+                  {selectedSub?.plan}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -533,7 +533,7 @@ export default function SubscriptionsPage() {
                   Start Date
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {GetCustomDate(selectedSub.start_date)}
+                  {GetCustomDate(selectedSub?.start_date)}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -546,7 +546,7 @@ export default function SubscriptionsPage() {
                   Expiry Date
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {GetCustomDate(selectedSub.expiry_date)}
+                  {GetCustomDate(selectedSub?.expiry_date)}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -559,7 +559,7 @@ export default function SubscriptionsPage() {
                   Amount
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {selectedSub.amount}
+                  {selectedSub?.amount}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -572,7 +572,7 @@ export default function SubscriptionsPage() {
                   Transaction ID
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {selectedSub.transaction_id}
+                  {selectedSub?.transaction_id}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -585,7 +585,7 @@ export default function SubscriptionsPage() {
                   Payment Method
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {selectedSub.payment_method}
+                  {selectedSub?.payment_method}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -611,7 +611,7 @@ export default function SubscriptionsPage() {
                   Notes
                 </Typography>
                 <Typography variant="body1" fontWeight={500} mt={0.5}>
-                  {selectedSub.notes}
+                  {selectedSub?.notes}
                 </Typography>
               </Grid>{' '}
             </Grid>
