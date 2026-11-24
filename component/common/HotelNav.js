@@ -23,6 +23,7 @@ import {
   MenuItem,
   Divider,
 } from '@mui/material';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MenuIcon from '@mui/icons-material/Menu';
 import {
@@ -332,7 +333,7 @@ const HotelNav = ({ auth, logout }) => {
                       },
                       {
                         href: '/restaurant/menu-items',
-                        icon: <CalendarMonthIcon size={16} />,
+                        icon: <MenuBookIcon size={16} />,
                         label: 'Restaurant Menu',
                       },
                       {
@@ -858,7 +859,7 @@ const HotelNav = ({ auth, logout }) => {
                       onClick={toggleDrawer(false)}
                     >
                       <ListItemIcon>
-                        <BookOpen size={16} />
+                        <MenuBookIcon size={16} />
                       </ListItemIcon>
                       <ListItemText primary="Restaurant Menu" />
                     </ListItemButton>

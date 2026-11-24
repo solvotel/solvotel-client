@@ -92,7 +92,7 @@ const InvoiceReportClient = () => {
 
     const dataToExport = filteredInvoices.map((row) => ({
       'Invoice No': row.invoice_no,
-      'Date/Time': `${GetCustomDate(row.date)} ${row.time}`,
+      Date: GetCustomDate(row.date),
       'Customer Name': row.customer_name || 'N/A',
       GSTIN: row.customer_gst || 'N/A',
       Address: row.customer_address || 'N/A',
@@ -138,7 +138,7 @@ const InvoiceReportClient = () => {
       head: [
         [
           'Invoice No',
-          'Date/Time',
+          'Date',
           'Customer Name',
           'GSTIN',
           'Address',
@@ -150,7 +150,7 @@ const InvoiceReportClient = () => {
       ],
       body: filteredData.map((invoice) => [
         invoice.invoice_no || '-',
-        `${GetCustomDate(invoice.date)} ${invoice.time || ''}`.trim(),
+        GetCustomDate(invoice.date) || '-',
         invoice.customer_name || 'N/A',
         invoice.customer_gst || 'N/A',
         invoice.customer_address || 'N/A',
@@ -311,7 +311,7 @@ const InvoiceReportClient = () => {
                   <TableRow sx={{ backgroundColor: 'grey.100' }}>
                     {[
                       'Invoice No',
-                      'Date/Time',
+                      'Date',
                       'Customer Name',
                       'GSTIN',
                       'Address',
@@ -331,7 +331,7 @@ const InvoiceReportClient = () => {
                     <TableRow key={row.documentId}>
                       <TableCell>{row.invoice_no}</TableCell>
                       <TableCell>
-                        {GetCustomDate(row.date)}:{row.time}
+                        {GetCustomDate(row.date)}
                       </TableCell>
                       <TableCell>{row.customer_name || 'N/A'}</TableCell>
                       <TableCell>{row.customer_gst || 'N/A'}</TableCell>

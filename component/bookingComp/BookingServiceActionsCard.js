@@ -195,6 +195,15 @@ export default function BookingServiceActionsCard({
     if (!selectedCheckinTokenKeys.length) return;
 
     const selectedKeys = new Set(selectedCheckinTokenKeys);
+    const conflicts = findConflictingBookings(selectedKeys);
+    if (conflicts.length > 0) {
+      setCheckinDialogOpen(false);
+      setSelectedCheckinTokenKeys([]);
+      setConflictingBookings(conflicts);
+      setConflictDialogOpen(true);
+      return;
+    }
+
     const roomTokens = (booking?.room_tokens || []).map((token, index) => {
       const key = String(
         token.id || `${index}-${token.room}-${token.in_date}-${token.out_date}`,
@@ -270,51 +279,49 @@ export default function BookingServiceActionsCard({
     }
   };
 
-  const findConflictingBookings = () => {
-    const currentRoomTokens = booking?.room_tokens || [];
+  const findConflictingBookings = (selectedKeys = null) => {
+    const currentRoomTokens = (booking?.room_tokens || []).filter(
+      (token, index) => {
+        if (selectedKeys instanceof Set) {
+          const key = String(
+            token.id ||
+              `${index}-${token.room}-${token.in_date}-${token.out_date}`,
+          );
+          return selectedKeys.has(key);
+        }
+
+        return (
+          toDateKey(token.in_date) === today &&
+          token.checked_in !== true
+        );
+      },
+    );
 
     if (!currentRoomTokens.length) return [];
 
+    const roomNumbers = new Set(
+      currentRoomTokens
+        .map((token) => String(token.room_no || token.room || ''))
+        .filter(Boolean),
+    );
+
     return (allBookings || [])
       .filter((otherBooking) => {
-        // skip same booking
         if (otherBooking?.documentId === booking?.documentId) return false;
+        if (otherBooking?.booking_status === 'Cancelled') return false;
 
-        // skip cancelled / checked out bookings
-        if (
-          otherBooking?.booking_status === 'Cancelled' ||
-          otherBooking?.checked_out === true
-        ) {
-          return false;
-        }
-
-        const otherTokens = otherBooking?.room_tokens || [];
-
-        return currentRoomTokens.some((currentToken) => {
-          const currentRoom = currentToken?.room_no || currentToken?.room || '';
-
-          const currentIn = new Date(currentToken?.in_date);
-          const currentOut = new Date(currentToken?.out_date);
-
-          return otherTokens.some((otherToken) => {
-            const otherRoom = otherToken?.room_no || otherToken?.room || '';
-
-            // room must match
-            if (currentRoom !== otherRoom) return false;
-
-            const otherIn = new Date(otherToken?.in_date);
-            const otherOut = new Date(otherToken?.out_date);
-
-            // date overlap check
-            const hasConflict = currentIn < otherOut && currentOut > otherIn;
-
-            return hasConflict;
-          });
-        });
+        return (otherBooking?.room_tokens || []).some(
+          (token) =>
+            token.checked_in === true &&
+            token.checked_out !== true &&
+            roomNumbers.has(String(token.room_no || token.room || '')),
+        );
       })
       .map((conflict) => ({
         documentId: conflict?.documentId,
         booking_id: conflict?.booking_id,
+        guest_name: conflict?.guest_name,
+        createdAt: conflict?.createdAt,
       }));
   };
 

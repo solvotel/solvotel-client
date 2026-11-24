@@ -85,7 +85,7 @@ const PosOutletInvoiceReportPrint = React.forwardRef((props, ref) => {
             <TableRow>
               {[
                 'Invoice No',
-                'Date/Time',
+                'Date',
                 'Customer Name',
                 'GSTIN',
                 'Address',
@@ -103,7 +103,7 @@ const PosOutletInvoiceReportPrint = React.forwardRef((props, ref) => {
               <TableRow key={index}>
                 <BodyCell>{row.invoice_no}</BodyCell>
                 <BodyCell>
-                  {GetCustomDate(row.date)}:{row.time}
+                  {GetCustomDate(row.date)}
                 </BodyCell>
                 <BodyCell>{row.customer_name}</BodyCell>
                 <BodyCell>{row.customer_gst || 'N/A'}</BodyCell>
