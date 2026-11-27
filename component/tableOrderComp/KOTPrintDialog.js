@@ -29,6 +29,13 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
   if (!selectedKot) return null;
 
   const typeLabel = selectedKot.type === 'new' ? 'NEW' : 'UPDATE';
+  const getRoomNo = (source) =>
+    source?.room_no ||
+    source?.room_booking?.room_no ||
+    source?.temp_room_no?.split('|')[1] ||
+    null;
+  const roomNo =
+    getRoomNo(selectedKot) || getRoomNo(selectedKot.table_order);
   const tableNo =
     selectedKot.table_no ||
     selectedKot.table?.table_no ||
@@ -78,11 +85,15 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
               <Typography variant="body2" sx={{ mt: 0.5 }}>
                 KOT #{selectedKot.kot_number}
               </Typography>
-              {tableNo && (
+              {roomNo ? (
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  Room No: {roomNo}
+                </Typography>
+              ) : tableNo ? (
                 <Typography variant="body2" sx={{ mt: 0.5 }}>
                   Table: {tableNo}
                 </Typography>
-              )}
+              ) : null}
               <Typography variant="body2" sx={{ mt: 0.5 }}>
                 Date & Time: {updatedAt}
               </Typography>
@@ -186,6 +197,7 @@ const KOTPrintDialog = ({ open, setOpen, selectedKot, setSelectedKot }) => {
         <KOTPrint
           ref={printRef}
           kotData={selectedKot}
+          roomNo={roomNo}
           tableNo={tableNo}
           typeLabel={typeLabel}
           size="80mm"

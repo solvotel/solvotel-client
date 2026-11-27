@@ -31,6 +31,7 @@ import { parseCookies, setCookie } from 'nookies';
 import axios from 'axios';
 
 import { BASEURL } from '@/config/MainApi';
+import { getIndiaDateKey, getNextIndiaMidnight } from '@/utils/SessionExpiry';
 
 const CustomLable = styled(Box)`
   display: flex;
@@ -108,15 +109,20 @@ export default function FacebookLogin() {
           res.data.jwt,
           res.data.user.id,
         );
+        const sessionExpiresAt = getNextIndiaMidnight();
 
         // set the jwt in the cookies
         setCookie(null, 'token', res.data.jwt, {
-          maxAge: 30 * 24 * 60 * 60,
+          expires: sessionExpiresAt,
           path: '/',
         });
         // set the user in the cookies
         setCookie(null, 'user', JSON.stringify(populatedUser), {
-          maxAge: 30 * 24 * 60 * 60,
+          expires: sessionExpiresAt,
+          path: '/',
+        });
+        setCookie(null, 'sessionDate', getIndiaDateKey(), {
+          expires: sessionExpiresAt,
           path: '/',
         });
         dispatchAuth({

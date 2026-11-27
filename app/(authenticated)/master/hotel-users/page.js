@@ -57,6 +57,7 @@ const HotelUser = () => {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [editingHotelAdmin, setEditingHotelAdmin] = useState(false);
   const [formData, setFormData] = useState(initialForm());
   const [errors, setErrors] = useState({});
   const [password, setPassword] = useState('');
@@ -76,7 +77,16 @@ const HotelUser = () => {
   }
 
   const handleEdit = (row) => {
+    const isHotelAdmin = row.role?.name === 'hotel-admin';
+    const isOwnHotelAdmin =
+      isHotelAdmin &&
+      auth?.user?.role?.name === 'hotel-admin' &&
+      String(row.id) === String(auth?.user?.id);
+
+    if (isHotelAdmin && !isOwnHotelAdmin) return;
+
     setEditing(true);
+    setEditingHotelAdmin(isHotelAdmin);
     setFormData({
       name: row.name || '',
       permissions: row.permissions,
@@ -96,6 +106,7 @@ const HotelUser = () => {
 
   const handleCreate = () => {
     setEditing(false);
+    setEditingHotelAdmin(false);
     setFormData(initialForm());
     setPassword('');
     setFormOpen(true);
@@ -106,6 +117,8 @@ const HotelUser = () => {
     let newErrors = {};
     if (!formData.email || !formData.email.trim())
       newErrors.email = 'Email is required';
+    if (editingHotelAdmin && !formData.name.trim())
+      newErrors.name = 'Name is required';
     if (!password.trim() && !editing)
       newErrors.password = 'Password is required';
     setErrors(newErrors);
@@ -124,23 +137,24 @@ const HotelUser = () => {
 
   const UpdateUser = async () => {
     try {
-      let data = {
-        name: formData.name,
-        permissions: formData.permissions,
-        access: formData.access,
-        blocked: formData.blocked,
-        confirmed: formData.confirmed,
-        hotel_id: formData.hotel_id,
-        role: formData.role,
-        username: formData.email,
-        email: formData.email,
-      };
-      if (password) {
-        data = {
-          ...data,
-          password: password,
-        };
-      }
+      const data = editingHotelAdmin
+        ? {
+            name: formData.name.trim(),
+            username: formData.email.trim(),
+            email: formData.email.trim(),
+          }
+        : {
+            name: formData.name,
+            permissions: formData.permissions,
+            access: formData.access,
+            blocked: formData.blocked,
+            confirmed: formData.confirmed,
+            hotel_id: formData.hotel_id,
+            role: formData.role,
+            username: formData.email,
+            email: formData.email,
+            ...(password ? { password } : {}),
+          };
 
       await UpdateData({
         auth,
@@ -152,9 +166,10 @@ const HotelUser = () => {
       setFormOpen(false);
       setFormData(initialForm());
       setPassword('');
+      setEditingHotelAdmin(false);
     } catch (err) {
       console.log(err);
-      ErrorToast(err.response.data.error.message || 'Failed to update user');
+      ErrorToast(err?.response?.data?.error?.message || 'Failed to update user');
     }
   };
 
@@ -169,6 +184,7 @@ const HotelUser = () => {
       setFormOpen(false);
       setFormData(initialForm());
       setPassword('');
+      setEditingHotelAdmin(false);
     } catch (err) {
       console.log(err);
       ErrorToast(err.response.data.error.message || 'Failed to create user');
@@ -359,7 +375,7 @@ const HotelUser = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {row.role?.name !== 'hotel-admin' && (
+                        {row.role?.name !== 'hotel-admin' ? (
                           <>
                             <Tooltip title="Edit">
                               <IconButton
@@ -380,6 +396,19 @@ const HotelUser = () => {
                               </IconButton>
                             </Tooltip>
                           </>
+                        ) : (
+                          auth?.user?.role?.name === 'hotel-admin' &&
+                          String(row.id) === String(auth?.user?.id) && (
+                            <Tooltip title="Edit name and email">
+                              <IconButton
+                                color="primary"
+                                onClick={() => handleEdit(row)}
+                                size="small"
+                              >
+                                <EditIcon fontSize="inherit" />
+                              </IconButton>
+                            </Tooltip>
+                          )
                         )}
                       </TableCell>
                     </TableRow>
@@ -423,7 +452,13 @@ const HotelUser = () => {
             maxWidth="sm"
             fullWidth
           >
-            <DialogTitle>{editing ? 'Edit User' : 'Create User'}</DialogTitle>
+            <DialogTitle>
+              {editingHotelAdmin
+                ? 'Edit Hotel Admin'
+                : editing
+                  ? 'Edit User'
+                  : 'Create User'}
+            </DialogTitle>
             <DialogContent>
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid size={{ xs: 12 }}>
@@ -434,6 +469,8 @@ const HotelUser = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, name: e.target.value })
                     }
+                    error={editingHotelAdmin && !!errors.name}
+                    helperText={editingHotelAdmin ? errors.name : ''}
                   />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
@@ -450,20 +487,22 @@ const HotelUser = () => {
                   />
                 </Grid>
 
-                <Grid size={{ xs: 12 }}>
-                  <TextField
-                    fullWidth
-                    label="Password"
-                    type="password"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    error={!!errors.password}
-                    helperText={errors.password}
-                  />
-                </Grid>
+                {!editingHotelAdmin && (
+                  <Grid size={{ xs: 12 }}>
+                    <TextField
+                      fullWidth
+                      label="Password"
+                      type="password"
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      error={!!errors.password}
+                      helperText={errors.password}
+                    />
+                  </Grid>
+                )}
 
-                <Grid size={{ xs: 12 }}>
+                {!editingHotelAdmin && <Grid size={{ xs: 12 }}>
                   <TextField
                     select
                     fullWidth
@@ -489,8 +528,8 @@ const HotelUser = () => {
                     <MenuItem value="inventory">Inventory</MenuItem>
                     <MenuItem value="accounts">Accounts</MenuItem>
                   </TextField>
-                </Grid>
-                <Grid size={{ xs: 12 }}>
+                </Grid>}
+                {!editingHotelAdmin && <Grid size={{ xs: 12 }}>
                   <TextField
                     select
                     fullWidth
@@ -513,9 +552,9 @@ const HotelUser = () => {
                     <MenuItem value="update">Update</MenuItem>
                     <MenuItem value="delete">Delete</MenuItem>
                   </TextField>
-                </Grid>
+                </Grid>}
 
-                <Grid size={{ xs: 12, sm: 6 }}>
+                {!editingHotelAdmin && <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     select
                     fullWidth
@@ -531,7 +570,7 @@ const HotelUser = () => {
                     <MenuItem value={false}>🟢 Active</MenuItem>
                     <MenuItem value={true}>🔴 Deactive</MenuItem>
                   </TextField>
-                </Grid>
+                </Grid>}
               </Grid>
             </DialogContent>
 

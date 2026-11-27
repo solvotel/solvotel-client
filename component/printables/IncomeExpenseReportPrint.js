@@ -95,12 +95,6 @@ const IncomeExpenseReportPrint = React.forwardRef((props, ref) => {
                 details: i.guest_name,
                 amount: i.payable_amount,
               })),
-              ...filteredData.saleEntries.map((i) => ({
-                date: i.date,
-                source: 'Inventory Sale',
-                details: i.item_name,
-                amount: i.total_price,
-              })),
             ].map((row, index) => (
               <TableRow key={index}>
                 <BodyCell>{GetCustomDate(row.date)}</BodyCell>
@@ -150,12 +144,6 @@ const IncomeExpenseReportPrint = React.forwardRef((props, ref) => {
           </TableHead>
           <TableBody>
             {[
-              ...filteredData.purchaseEntries.map((i) => ({
-                date: i.date,
-                category: 'Inventory Purchase',
-                description: i.vendor_name,
-                amount: i.total_price,
-              })),
               ...filteredData.otherExpenses.map((i) => ({
                 date: i.date,
                 category: 'Other Expense',

@@ -284,7 +284,22 @@ const TableGrid = ({
                                   activeOrder.kots?.[
                                     activeOrder.kots?.length - 1
                                   ];
-                                setSelectedKot(latestKot);
+                                setSelectedKot({
+                                  ...latestKot,
+                                  room_no:
+                                    latestKot?.room_no ||
+                                    activeOrder?.room_no ||
+                                    activeOrder?.room_booking?.room_no ||
+                                    activeOrder?.temp_room_no?.split('|')[1] ||
+                                    null,
+                                  table_no:
+                                    latestKot?.table_no ||
+                                    activeOrder?.table?.table_no ||
+                                    activeOrder?.table_no ||
+                                    null,
+                                  table_order:
+                                    latestKot?.table_order || activeOrder,
+                                });
                                 setKotOpen(true);
                               }}
                               disabled={!permissions.canUpdate}

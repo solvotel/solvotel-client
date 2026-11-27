@@ -360,6 +360,18 @@ export default function BookingServiceActionsCard({
     });
     const allRoomsCheckedOut =
       roomTokens.length > 0 && roomTokens.every((token) => token.checked_out);
+    const allActiveCheckoutRoomsSelected =
+      activeCheckoutTokens.length > 0 &&
+      activeCheckoutTokens.every((token) => selectedKeys.has(token.key));
+    const forceCheckoutSelected = forceCheckoutCandidates.some((token) =>
+      selectedKeys.has(token.key),
+    );
+    const bookingCheckoutDate = toDateKey(booking?.checkout_date);
+    const updateCheckoutDate =
+      allRoomsCheckedOut &&
+      allActiveCheckoutRoomsSelected &&
+      forceCheckoutSelected &&
+      bookingCheckoutDate > today;
 
     try {
       setCheckoutSaving(true);
@@ -407,6 +419,7 @@ export default function BookingServiceActionsCard({
               checked_out: true,
               checkout_timeStamp: new Date().toISOString(),
             }),
+            ...(updateCheckoutDate && { checkout_date: today }),
           },
         },
       });

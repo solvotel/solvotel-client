@@ -112,9 +112,8 @@ const BookingListPage = () => {
         switch (bookingStatus) {
           case 'Confirmed':
             if (
-              booking.booking_status !== 'Confirmed' ||
-              booking.checked_in ||
-              booking.checked_out
+              booking.checked_out ||
+              (booking.booking_status !== 'Confirmed' && !booking.checked_in)
             ) {
               return false;
             }
@@ -251,7 +250,6 @@ const BookingListPage = () => {
                 onChange={(e) => setEndDate(e.target.value)}
                 sx={{ mr: 1 }}
                 InputLabelProps={{ shrink: true }} // 👈 fixes label overlap
-                inputProps={{ max: todaysDate }} // 👈 move `max` inside inputProps
               />
               <TextField
                 size="small"

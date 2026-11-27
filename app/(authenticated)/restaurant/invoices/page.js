@@ -34,6 +34,7 @@ import {
   Paper,
   Grid,
   TablePagination,
+  Autocomplete,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -761,24 +762,30 @@ const RestaurantInvoiceListPage = () => {
               )}
               <Grid container spacing={2} alignItems="center" mb={2}>
                 <Grid item size={{ xs: 10 }}>
-                  <TextField
-                    select
-                    margin="dense"
-                    label="Select Menu Item"
-                    size="small"
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    value={selectedItem || ''}
-                    onChange={(e) => setSelectedItem(e.target.value)}
-                    SelectProps={{ native: true }}
-                  >
-                    <option value="">-- Select --</option>
-                    {menuItems?.map((cat) => (
-                      <option key={cat.documentId} value={cat.documentId}>
-                        {cat?.item}
-                      </option>
-                    ))}
-                  </TextField>
+                  <Autocomplete
+                    options={menuItems || []}
+                    value={
+                      menuItems?.find(
+                        (item) => item.documentId === selectedItem,
+                      ) || null
+                    }
+                    getOptionLabel={(option) => option?.item || ''}
+                    isOptionEqualToValue={(option, value) =>
+                      option.documentId === value.documentId
+                    }
+                    onChange={(_, value) =>
+                      setSelectedItem(value?.documentId || '')
+                    }
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        margin="dense"
+                        label="Select Menu Item"
+                        size="small"
+                        fullWidth
+                      />
+                    )}
+                  />
                 </Grid>
                 <Grid item size={{ xs: 2 }}>
                   <Button

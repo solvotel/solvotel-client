@@ -53,6 +53,10 @@ import {
   CalendarIcon,
   MonitorCheck,
   CalendarRange,
+  RotateCcwKeyIcon,
+  RotateCcwIcon,
+  BookOpenText,
+  FileChartColumn,
 } from 'lucide-react';
 import TableRestaurantOutlinedIcon from '@mui/icons-material/TableRestaurantOutlined';
 import TableBarOutlinedIcon from '@mui/icons-material/TableBarOutlined';
@@ -282,7 +286,7 @@ const HotelNav = ({ auth, logout }) => {
                       },
                       {
                         href: '/house-keeping/report',
-                        icon: <Summarize size={16} />,
+                        icon: <FileChartColumn size={16} />,
                         label: 'Cleaning Report',
                       },
                     ]}
@@ -328,12 +332,12 @@ const HotelNav = ({ auth, logout }) => {
                       },
                       {
                         href: '/restaurant/order-history',
-                        icon: <SettingsBackupRestoreIcon size={16} />,
+                        icon: <RotateCcwIcon size={16} />,
                         label: 'Order History',
                       },
                       {
                         href: '/restaurant/menu-items',
-                        icon: <MenuBookIcon size={16} />,
+                        icon: <BookOpenText size={16} />,
                         label: 'Restaurant Menu',
                       },
                       {
@@ -679,7 +683,7 @@ const HotelNav = ({ auth, logout }) => {
               onChange={handleAccordionChange('frontoffice')}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <UserPen size={18} style={{ marginRight: 8 }} />
+                <MonitorCheck size={18} style={{ marginRight: 8 }} />
                 <span style={{ fontWeight: 'bold' }}>Frontoffice</span>
               </AccordionSummary>
               <AccordionDetails sx={{ p: 0 }}>
@@ -792,7 +796,7 @@ const HotelNav = ({ auth, logout }) => {
                       onClick={toggleDrawer(false)}
                     >
                       <ListItemIcon>
-                        <Summarize size={16} />
+                        <FileChartColumn size={16} />
                       </ListItemIcon>
                       <ListItemText primary="Cleaning Report" />
                     </ListItemButton>
@@ -859,7 +863,7 @@ const HotelNav = ({ auth, logout }) => {
                       onClick={toggleDrawer(false)}
                     >
                       <ListItemIcon>
-                        <MenuBookIcon size={16} />
+                        <BookOpenText size={16} />
                       </ListItemIcon>
                       <ListItemText primary="Restaurant Menu" />
                     </ListItemButton>

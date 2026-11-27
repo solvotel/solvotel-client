@@ -27,7 +27,7 @@ import { BookingSlip } from '@/component/printables/RoomBookingSlip';
 import { useReactToPrint } from 'react-to-print';
 import { CheckUserPermission } from '@/utils/UserPermissions';
 
-export default function RoomBookings({ params }) {
+export default function RoomBookingDetails({ params }) {
   const { auth } = useAuth();
   const { id } = use(params);
   const permissions = CheckUserPermission(auth?.user?.permissions);

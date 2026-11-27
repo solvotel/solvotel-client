@@ -42,6 +42,12 @@ const generateNextOrderNo = (orders) => {
   return `ODR-${maxNumber + 1}`;
 };
 
+const getRoomNo = (order) =>
+  order?.room_no ||
+  order?.room_booking?.room_no ||
+  order?.temp_room_no?.split('|')[1] ||
+  null;
+
 const TableOrdersPage = () => {
   const { auth } = useAuth();
   const permissions = CheckUserPermission(auth?.user?.permissions);
@@ -192,6 +198,7 @@ const TableOrdersPage = () => {
       // 3️⃣ If there are changes, create a new KOT
       if (changes.length > 0) {
         const kotNumber = (prevOrder.kots?.length || 0) + 1;
+        const roomNo = getRoomNo(prevOrder);
         const tableNo =
           prevOrder.table_no ||
           tables?.find((t) => t.documentId === prevOrder.table)?.table_no ||
@@ -217,6 +224,7 @@ const TableOrdersPage = () => {
           kot_number: kotNumber,
           items: changes,
           type: 'update',
+          room_no: roomNo,
           table_no: tableNo,
           kot_notes: kotNotes || '',
           table_order: prevOrder,
@@ -250,6 +258,7 @@ const TableOrdersPage = () => {
         formData.table_no ||
         tables?.find((t) => t.documentId === formData.table)?.table_no ||
         null;
+      const roomNo = getRoomNo(formData);
 
       const res = await CreateNewData({
         auth,
@@ -278,10 +287,16 @@ const TableOrdersPage = () => {
           name: i.item,
           qty: `+${i.qty}`,
         })),
+        room_no: roomNo,
         table_no:
           tables?.find((t) => t.documentId === formData.table)?.table_no ||
           null,
-        table_order: { documentId: newOrderId, table: formData.table },
+        table_order: {
+          documentId: newOrderId,
+          table: formData.table,
+          temp_room_no: formData.temp_room_no,
+          room_no: roomNo,
+        },
         kot_notes: kotNotes || '',
         updatedAt: res.data?.data?.updatedAt || new Date().toISOString(),
       });

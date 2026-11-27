@@ -14,6 +14,10 @@ import {
   TableRow,
   Paper,
   Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PrintIcon from '@mui/icons-material/Print';
@@ -35,11 +39,6 @@ const IncomeExpenseReportPage = () => {
   const { auth } = useAuth();
   const todaysDate = GetTodaysDate().dateString;
 
-  const purchaseEntries = GetDataList({
-    auth,
-    endPoint: 'inventory-purchases',
-  });
-  const saleEntries = GetDataList({ auth, endPoint: 'inventory-sales' });
   const restaurantInvoices = GetDataList({
     auth,
     endPoint: 'restaurant-invoices',
@@ -49,9 +48,8 @@ const IncomeExpenseReportPage = () => {
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(todaysDate);
+  const [incomeSource, setIncomeSource] = useState('All');
   const [filteredData, setFilteredData] = useState({
-    purchaseEntries: [],
-    saleEntries: [],
     restaurantInvoices: [],
     roomInvoices: [],
     otherExpenses: [],
@@ -77,10 +75,23 @@ const IncomeExpenseReportPage = () => {
       restaurantInvoices: filterByDate(restaurantInvoices),
       roomInvoices: filterByDate(roomInvoices),
       otherExpenses: filterByDate(otherExpenses),
-      purchaseEntries: filterByDate(purchaseEntries),
-      saleEntries: filterByDate(saleEntries),
     });
   };
+
+  const reportData = useMemo(
+    () => ({
+      restaurantInvoices:
+        incomeSource === 'All' || incomeSource === 'Restaurant Invoice'
+          ? filteredData.restaurantInvoices
+          : [],
+      roomInvoices:
+        incomeSource === 'All' || incomeSource === 'Room Invoice'
+          ? filteredData.roomInvoices
+          : [],
+      otherExpenses: filteredData.otherExpenses,
+    }),
+    [filteredData, incomeSource],
+  );
 
   const componentRef = useRef(null);
   const handlePrint = useReactToPrint({
@@ -88,75 +99,46 @@ const IncomeExpenseReportPage = () => {
     documentTitle: 'income-expense-report',
   });
 
-  if (
-    !purchaseEntries ||
-    !saleEntries ||
-    !restaurantInvoices ||
-    !roomInvoices ||
-    !otherExpenses
-  )
-    return <Loader />;
+  if (!restaurantInvoices || !roomInvoices || !otherExpenses) return <Loader />;
 
   // Totals
   const incomeTotal =
-    (filteredData.restaurantInvoices?.reduce(
+    (reportData.restaurantInvoices?.reduce(
       (acc, i) => acc + (parseFloat(i.payable_amount) || 0),
       0,
     ) || 0) +
-    (filteredData.roomInvoices?.reduce(
+    (reportData.roomInvoices?.reduce(
       (acc, i) => acc + (parseFloat(i.payable_amount) || 0),
-      0,
-    ) || 0) +
-    (filteredData.saleEntries?.reduce(
-      (acc, i) => acc + (parseFloat(i.total_price) || 0),
       0,
     ) || 0);
 
   const expenseTotal =
-    (filteredData.purchaseEntries?.reduce(
-      (acc, i) => acc + (parseFloat(i.total_price) || 0),
-      0,
-    ) || 0) +
-    (filteredData.otherExpenses?.reduce(
+    reportData.otherExpenses?.reduce(
       (acc, i) => acc + (Number(i.amount) || 0),
       0,
-    ) || 0);
+    ) || 0;
 
   const netBalance = incomeTotal - expenseTotal;
-  const hasReportData = Object.values(filteredData).some(
+  const hasReportData = Object.values(reportData).some(
     (entries) => entries.length > 0,
   );
 
   const getExportRows = () => [
-    ...filteredData.restaurantInvoices.map((invoice) => ({
+    ...reportData.restaurantInvoices.map((invoice) => ({
       Type: 'Income',
       Date: GetCustomDate(invoice.date) || '-',
       Source: 'Restaurant Invoice',
       'Invoice No': invoice.invoice_no || '-',
       Amount: Number(invoice.payable_amount) || 0,
     })),
-    ...filteredData.roomInvoices.map((invoice) => ({
+    ...reportData.roomInvoices.map((invoice) => ({
       Type: 'Income',
       Date: GetCustomDate(invoice.date) || '-',
       Source: 'Room Invoice',
       'Invoice No': invoice.invoice_no || '-',
       Amount: Number(invoice.payable_amount) || 0,
     })),
-    ...filteredData.saleEntries.map((entry) => ({
-      Type: 'Income',
-      Date: GetCustomDate(entry.date) || '-',
-      Source: 'Inventory Sale',
-      'Invoice No': entry.invoice_no || '-',
-      Amount: Number(entry.total_price) || 0,
-    })),
-    ...filteredData.purchaseEntries.map((entry) => ({
-      Type: 'Expense',
-      Date: GetCustomDate(entry.date) || '-',
-      Source: 'Inventory Purchase',
-      'Invoice No': entry.invoice_no || '-',
-      Amount: Number(entry.total_price) || 0,
-    })),
-    ...filteredData.otherExpenses.map((entry) => ({
+    ...reportData.otherExpenses.map((entry) => ({
       Type: 'Expense',
       Date: GetCustomDate(entry.date) || '-',
       Source: 'Other Expense',
@@ -265,6 +247,21 @@ const IncomeExpenseReportPage = () => {
               onChange={(e) => setEndDate(e.target.value)}
               sx={{ mr: 1 }}
             />
+            <FormControl size="small" sx={{ mr: 1, minWidth: 190 }}>
+              <InputLabel id="income-source-label">Income Source</InputLabel>
+              <Select
+                labelId="income-source-label"
+                label="Income Source"
+                value={incomeSource}
+                onChange={(e) => setIncomeSource(e.target.value)}
+              >
+                <MenuItem value="All">All Sources</MenuItem>
+                <MenuItem value="Restaurant Invoice">
+                  Restaurant Invoice
+                </MenuItem>
+                <MenuItem value="Room Invoice">Room Invoice</MenuItem>
+              </Select>
+            </FormControl>
             <Button variant="contained" onClick={handleSearch}>
               Search
             </Button>
@@ -326,7 +323,7 @@ const IncomeExpenseReportPage = () => {
                   </TableHead>
                   <TableBody>
                     {[
-                      ...filteredData.restaurantInvoices.map((i) => ({
+                      ...reportData.restaurantInvoices.map((i) => ({
                         date: i.date,
                         source: 'Restaurant Invoice',
                         details: i.customer_name,
@@ -335,7 +332,7 @@ const IncomeExpenseReportPage = () => {
                         invNo: i.invoice_no,
                         url: `/restaurant/invoices/${i.documentId}`,
                       })),
-                      ...filteredData.roomInvoices.map((i) => ({
+                      ...reportData.roomInvoices.map((i) => ({
                         date: i.date,
                         source: 'Room Invoice',
                         details: i.guest_name,
@@ -343,15 +340,6 @@ const IncomeExpenseReportPage = () => {
                         mop: i.mop || '-',
                         invNo: i.invoice_no,
                         url: `/front-office/room-invoice/${i.documentId}`,
-                      })),
-                      ...filteredData.saleEntries.map((i) => ({
-                        date: i.date,
-                        source: 'Inventory Sale',
-                        details: i.item_name,
-                        amount: i.total_price,
-                        mop: '-',
-                        invNo: i.invoice_no,
-                        url: `/inventory/sales-entries/${i.documentId}`,
                       })),
                     ].map((row, index) => (
                       <TableRow key={index}>
@@ -418,15 +406,6 @@ const IncomeExpenseReportPage = () => {
                   </TableHead>
                   <TableBody>
                     {[
-                      ...filteredData.purchaseEntries.map((i) => ({
-                        date: i.date,
-                        category: 'Inventory Purchase',
-                        description: i.vendor_name,
-                        amount: i.total_price,
-                        mop: '-',
-                        invNo: i.invoice_no,
-                        url: `/inventory/purchase-entries/${i.documentId}`,
-                      })),
                       ...filteredData.otherExpenses.map((i) => ({
                         date: i.date,
                         category: 'Other Expense',
@@ -496,7 +475,7 @@ const IncomeExpenseReportPage = () => {
       </Box>
       <Box sx={{ display: 'none' }}>
         <IncomeExpenseReportPrint
-          filteredData={filteredData}
+          filteredData={reportData}
           ref={componentRef}
           startDate={startDate}
           endDate={endDate}

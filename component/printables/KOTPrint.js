@@ -20,7 +20,7 @@ const CustomTableCell = styled(TableCell)`
 
 // forwardRef is required for react-to-print
 const KOTPrint = React.forwardRef((props, ref) => {
-  const { kotData, tableNo, size, typeLabel } = props;
+  const { kotData, roomNo, tableNo, size, typeLabel } = props;
 
   const updatedAt = kotData?.updatedAt
     ? new Date(kotData.updatedAt).toLocaleString('en-GB', {
@@ -45,7 +45,11 @@ const KOTPrint = React.forwardRef((props, ref) => {
     >
       <p>KOT No: {kotData?.kot_number || 'N/A'}</p>
       <p>Type: {typeLabel || 'N/A'}</p>
-      <p>Table No: {tableNo || 'N/A'}</p>
+      {roomNo ? (
+        <p>Room No: {roomNo}</p>
+      ) : (
+        <p>Table No: {tableNo || 'N/A'}</p>
+      )}
       <p>Date & Time: {updatedAt}</p>
 
       <p style={{ margin: '3px 0' }}>---------------------------------</p>

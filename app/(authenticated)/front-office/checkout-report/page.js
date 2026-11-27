@@ -113,6 +113,8 @@ const CheckoutReportPage = () => {
         'Booking ID': row.booking_id,
         Guest: row.customer?.name || row.customer?.company_name || 'N/A',
         'Meal Plan': row.meal_plan || 'N/A',
+        'Check-in Date': GetCustomDate(row.checkin_date) || 'N/A',
+        'Check-out Date': GetCustomDate(row.checkout_date) || 'N/A',
         'Room No': row.rooms.map((r) => r.room_no).join(', '),
         'Room Tokens': totalRoomAmount.toFixed(2),
         Services: totalServiceAmount.toFixed(2),
@@ -202,6 +204,8 @@ const CheckoutReportPage = () => {
           'Booking ID',
           'Guest',
           'Meal Plan',
+          'Check-in Date',
+          'Check-out Date',
           'Room No',
           'Room Amount',
           'Services',
@@ -215,6 +219,8 @@ const CheckoutReportPage = () => {
         row['Booking ID'] || '-',
         row.Guest || 'N/A',
         row['Meal Plan'] || 'N/A',
+        row['Check-in Date'],
+        row['Check-out Date'],
         row['Room No'] || '-',
         formatPdfAmount(row['Room Tokens']),
         formatPdfAmount(row.Services),
@@ -356,6 +362,8 @@ const CheckoutReportPage = () => {
                       'Booking ID',
                       'Guest',
                       'Meal Plan',
+                      'Check-in Date',
+                      'Check-out Date',
                       'Room No',
                       'Room Tokens',
                       'Services',
@@ -413,6 +421,12 @@ const CheckoutReportPage = () => {
                         </TableCell>
                         <TableCell>{row.meal_plan || 'N/A'}</TableCell>
                         <TableCell>
+                          {GetCustomDate(row.checkin_date) || 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          {GetCustomDate(row.checkout_date) || 'N/A'}
+                        </TableCell>
+                        <TableCell>
                           {row.rooms.map((r) => r.room_no).join(', ')}
                         </TableCell>
                         <TableCell>{totalRoomAmount.toFixed(2)}</TableCell>
@@ -428,7 +442,7 @@ const CheckoutReportPage = () => {
                   })}
                   {filteredData?.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={10} align="center">
+                      <TableCell colSpan={12} align="center">
                         No invoice found
                       </TableCell>
                     </TableRow>

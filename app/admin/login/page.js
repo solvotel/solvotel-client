@@ -33,6 +33,7 @@ import { useAuth } from '@/context';
 import axios from 'axios';
 import { parseCookies, setCookie } from 'nookies';
 import { BASEURL } from '@/config/MainApi';
+import { getIndiaDateKey, getNextIndiaMidnight } from '@/utils/SessionExpiry';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -105,14 +106,20 @@ export default function AdminLoginPage() {
           return;
         }
 
+        const sessionExpiresAt = getNextIndiaMidnight();
+
         // set the jwt in the cookies
         setCookie(null, 'token', res.data.jwt, {
-          maxAge: 30 * 24 * 60 * 60,
+          expires: sessionExpiresAt,
           path: '/',
         });
         // set the user in the cookies
         setCookie(null, 'user', JSON.stringify(populatedUser), {
-          maxAge: 30 * 24 * 60 * 60,
+          expires: sessionExpiresAt,
+          path: '/',
+        });
+        setCookie(null, 'sessionDate', getIndiaDateKey(), {
+          expires: sessionExpiresAt,
           path: '/',
         });
         dispatchAuth({

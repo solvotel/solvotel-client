@@ -29,8 +29,7 @@ const RoomGridLayout = ({
   access,
 }) => {
   const todaysDate = GetTodaysDate().dateString;
-  const canNavigateToBookings =
-    hasAllAccess || access?.includes('frontoffice');
+  const canNavigateToBookings = hasAllAccess || access?.includes('frontoffice');
   const canCreateBooking = canNavigateToBookings && permissions.canCreate;
   const [expandedIndex, setExpandedIndex] = useState(0);
   const [startDate, setStartDate] = useState(todaysDate);
@@ -181,7 +180,9 @@ const RoomGridLayout = ({
         <Button
           component={canCreateBooking ? Link : 'button'}
           href={
-            canCreateBooking ? '/front-office/room-booking/create-new' : undefined
+            canCreateBooking
+              ? '/front-office/room-booking/create-new'
+              : undefined
           }
           variant="contained"
           startIcon={<AddIcon />}
@@ -380,7 +381,9 @@ const RoomGridLayout = ({
                                         ? 'pointer'
                                         : 'default',
                                       '&:hover': {
-                                        opacity: canNavigateToBookings ? 0.8 : 1,
+                                        opacity: canNavigateToBookings
+                                          ? 0.8
+                                          : 1,
                                       },
                                     }}
                                   />

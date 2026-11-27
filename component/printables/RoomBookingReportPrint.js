@@ -61,6 +61,8 @@ const RoomBookingReportPrint = React.forwardRef((props, ref) => {
                 'Booking ID',
                 'Guest',
                 'Meal Plan',
+                'Check-in Date',
+                'Check-out Date',
                 'Room No',
                 'Room Tokens',
                 'Services',
@@ -105,6 +107,8 @@ const RoomBookingReportPrint = React.forwardRef((props, ref) => {
                   <BodyCell>{row.booking_id}</BodyCell>
                   <BodyCell>{row.customer.name || 'N/A'}</BodyCell>
                   <BodyCell>{row.meal_plan || 'N/A'}</BodyCell>
+                  <BodyCell>{GetCustomDate(row.checkin_date) || 'N/A'}</BodyCell>
+                  <BodyCell>{GetCustomDate(row.checkout_date) || 'N/A'}</BodyCell>
                   <BodyCell>
                     {row.rooms.map((r) => r.room_no).join(', ')}
                   </BodyCell>
